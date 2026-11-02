@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="training-loop">
+<meta name="unit-level" content="u1">
+<title>The training loop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+svg.wide-text text { font-size: 14px; }
+svg .loop-box { fill: var(--surface); stroke: var(--accent); stroke-width: 1.5; }
+svg .loop-box.later { stroke-dasharray: 5 4; stroke: var(--ink-3); }
+svg a:hover .loop-box, svg a:focus .loop-box { fill: var(--accent-soft); }
+svg a text.loop-title { fill: var(--accent); font-weight: 600; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>The training loop</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min read</span> <span class="tag hub">overview</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="minibatches.html">Minibatches: a few examples per step</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+    <li><a href="gradient-descent.html">Gradient descent</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+    <li><a href="data-loaders.html">Data loaders: preparing examples in parallel</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="checkpoints.html">Checkpoints: saving training to resume it</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="validation-set.html">Held-out data: the validation set</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+    <li><a href="ema-weights.html">A moving average of the weights (EMA)</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+    <li><a href="mixed-precision.html">Mixed precision: 16-bit numbers (bf16)</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="backpropagation.html">Backpropagation: gradients by the chain rule</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+    <li><a href="automatic-gradients.html">Automatic gradients in PyTorch</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+    <li><a href="gradient-clipping.html">Gradient clipping</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">5 min</span></li>
+    <li><a href="adamw.html">AdamW: steps that adapt</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+    <li><a href="learning-rate-schedule.html">Learning-rate schedules: warm-up, decay</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>Training a neural network is one short cycle repeated many thousands of times: get a batch of examples,
+  compute the loss, compute the gradients, and take a step. A few more tasks ride along on a slower clock:
+  every so often, the loop checks the model on held-out data and saves its progress. This page walks one
+  cycle and links each part to the unit that explains it. Read it first for the map, or last to put the
+  pieces together.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="cycle">
+    <h2>Every step runs the same five parts</h2>
+    <ol>
+      <li><b>Get a batch.</b> A <a href="data-loaders.html">data loader</a> hands over the next
+      <a href="minibatches.html">minibatch</a>, already prepared by worker processes, often with random
+      changes such as rotations (<a href="data-augmentation.html">data augmentation</a>). The loop moves it to
+      the GPU (<a href="tensors-on-gpu.html">tensors on the GPU</a>).</li>
+      <li><b>Forward pass and loss.</b> The model turns the batch into predictions, and the
+      <a href="loss-function.html">loss</a> scores them with one number. The model's arithmetic often runs in
+      16-bit numbers to save time and memory (<a href="mixed-precision.html">mixed precision</a>). The loss
+      itself is usually kept in 32 bits.</li>
+      <li><b>Backward pass.</b> <a href="backpropagation.html">Backpropagation</a> computes the gradient of the
+      loss for every weight; in PyTorch, <code>loss.backward()</code> does it
+      (<a href="automatic-gradients.html">automatic gradients</a>). With
+      <a href="multi-gpu-training.html">several GPUs</a>, the GPUs average their gradients here.</li>
+      <li><b>Take a step.</b> <a href="gradient-clipping.html">Gradient clipping</a> shrinks the gradients if
+      they are unusually large. The optimizer, often <a href="adamw.html">AdamW</a>, updates the weights, a
+      refinement of plain <a href="gradient-descent.html">gradient descent</a>. The
+      <a href="learning-rate-schedule.html">learning-rate schedule</a> sets the step size for the next
+      step.</li>
+      <li><b>Update the averaged weights.</b> A slowly moving copy of the weights takes a small step toward
+      the new weights (<a href="ema-weights.html">a moving average of the weights</a>).</li>
+    </ol>
+    <p>And now and then, for example every 1,000 steps:</p>
+    <ol start="6">
+      <li><b>Check and save.</b> Measure the loss on the <a href="validation-set.html">validation set</a>,
+      which the model never trains on, and write a <a href="checkpoints.html">checkpoint</a> so that training
+      can resume after a stop.</li>
+    </ol>
+
+    <figure id="fig-loop">
+      <div class="fig-title">One cycle of the training loop; each box links to its unit</div>
+      <svg class="wide-text" width="420" height="400" viewBox="0 0 420 400" role="img"
+           aria-label="Five boxes in a column joined by arrows, with an arrow from the last back to the first, and a dashed sixth box for checking and saving now and then">
+        <defs>
+          <marker id="tl-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 z" fill="var(--ink-3)"/>
+          </marker>
+        </defs>
+        <g stroke="var(--ink-3)" stroke-width="1.5" fill="none">
+          <path d="M160 52 L160 66" marker-end="url(#tl-arrow)"/>
+          <path d="M160 114 L160 128" marker-end="url(#tl-arrow)"/>
+          <path d="M160 176 L160 190" marker-end="url(#tl-arrow)"/>
+          <path d="M160 238 L160 252" marker-end="url(#tl-arrow)"/>
+          <path d="M300 276 L340 276 L340 28 L304 28" marker-end="url(#tl-arrow)"/>
+          <path d="M160 300 L160 330" stroke-dasharray="4 4" marker-end="url(#tl-arrow)"/>
+        </g>
+        <text x="348" y="150" class="muted" transform="rotate(90 348 150)" text-anchor="middle">repeat, every step</text>
+        <a href="data-loaders.html">
+          <rect class="loop-box" x="20" y="6" width="280" height="46" rx="6"/>
+          <text class="loop-title" x="34" y="27">1. Get a batch</text>
+          <text class="muted" x="34" y="45" style="font-size:12px">data loader, minibatch</text>
+        </a>
+        <a href="loss-function.html">
+          <rect class="loop-box" x="20" y="68" width="280" height="46" rx="6"/>
+          <text class="loop-title" x="34" y="89">2. Forward pass and loss</text>
+          <text class="muted" x="34" y="107" style="font-size:12px">loss; the model often runs in bf16</text>
+        </a>
+        <a href="backpropagation.html">
+          <rect class="loop-box" x="20" y="130" width="280" height="46" rx="6"/>
+          <text class="loop-title" x="34" y="151">3. Backward pass: gradients</text>
+          <text class="muted" x="34" y="169" style="font-size:12px">averaged across GPUs</text>
+        </a>
+        <a href="adamw.html">
+          <rect class="loop-box" x="20" y="192" width="280" height="46" rx="6"/>
+          <text class="loop-title" x="34" y="213">4. Clip, step, schedule</text>
+          <text class="muted" x="34" y="231" style="font-size:12px">clipping, AdamW, learning rate</text>
+        </a>
+        <a href="ema-weights.html">
+          <rect class="loop-box" x="20" y="254" width="280" height="46" rx="6"/>
+          <text class="loop-title" x="34" y="275">5. Update the averaged weights</text>
+          <text class="muted" x="34" y="293" style="font-size:12px">EMA copy</text>
+        </a>
+        <a href="validation-set.html">
+          <rect class="loop-box later" x="20" y="332" width="280" height="46" rx="6"/>
+          <text class="loop-title" x="34" y="353">6. Now and then: check, save</text>
+          <text class="muted" x="34" y="371" style="font-size:12px">validation loss, checkpoint</text>
+        </a>
+      </svg>
+      <figcaption><b>What to notice.</b> Parts 1 to 5 run at every step, in this order. Part 6, dashed, runs
+      only every so often, because measuring a whole validation set and writing a large file take far longer
+      than one step.</figcaption>
+    </figure>
+  </section>
+
+  <section id="clocks">
+    <h2>Steps, epochs and checks run on different clocks</h2>
+    <p>One pass of parts 1 to 5 is a <dfn>step</dfn>. One pass through all the training examples is an
+    <a href="minibatches.html#epochs">epoch</a>. With 1,000 examples and batches of 50, an epoch is 20 steps,
+    and 10 epochs are 200 steps. Checks and saves are usually counted in steps: every 50 steps in the code
+    below, every few thousand in a long run.</p>
+  </section>
+
+  <section id="code">
+    <h2>All six parts fit in about 30 lines</h2>
+    <p>This PyTorch script trains a small network on made-up data on the CPU. The numbered comments match the
+    parts above. Each line is explained in the unit linked from its part.</p>
+    <p class="code-cap">loop.py</p>
+<pre><code class="py">import copy
+import torch
+from torch.utils.data import DataLoader, TensorDataset
+
+torch.manual_seed(0)
+x = torch.randn(1200, 8); y = x.sum(1, keepdim=True) + 0.1 * torch.randn(1200, 1)
+train_dl = DataLoader(TensorDataset(x[:1000], y[:1000]), batch_size=50, shuffle=True)
+val_x, val_y = x[1000:], y[1000:]                       # held out: never trained on
+
+model = torch.nn.Sequential(torch.nn.Linear(8, 32), torch.nn.ReLU(), torch.nn.Linear(32, 1))
+ema = copy.deepcopy(model)
+opt = torch.optim.AdamW(model.parameters(), lr=0.01)
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=200)
+
+step = 0
+for epoch in range(10):                                 # 20 batches per epoch
+    for xb, yb in train_dl:                             # 1. get a batch
+        with torch.autocast("cpu", dtype=torch.bfloat16):
+            loss = ((model(xb) - yb) ** 2).mean()       # 2. forward pass and loss
+        opt.zero_grad()
+        loss.backward()                                 # 3. gradients
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+        opt.step(); sched.step(); step += 1             # 4. step, schedule
+        with torch.no_grad():                           # 5. averaged copy
+            for pe, p in zip(ema.parameters(), model.parameters()):
+                pe.lerp_(p, 0.05)                       # beta = 0.95
+        if step % 50 == 0:                              # 6. now and then
+            with torch.no_grad():
+                val = ((ema(val_x) - val_y) ** 2).mean().item()
+            print(f"step {step}: train loss {loss.item():.3f}, validation loss {val:.3f}")
+            torch.save({"model": model.state_dict(), "ema": ema.state_dict(), "step": step,
+                        "optimizer": opt.state_dict(), "schedule": sched.state_dict()}, "ckpt.pt")
+</code></pre>
+<pre class="out"><code>step 50: train loss 0.067, validation loss 0.594
+step 100: train loss 0.027, validation loss 0.048
+step 150: train loss 0.027, validation loss 0.030
+step 200: train loss 0.019, validation loss 0.026</code></pre>
+    <p>The validation loss uses the averaged copy, because that is the model the run keeps. At step 50 it is
+    still high, because the copy averages over about the last 20 steps and lags behind the fast early
+    progress. (The trained weights alone score about 0.056 there.) By step 150 the copy has caught up.
+    <code>pe.lerp_(p, 0.05)</code> is the averaging rule with <var>β</var> = 0.95, written as "move 5% of the
+    way toward <code>p</code>".</p>
+
+    <div class="callout warn">
+      <span class="callout-title">This is a simplification</span>
+      <p>A real loop also logs its numbers and sets random seeds. Its checkpoints also save the state of the
+      random-number generators (see <a href="checkpoints.html">checkpoints</a>). It switches the model between
+      training and evaluation modes (<code>model.train()</code> and <code>model.eval()</code>), which matters for layers
+      that behave differently in each. On several GPUs it starts one process per GPU before the loop begins.
+      Inside the autocast block the model's output is bf16. Subtracting the float32 targets turns the result
+      into float32, so this loss is already computed in float32. Real code often makes that explicit by
+      computing the loss after the block.</p>
+    </div>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>A run has 60,000 training examples, a batch size of 100, and trains for 5 epochs. It validates every
+      500 steps. How many steps does it take, and how many times does it validate?</p>
+      <details><summary>Answer</summary><p>60,000 ÷ 100 = 600 steps per epoch, so 5 × 600 = 3,000 steps. It
+      validates at steps 500, 1,000, …, 3,000: 6 times.</p></details>
+    </li>
+    <li>
+      <p>Why does the loop validate only every 50 steps, not at every step?</p>
+      <details><summary>Answer</summary><p>Validation runs the model on a whole held-out set, which costs much
+      more than one step and teaches the model nothing. Checking now and then is enough to see the
+      trend.</p></details>
+    </li>
+    <li>
+      <p>In which part of the cycle do several GPUs need to talk to each other, and what do they share?</p>
+      <details><summary>Answer</summary><p>In part 3, during and right after the backward pass. They average their gradients,
+      so that every GPU takes the same step in part 4.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more depth.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://docs.pytorch.org/tutorials/beginner/basics/optimization_tutorial.html#optimization-loop">Optimizing model parameters: the optimization loop</a>
+        <span class="fl-src">PyTorch tutorials</span>
+        <span class="fl-format">Tutorial</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">The basic loop with a training pass and a test pass, without the extras covered
+      here.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://karpathy.github.io/2019/04/25/recipe/#2-set-up-the-end-to-end-trainingevaluation-skeleton--get-dumb-baselines">A Recipe for Training Neural Networks: set up the training and evaluation skeleton</a>
+        <span class="fl-src">Andrej Karpathy</span>
+        <span class="fl-format">Essay</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">Practical habits for building and checking a loop, such as first making it overfit a
+      single batch.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <p>No unit or explanation builds on this one yet.</p>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+</body>
+</html>

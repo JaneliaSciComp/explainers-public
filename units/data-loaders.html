@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="data-loaders">
+<meta name="unit-level" content="u1">
+<title>Data loaders: preparing examples in parallel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>svg.wide-text text { font-size: 14px; }</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Data loaders: preparing examples in parallel</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="minibatches.html">Minibatches: a few examples per step</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+    <li><a href="python-basics.html">Reading Python for this course</a> <span class="level-badge level-hs">High school</span> <span class="minutes">8 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>Before the GPU can train on a <a href="minibatches.html">minibatch</a>, the computer must prepare it:
+  read the examples from disk, change them (for example, rotate them at random), and stack them into one
+  array. That work runs on the CPU. If the training program does it itself, the GPU sits idle while it waits.
+  A data loader hands the work to several helper processes, called workers. They prepare the next batches
+  while the GPU trains on the current one, so a batch is ready whenever the GPU asks for it.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="parts">
+    <h2>A data loader turns a list of examples into a stream of batches</h2>
+    <p>A data loader needs three things:</p>
+    <ul>
+      <li>A <dfn>dataset</dfn>: an object that knows how many examples there are and can prepare example
+      number <var>i</var> on request.</li>
+      <li>An order: usually a new random shuffle each <a href="minibatches.html#epochs">epoch</a>.</li>
+      <li>A batch size: how many examples to stack into each batch. Stacking the examples into one array is
+      called <dfn>collating</dfn>.</li>
+    </ul>
+    <p>The snippet below builds all three in PyTorch. The dataset's two methods are the whole contract:
+    <code>__len__</code> says how many examples there are, and <code>__getitem__</code> prepares one. The
+    loader calls them for you. (<a href="python-basics.html">Reading Python</a> covers the
+    <code>class</code> syntax.)</p>
+
+    <p class="code-cap">loader.py</p>
+<pre><code class="py">import torch
+from torch.utils.data import Dataset, DataLoader
+
+class Squares(Dataset):
+    """Ten examples; example i is the pair (i, i*i)."""
+    def __len__(self):
+        return 10
+    def __getitem__(self, i):              # prepare one example
+        return torch.tensor([i, i * i], dtype=torch.float32)
+
+if __name__ == "__main__":
+    torch.manual_seed(0)
+    loader = DataLoader(Squares(), batch_size=4, shuffle=True, num_workers=2)
+    for epoch in range(2):
+        for batch in loader:
+            print(epoch, tuple(batch.shape), batch[:, 0].int().tolist())
+</code></pre>
+<pre class="out"><code>0 (4, 2) [6, 7, 1, 4]
+0 (4, 2) [2, 0, 9, 8]
+0 (2, 2) [3, 5]
+1 (4, 2) [2, 4, 7, 0]
+1 (4, 2) [8, 9, 5, 3]
+1 (2, 2) [6, 1]</code></pre>
+    <p>Each epoch visits all ten examples once, in a new order. The last batch is short, because 10 is not a
+    multiple of 4. <code>num_workers=2</code> starts two worker processes. A <dfn>process</dfn> is a separate
+    running program with its own memory, so each worker can run on its own CPU core at the same time as the
+    others. Some systems start each worker as a fresh Python that reads the file again. The
+    <code>if __name__ == "__main__":</code> line keeps such a worker from running the training code
+    too.</p>
+  </section>
+
+  <section id="timeline">
+    <h2>Too few workers leave the GPU waiting</h2>
+    <p>Each worker prepares a whole batch, then starts on another one. The training loop takes the batches
+    in order. If the workers together prepare batches more slowly than the GPU uses them, the GPU waits.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: how many workers?</span>
+      <p>Preparing one batch takes 300 ms of one CPU core. Training on one batch takes the GPU 100 ms.</p>
+      <ol>
+        <li><b>No workers.</b> The training program prepares each batch, then trains on it: 300 + 100 = 400 ms
+        per step. The GPU is busy 100 ms out of every 400 ms, or 25% of the time.</li>
+        <li><b>One worker.</b> It prepares the next batch while the GPU trains. A batch is ready every 300 ms,
+        so a step takes 300 ms. The GPU is busy 100 / 300 = 33% of the time.</li>
+        <li><b>Three workers.</b> Each makes a batch every 300 ms, so together they make one every
+        300 / 3 = 100 ms. That matches the GPU. It is now busy all the time: 10 steps per second.</li>
+        <li><b>Four workers.</b> Still 100 ms per step. The GPU is now the slowest part, so the extra worker
+        only adds batches to the waiting line.</li>
+      </ol>
+      <p>The rule: with <var>k</var> workers, a step takes the longer of the training time and the
+      preparation time divided by <var>k</var>. So you need about (preparation time) ÷ (training time)
+      workers.</p>
+      <p><b>Your turn.</b> Preparation takes 450 ms and training 150 ms. How many workers keep the GPU busy?
+      <span class="small">(Answer: 450 ÷ 150 = 3.)</span></p>
+    </div>
+
+    <p><b>Try it.</b> The timeline below starts with one worker. Predict how many workers you need for the
+    numbers in the worked example. Then move the slider until the blue training blocks touch with no gaps.
+    Then make preparation slower and find the new number.</p>
+
+    <figure id="fig-timeline">
+      <div class="fig-title">The first 2 seconds of training: who works when</div>
+      <div class="controls">
+        <label>Workers <input type="range" id="dl-k" min="0" max="6" step="1" value="1"> <output id="dl-k-out">1</output></label>
+        <label>Preparing one batch <input type="range" id="dl-load" min="100" max="600" step="50" value="300"> <output id="dl-load-out">300 ms</output></label>
+      </div>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--s2)"></i>preparing a batch (CPU)</span>
+        <span><i class="sw" style="background:var(--s1)"></i>training on a batch (GPU, 100 ms)</span>
+      </div>
+      <svg id="dl-svg" class="wide-text" style="width:100%" width="420" height="220" viewBox="0 0 420 220" role="img"
+           aria-label="A timeline with one row for the GPU and one row per worker; numbered blocks show which batch each one handles"></svg>
+      <p class="readout-box"><output id="dl-out">GPU busy time</output></p>
+      <figcaption><b>What to notice.</b> Each number is a batch. Gaps in the GPU row are time the GPU spends
+      waiting for data. Once there are enough workers, the GPU row has no gaps, and more workers change
+      nothing.</figcaption>
+    </figure>
+
+    <div class="callout warn">
+      <span class="callout-title">This is a simplification</span>
+      <p>The timeline gives every batch the same preparation time and ignores the time to copy a batch to the
+      GPU. Real loaders also limit how far ahead workers may run: PyTorch lets each worker hold two batches by
+      default. The CPU cores and memory set the real limit, because each worker is a separate process with its
+      own copy of the dataset object.</p>
+    </div>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>Preparing a batch takes 500 ms and training on it takes 100 ms. You use 2 workers. How long does a
+      step take, and what fraction of the time is the GPU busy?</p>
+      <details><summary>Answer</summary><p>The two workers make a batch every 500 / 2 = 250 ms. That is longer
+      than 100 ms, so a step takes 250 ms, and the GPU is busy 100 / 250 = 40% of the time. Five workers would
+      keep it busy.</p></details>
+    </li>
+    <li>
+      <p>You go from 8 workers to 16, and training gets no faster. What does that tell you?</p>
+      <details><summary>Answer</summary><p>The data is no longer the slow part. The GPU's own work, or
+      something else such as copying to the GPU, now sets the pace. Extra workers only use more CPU and
+      memory.</p></details>
+    </li>
+    <li>
+      <p>Why does the dataset in the snippet prepare one example in <code>__getitem__</code>, rather than one
+      batch?</p>
+      <details><summary>Answer</summary><p>So that the loader can choose the order and the batch size. It asks
+      for the examples it wants, in shuffled order, and collates them into a batch itself.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more depth.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://docs.pytorch.org/tutorials/beginner/basics/data_tutorial.html#creating-a-custom-dataset-for-your-files">Datasets and DataLoaders: creating a custom dataset</a>
+        <span class="fl-src">PyTorch tutorials</span>
+        <span class="fl-format">Tutorial</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Builds a dataset for image files with <code>__init__</code>, <code>__len__</code> and
+      <code>__getitem__</code>, then wraps it in a
+      loader.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://docs.pytorch.org/docs/2.15/data.html#multi-process-data-loading">torch.utils.data: multi-process data loading</a>
+        <span class="fl-src">PyTorch documentation</span>
+        <span class="fl-format">Reference</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">How workers start, how they get their random seeds, and the platform details this unit
+      leaves out.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="training-loop.html">The training loop</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  'use strict';
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.getElementById('dl-svg');
+  const kIn = document.getElementById('dl-k'), lIn = document.getElementById('dl-load');
+  const out = document.getElementById('dl-out');
+  if (!svg || !kIn || !lIn) return;
+  const el = (tag, attrs, parent) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  };
+  const TRAIN = 100, PREFETCH = 2;
+  // Simulate n batches. Returns load blocks [row, start, end, batch] and train blocks [start, end, batch].
+  function simulate(k, load, n) {
+    const loads = [], trains = [];
+    let gpuFree = 0;
+    if (k === 0) {                       // the training program prepares, then trains
+      for (let j = 0; j < n; j++) {
+        loads.push([0, gpuFree, gpuFree + load, j]);
+        trains.push([gpuFree + load, gpuFree + load + TRAIN, j]);
+        gpuFree += load + TRAIN;
+      }
+      return { loads, trains };
+    }
+    const workerFree = new Array(k).fill(0), ready = [], take = [];
+    for (let j = 0; j < n; j++) {
+      const w = j % k;                   // batches go to the workers in turn
+      // A worker may start batch j once batch j - PREFETCH*k has been taken by the training loop.
+      const slot = j >= PREFETCH * k ? take[j - PREFETCH * k] : 0;
+      const start = Math.max(workerFree[w], slot);
+      ready[j] = start + load;
+      workerFree[w] = ready[j];
+      loads.push([w, start, ready[j], j]);
+      take[j] = Math.max(ready[j], gpuFree);
+      trains.push([take[j], take[j] + TRAIN, j]);
+      gpuFree = take[j] + TRAIN;
+    }
+    return { loads, trains };
+  }
+  function draw() {
+    const k = Number(kIn.value), load = Number(lIn.value);
+    document.getElementById('dl-k-out').textContent = k;
+    document.getElementById('dl-load-out').textContent = load + ' ms';
+    // Draw at the figure's real width, so text keeps its size on a phone and the timeline uses a wide screen.
+    const W = Math.max(300, Math.min(760, Math.round(svg.getBoundingClientRect().width) || 420));
+    const rows = Math.max(1, k) + 1, H = 26, G = 8, top = 6, L = k === 0 ? 132 : 76, R = W - 8, T = 2000;
+    const height = top + rows * (H + G) + 30;
+    svg.setAttribute('viewBox', `0 0 ${W} ${height}`);
+    svg.setAttribute('width', W);
+    svg.setAttribute('height', height);
+    svg.textContent = '';
+    const x = t => L + t / T * (R - L);
+    const rowY = r => top + r * (H + G);
+    const clip = el('clipPath', { id: 'dl-clip' }, el('defs', {}, svg));
+    el('rect', { x: L, y: 0, width: R - L, height }, clip);
+    const names = ['GPU'].concat(k === 0 ? ['training program'] : Array.from({ length: k }, (_, i) => 'worker ' + (i + 1)));
+    names.forEach((nm, r) => {
+      el('rect', { x: L, y: rowY(r), width: R - L, height: H, fill: 'var(--bg)', stroke: 'var(--rule)' }, svg);
+      const t = el('text', { x: L - 6, y: rowY(r) + H / 2 + 5, 'text-anchor': 'end', class: r ? 'ink2' : '' }, svg);
+      t.textContent = nm;
+    });
+    const { loads, trains } = simulate(k, load, 400);
+    const g = el('g', { 'clip-path': 'url(#dl-clip)' }, svg);
+    const block = (r, s, e, j, color) => {
+      if (s > T) return;
+      el('rect', { x: x(s) + 0.5, y: rowY(r) + 2, width: Math.max(1, x(e) - x(s) - 1), height: H - 4, rx: 3, fill: color }, g);
+      if (x(Math.min(e, T)) - x(s) > 16) {
+        el('text', { x: (x(s) + x(Math.min(e, T))) / 2, y: rowY(r) + H / 2 + 5, 'text-anchor': 'middle', style: 'fill:#fff;font-size:12px' }, g).textContent = j + 1;
+      }
+    };
+    loads.forEach(([w, s, e, j]) => block(1 + w, s, e, j, 'var(--s2)'));
+    trains.forEach(([s, e, j]) => block(0, s, e, j, 'var(--s1)'));
+    const axY = rowY(rows) + 2;
+    for (let t = 0; t <= T; t += (W < 520 ? 1000 : 500)) {
+      el('line', { x1: x(t), x2: x(t), y1: axY - 4, y2: axY + 2, stroke: 'var(--ink-3)' }, svg);
+      el('text', { x: x(t), y: axY + 18, 'text-anchor': t === T ? 'end' : 'middle', class: 'muted' }, svg).textContent = t === T ? '2000 ms' : t;
+    }
+    // Steady state, measured between batch 200 and batch 399.
+    const per = (trains[399][0] - trains[199][0]) / 200;
+    const busy = Math.round(TRAIN / per * 100);
+    out.textContent = `${k} worker${k === 1 ? '' : 's'}, ${load} ms to prepare a batch: one step every ${Math.round(per)} ms ` +
+      `(${(1000 / per).toFixed(1)} steps per second). The GPU is busy ${busy}% of the time.`;
+  }
+  kIn.addEventListener('input', draw);
+  lIn.addEventListener('input', draw);
+  let lastW = 0;
+  window.addEventListener('resize', () => {
+    const w = Math.round(svg.getBoundingClientRect().width);
+    if (Math.abs(w - lastW) > 4) { lastW = w; draw(); }
+  });
+  draw();
+})();
+</script>
+</body>
+</html>

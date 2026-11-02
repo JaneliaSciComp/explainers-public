@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="rotation-matrices">
+<meta name="unit-level" content="hs">
+<title>Rotating points with a matrix</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Rotating points with a matrix</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-hs">High school</span> <span class="minutes">8 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="matrix-times-vector.html">Multiplying a matrix by a vector</a> <span class="level-badge level-hs">High school</span> <span class="minutes">8 min</span></li>
+    <li><a href="sine-waves.html">Sine waves</a> <span class="level-badge level-hs">High school</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>To turn a shape around the origin, multiply each of its points by a rotation matrix. The matrix for a turn by an
+  angle <var>θ</var> is built from the cosine and sine of that angle. Its columns are where the two axis arrows land
+  after the turn. A rotation keeps every distance and every angle, so the shape keeps its size and form. In 3D the
+  same idea works around an axis, and the axis stays fixed.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="build">
+    <h2>The columns are the turned axis arrows</h2>
+    <p>The <a href="matrix-times-vector.html#columns">matrix unit</a> showed that a matrix's columns tell you where
+    (1, 0) and (0, 1) land. So to build a turn, ask where a turn sends those two arrows.</p>
+    <p>Turn the arrow (1, 0) counterclockwise by an angle <var>θ</var> (the Greek letter theta). Its tip moves along a
+    circle of radius 1 and stops at (cos <var>θ</var>, sin <var>θ</var>). That is what <dfn>cosine</dfn> and
+    <dfn>sine</dfn> mean: the <var>x</var> and <var>y</var> of a point on that circle. The
+    <a href="sine-waves.html#circle">sine-waves unit</a> explains them. The arrow (0, 1) starts a quarter turn further
+    on than (1, 0), so it ends a quarter turn further on than (cos <var>θ</var>, sin <var>θ</var>). A quarter turn
+    counterclockwise sends any arrow (<var>a</var>, <var>b</var>) to (−<var>b</var>, <var>a</var>): multiply it by the
+    <a href="matrix-times-vector.html#columns">quarter-turn matrix</a> [[0, −1], [1, 0]] to see this. So (0, 1) lands
+    at (−sin <var>θ</var>, cos <var>θ</var>). Put the two landing spots in as columns:</p>
+    <p class="math"><b>R</b>(<var>θ</var>) = [[cos <var>θ</var>, −sin <var>θ</var>], [sin <var>θ</var>, cos <var>θ</var>]]</p>
+    <p>The inner brackets are the rows. This is the <dfn>rotation matrix</dfn>. Multiply any point by it and the point
+    turns by <var>θ</var> around the origin. A positive angle turns counterclockwise.</p>
+
+    <figure id="fig-rot">
+      <div class="fig-title">Every point turns by the same angle and keeps its distance from the origin</div>
+      <div class="controls">
+        <label>Angle <input id="rot-ang" type="range" min="0" max="360" step="5" value="30"> <output id="rot-oang">30°</output></label>
+      </div>
+      <div class="scroll-x">
+      <svg id="rot-svg" width="360" height="300" viewBox="0 0 360 300" role="img"
+           aria-label="A grey flag before the turn and a green flag after turning it by the chosen angle around the origin">
+        <g id="rot-grid"></g>
+        <circle id="rot-path" style="fill:none;stroke:var(--ink-3);stroke-dasharray:3 4"/>
+        <polygon id="rot-before" style="fill:var(--ink-3);fill-opacity:0.18;stroke:var(--ink-3);stroke-dasharray:4 3"/>
+        <polygon id="rot-after" style="fill:var(--s3);fill-opacity:0.3;stroke:var(--s3);stroke-width:2"/>
+        <circle id="rot-tip0" r="4" style="fill:var(--ink-3)"/>
+        <circle id="rot-tip" r="5" style="fill:var(--s2)"/>
+      </svg>
+      </div>
+      <div class="readout-box">
+        <output id="rot-mat">R = [[0.866, −0.500], [0.500, 0.866]]</output><br>
+        The orange tip (0, 2) lands at <output id="rot-otip">(−1.000, 1.732)</output>.
+      </div>
+      <figcaption><b>Try this.</b> The orange dot is the top of the flag's pole, (0, 2). It moves along the dashed
+      circle, so its distance from the origin stays 2. Predict the angle at which the pole points straight left, and
+      what the matrix is then. Slide to check.</figcaption>
+    </figure>
+
+    <div class="example">
+      <span class="example-title">Worked example</span>
+      <p>Turn the point (3, 4) by 90°.</p>
+      <ol>
+        <li>cos 90° = 0 and sin 90° = 1, so <b>R</b> = [[0, −1], [1, 0]].</li>
+        <li>Row 1 dotted with (3, 4): 0 × 3 + (−1) × 4 = −4.</li>
+        <li>Row 2 dotted with (3, 4): 1 × 3 + 0 × 4 = 3.</li>
+        <li>The point lands at (−4, 3). Its distance from the origin was √(9 + 16) = 5, and it is still
+        √(16 + 9) = 5.</li>
+      </ol>
+      <p><b>Your turn.</b> Turn (2, 0) by 60°. Use cos 60° = 0.5 and sin 60° ≈ 0.866.</p>
+      <details><summary>Answer</summary><p>Row 1: 0.5 × 2 + (−0.866) × 0 = 1. Row 2: 0.866 × 2 + 0.5 × 0 = 1.732.
+      The point lands at (1, 1.732), still 2 from the origin.</p></details>
+    </div>
+  </section>
+
+  <section id="three-d">
+    <h2>In 3D, a rotation turns around an axis</h2>
+    <p>In 3D, a turn happens around a line called the <dfn>axis</dfn>. Points on the axis stay put. To turn around the
+    <var>z</var>-axis, which points straight up, use the 2D matrix for <var>x</var> and <var>y</var> and leave
+    <var>z</var> alone:</p>
+    <p class="math"><b>R</b><sub><var>z</var></sub>(<var>θ</var>) = [[cos <var>θ</var>, −sin <var>θ</var>, 0], [sin <var>θ</var>, cos <var>θ</var>, 0], [0, 0, 1]]</p>
+    <p>A point's height does not change; only its position around the axis does. Matrices for turns around the
+    <var>x</var>- and <var>y</var>-axes have the same shape, with the 1 in a different place. For the
+    <var>y</var>-axis the two sines also swap signs:</p>
+    <p class="math"><b>R</b><sub><var>y</var></sub>(<var>θ</var>) = [[cos <var>θ</var>, 0, sin <var>θ</var>], [0, 1, 0], [−sin <var>θ</var>, 0, cos <var>θ</var>]]</p>
+    <p>Programs that need a shape in many random orientations make one of these matrices from a random angle and
+    multiply every point by it.</p>
+
+    <div class="callout warn">
+      <span class="callout-title">This is a simplification</span>
+      <p>Three details are hidden here. First, the sign convention: some fields measure angles clockwise, which swaps
+      the signs of the sines. Second, in 3D the order of turns matters: turning around <var>x</var> then <var>z</var>
+      gives a different result from <var>z</var> then <var>x</var>. Third, code that stores points as rows of a
+      table writes <code>points @ R.T</code> rather than <code>R @ point</code>.</p>
+    </div>
+
+    <p class="code-cap">rot.py: NumPy's <code>sin</code> and <code>cos</code> take radians, so convert degrees first</p>
+<pre><code class="py">import numpy as np
+
+def rotation(degrees):
+    t = np.radians(degrees)
+    return np.array([[np.cos(t), -np.sin(t)],
+                     [np.sin(t),  np.cos(t)]])
+
+R = rotation(90)
+p = np.array([3.0, 4.0])
+q = R @ p
+print(np.round(q, 6))
+print(np.linalg.norm(p), np.linalg.norm(q))   # same length
+
+print(np.round(rotation(30) @ np.array([1.0, 0.0]), 3))
+</code></pre>
+<pre class="out">[-4.  3.]
+5.0 5.0
+[0.866 0.5  ]</pre>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>Write the rotation matrix for 180°. What does it do to (2, 5)?</p>
+      <details><summary>Answer</summary><p>cos 180° = −1 and sin 180° = 0, so <b>R</b> = [[−1, 0], [0, −1]]. It
+      sends (2, 5) to (−2, −5): every point goes to the opposite side of the origin.</p></details>
+    </li>
+    <li>
+      <p>You turn a shape by 40° and then by −40°. Where does it end up?</p>
+      <details><summary>Answer</summary><p>Where it started. The second turn undoes the first.</p></details>
+    </li>
+    <li>
+      <p>You turn the 3D point (1, 0, 7) by 90° around the <var>z</var>-axis. Where does it land?</p>
+      <details><summary>Answer</summary><p>(0, 1, 7). The <var>x</var> and <var>y</var> turn as in 2D, and the height
+      7 stays the same.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://en.wikipedia.org/wiki/Rotation_matrix#In_two_dimensions">Rotation matrix: in two dimensions</a>
+        <span class="fl-src">Wikipedia</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">The 2D formula with its sign conventions; the next section, "In three dimensions," lists the
+      three basic 3D turns.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://www.3blue1brown.com/lessons/3d-transformations/">Three-dimensional linear transformations</a>
+        <span class="fl-src">3Blue1Brown, Essence of linear algebra, chapter 5</span>
+        <span class="fl-format">Video</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">A short animation of matrices that turn 3D space, with the "columns are the landing spots" picture.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="data-augmentation.html">Data augmentation: new views of an example</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const svg = document.getElementById('rot-svg');
+  if (!svg) return;
+  const U = 40, OX = 180, OY = 150, X0 = -4, X1 = 4, Y0 = -3, Y1 = 3;
+  const sx = x => OX + U * x, sy = y => OY - U * y;
+  const NS = 'http://www.w3.org/2000/svg', $ = id => document.getElementById(id);
+  const g = $('rot-grid');
+  const mk = (x1, y1, x2, y2, style) => {
+    const l = document.createElementNS(NS, 'line');
+    l.setAttribute('x1', x1); l.setAttribute('y1', y1); l.setAttribute('x2', x2); l.setAttribute('y2', y2);
+    l.setAttribute('style', style); g.appendChild(l);
+  };
+  for (let x = X0; x <= X1; x++) mk(sx(x), sy(Y0 - 0.5), sx(x), sy(Y1 + 0.5), x === 0 ? 'stroke:var(--ink-3)' : 'stroke:var(--rule)');
+  for (let y = Y0; y <= Y1; y++) mk(sx(X0), sy(y), sx(X1), sy(y), y === 0 ? 'stroke:var(--ink-3)' : 'stroke:var(--rule)');
+  const flag = [[0, 0], [0, 2], [1.4, 2], [1, 1.5], [1.4, 1], [0.15, 1], [0.15, 0]];
+  const pts = ps => ps.map(p => sx(p[0]) + ',' + sy(p[1])).join(' ');
+  const f = v => { const r = Math.abs(v) < 5e-4 ? 0 : v; return r.toFixed(3).replace('-', '−'); };
+  $('rot-before').setAttribute('points', pts(flag));
+  const path = $('rot-path'); path.setAttribute('cx', sx(0)); path.setAttribute('cy', sy(0)); path.setAttribute('r', 2 * U);
+  $('rot-tip0').setAttribute('cx', sx(0)); $('rot-tip0').setAttribute('cy', sy(2));
+  function draw() {
+    const deg = Number($('rot-ang').value), t = deg * Math.PI / 180, c = Math.cos(t), s = Math.sin(t);
+    const R = p => [c * p[0] - s * p[1], s * p[0] + c * p[1]];
+    $('rot-after').setAttribute('points', pts(flag.map(R)));
+    const tip = R([0, 2]);
+    $('rot-tip').setAttribute('cx', sx(tip[0])); $('rot-tip').setAttribute('cy', sy(tip[1]));
+    $('rot-oang').textContent = deg + '°';
+    $('rot-mat').textContent = 'R = [[' + f(c) + ', ' + f(-s) + '], [' + f(s) + ', ' + f(c) + ']]';
+    $('rot-otip').textContent = '(' + f(tip[0]) + ', ' + f(tip[1]) + ')';
+  }
+  $('rot-ang').addEventListener('input', draw);
+  draw();
+})();
+</script>
+</body>
+</html>

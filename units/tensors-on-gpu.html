@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="tensors-on-gpu">
+<meta name="unit-level" content="u1">
+<title>PyTorch tensors on the GPU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>PyTorch tensors on the GPU</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="numpy-arrays.html">Arrays in NumPy</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">9 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A PyTorch <em>tensor</em> is an array, like a NumPy array, with one more property: the <em>device</em> it lives on.
+  On the CPU, the computer's main processor, it works much like NumPy. On a GPU, a graphics card, thousands of simple
+  cores apply the same step to thousands of numbers at once. The catch is that the GPU has its own memory. Data must be
+  copied there before the work and copied back after it, and that copy is slow compared with the work. So programs
+  move data to the GPU once and do many steps there.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+
+  <section id="tensor">
+    <h2>A tensor is an array that knows which device holds it</h2>
+    <p>PyTorch is a Python library for machine learning. Its array type is the <dfn>tensor</dfn>. A tensor has a shape and
+    a dtype, just like a <a href="numpy-arrays.html">NumPy array</a>, and most NumPy operations have a PyTorch twin. It
+    also has a <dfn>device</dfn>: <code>cpu</code>, or <code>cuda</code> for an NVIDIA GPU. CUDA is NVIDIA's system for
+    running general programs on its graphics cards.</p>
+    <p>The method <code>.to(device)</code> returns a copy of the tensor on that device. <code>.cpu()</code> copies it back,
+    and <code>.numpy()</code> turns a CPU tensor into a NumPy array. Before you read the output below, predict the two
+    dtypes on the first line.</p>
+    <p class="code-cap">tensor.py</p>
+<pre><code class="py">import numpy as np
+import torch
+
+a = np.array([[0.0, 0.0, 0.0], [2.0, 4.0, 0.0]])
+x = torch.from_numpy(a)                 # from a NumPy array
+y = torch.tensor([[1.0, 2.0, 3.0]])     # from a Python list
+print(x.dtype, y.dtype)
+print(x.shape, x.device)
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+x = x.float().to(device)                # a float32 copy on the GPU, if there is one
+z = x * 10                              # runs where x lives
+print(z.device)
+print(z.cpu().numpy())                  # copy back to the CPU, then to NumPy
+</code></pre>
+<pre class="out"><code>torch.float64 torch.float32
+torch.Size([2, 3]) cpu
+cpu
+[[ 0.  0.  0.]
+ [20. 40.  0.]]</code></pre>
+    <p>NumPy makes 64-bit decimals by default, and <code>torch.from_numpy</code> keeps that type. PyTorch makes 32-bit
+    decimals, <code>float32</code>, by default. Neural networks almost always use <code>float32</code> or smaller types,
+    because GPUs handle them much faster. <code>.float()</code> converts to <code>float32</code>.</p>
+    <p>The second line of output prints the device before the move, so it says <code>cpu</code> on any computer. The
+    output above came from a computer without a GPU, so <code>z</code> stayed on the CPU too, and the third line says
+    <code>cpu</code>. On a computer with a GPU, the third line says <code>cuda:0</code>, the first GPU. Every other line
+    stays the same.</p>
+  </section>
+
+  <section id="gpu">
+    <h2>A GPU applies one step to thousands of numbers at once</h2>
+    <p>A CPU has a few powerful <dfn>cores</dfn>, the parts that carry out instructions. A desktop CPU typically has from 4 to
+    24. Each core can follow its own complicated program. A GPU has thousands of simpler cores that work in groups, all
+    doing the same step on different numbers. Adding 1 to a million numbers is exactly that kind of job, and so are most
+    steps of a neural network.</p>
+
+    <figure id="fig-devices">
+      <div class="fig-title">Two processors, two memories, and a narrow link between them</div>
+      <div class="scroll-x">
+      <svg width="600" height="240" viewBox="0 0 600 240" style="min-width:460px" role="img" aria-label="Left: a CPU box with 8 large cores above a box labeled main memory. Right: a GPU box with hundreds of tiny cores above a box labeled GPU memory. A double arrow between the two memories is labeled 'copy over the PCIe bus: slow'.">
+        <rect x="10" y="10" width="220" height="130" rx="6" fill="var(--surface)" stroke="var(--ink-3)"/>
+        <text x="20" y="30" style="font-weight:600">CPU</text>
+        <text x="220" y="30" text-anchor="end" class="muted">a few strong cores</text>
+        <g id="cpu-cores"></g>
+        <rect x="10" y="160" width="220" height="56" rx="6" fill="var(--bg)" stroke="var(--ink-3)"/>
+        <text x="120" y="193" text-anchor="middle">main memory (RAM)</text>
+        <rect x="370" y="10" width="220" height="130" rx="6" fill="var(--surface)" stroke="var(--ink-3)"/>
+        <text x="380" y="30" style="font-weight:600">GPU</text>
+        <text x="580" y="30" text-anchor="end" class="muted">thousands of simple cores</text>
+        <g id="gpu-cores"></g>
+        <rect x="370" y="160" width="220" height="56" rx="6" fill="var(--bg)" stroke="var(--ink-3)"/>
+        <text x="480" y="193" text-anchor="middle">GPU memory</text>
+        <path d="M240 188 H360" stroke="var(--s2)" stroke-width="3"/>
+        <path d="M248 181 l-9 7 l9 7 M352 181 l9 7 l-9 7" fill="none" stroke="var(--s2)" stroke-width="3"/>
+        <text x="300" y="176" text-anchor="middle" style="fill:var(--s2);font-weight:600">copy: slow</text>
+        <text x="300" y="210" text-anchor="middle" class="muted">PCIe bus</text>
+        <path d="M120 140 V160 M480 140 V160" stroke="var(--ink-3)" stroke-width="6"/>
+      </svg>
+      </div>
+      <figcaption><b>Each processor reads its own memory fast.</b> Moving data across the link between them is much
+      slower, so a tensor stays on one device while it is worked on.</figcaption>
+    </figure>
+
+    <p>Every tensor in one operation must be on the same device. If <code>x</code> is on the GPU and <code>y</code> is on
+    the CPU, <code>x + y</code> stops with an error that says all tensors were expected to be on the same device. The fix
+    is to move one of them with <code>.to(...)</code>.</p>
+  </section>
+
+  <section id="copy-cost">
+    <h2>The copy can take longer than the work</h2>
+    <div class="example">
+      <span class="example-title">Worked example: is one step worth a trip to the GPU?</span>
+      <p>Take a million 3D points as <code>float32</code>, and add 1 to each number.</p>
+      <ol>
+        <li>Size: 1,000,000 points × 3 numbers × 4 bytes = 12,000,000 bytes, or 12 MB.</li>
+        <li>Copy to the GPU: a PCIe 4.0 link moves roughly 25 GB per second in practice. 12 MB ÷ 25 GB/s ≈ 0.5 ms.</li>
+        <li>Work on the GPU: the step reads 12 MB and writes 12 MB. An NVIDIA A100 GPU's memory is rated at 1,555 GB per
+        second or more, and newer GPUs are faster. 24 MB ÷ 1,500 GB/s ≈ 0.016 ms.</li>
+        <li>Copy back: another 0.5 ms.</li>
+        <li>Work on the CPU instead, with no copies: on the computer that ran this page's snippets, one CPU core did the
+        same step in about 0.4 ms.</li>
+      </ol>
+      <p>The GPU route costs about 1 ms, almost all of it copying. The CPU does the whole step in less than half that
+      time. For one step, the GPU is not worth it. For a neural network that does thousands of steps on the same data, it
+      is.</p>
+    </div>
+    <p class="code-cap">size.py</p>
+<pre><code class="py">import torch
+
+clouds = torch.zeros(8, 2048, 3)        # 8 point clouds, 2048 points each
+print(clouds.shape, clouds.dtype)
+print(clouds.nelement(), "numbers of", clouds.element_size(), "bytes each")
+print(clouds.nelement() * clouds.element_size() / 1e6, "MB")
+</code></pre>
+<pre class="out"><code>torch.Size([8, 2048, 3]) torch.float32
+49152 numbers of 4 bytes each
+0.196608 MB</code></pre>
+
+    <figure id="fig-race">
+      <div class="fig-title">A race: 256 numbers, several steps each</div>
+      <p class="small" style="margin-top:0">The CPU here does 8 numbers per tick. The GPU does all 256 per tick, but each
+      copy takes 40 ticks. At 1 step, which finishes first? Predict, press Run, then drag the slider until the GPU
+      wins.</p>
+      <div class="controls">
+        <label>Steps on the same numbers <input type="range" id="race-steps" min="1" max="8" value="1"> <output id="race-steps-out">1</output></label>
+        <button class="btn" type="button" id="race-run">Run</button>
+      </div>
+      <canvas id="race" width="600" height="250" style="width:100%;max-width:600px" aria-label="Two grids of 256 cells fill as the CPU and the GPU work. The GPU grid fills only after a copy bar completes."></canvas>
+      <div class="readout-box"><output id="race-out">Press Run.</output></div>
+      <figcaption><b>Made-up speeds, real shape.</b> Total ticks are CPU = 32 × steps and GPU = 40 + steps + 40. The GPU
+      wins once there are enough steps to pay for the two copies.</figcaption>
+    </figure>
+
+    <div class="callout warn">
+      <span class="callout-title">These numbers are rough</span>
+      <p>Link and memory speeds vary several times between machines, and the race uses invented speeds. A PCIe 4.0 link
+      is rated at about 32 GB per second each way and reaches about 25 GB per second in practice. A PCIe 5.0 link doubles
+      both. Copies from ordinary memory, rather than memory set aside for copying, are often slower. CPUs also do some
+      work in parallel: each core can apply one instruction to several numbers. The shape of the trade-off holds: copying
+      is slow, and a GPU pays off when it does many steps per copy.</p>
+    </div>
+    <div class="callout warn">
+      <span class="callout-title">GPU work runs in the background</span>
+      <p>PyTorch hands GPU work to a queue and returns at once, before the work is done. A Python timer around a GPU step
+      therefore measures almost nothing. Call <code>torch.cuda.synchronize()</code>, which waits for the queue to empty,
+      before you read the clock. Copying a result back with <code>.cpu()</code> or <code>.item()</code> also waits.</p>
+    </div>
+  </section>
+
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>A model's weights are on the GPU. You call it on a tensor <code>batch</code> made with
+      <code>torch.from_numpy</code>. It fails with a device error. What one change fixes it, and what second problem might
+      remain?</p>
+      <details><summary>Answer</summary><p>Move the input: <code>batch = batch.to("cuda")</code>. The tensor may also still
+      be <code>float64</code>, while the weights are <code>float32</code>. Use <code>batch.float().to("cuda")</code>.</p></details>
+    </li>
+    <li>
+      <p>How many megabytes does a <code>float32</code> tensor of shape <code>(16, 4096, 3)</code> take?</p>
+      <details><summary>Answer</summary><p>16 × 4096 × 3 = 196,608 numbers, times 4 bytes = 786,432 bytes, or about
+      0.79 MB.</p></details>
+    </li>
+    <li>
+      <p>In the race, with 3 steps, how many ticks does each side take, and who wins?</p>
+      <details><summary>Answer</summary><p>CPU: 32 × 3 = 96 ticks. GPU: 40 + 3 + 40 = 83 ticks. The GPU wins. At 2
+      steps the CPU wins, 64 to 82.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://docs.pytorch.org/tutorials/beginner/basics/tensorqs_tutorial.html#operations-on-tensors">Tensors: Operations on Tensors</a>
+        <span class="fl-src">PyTorch tutorials</span>
+        <span class="fl-format">Tutorial</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">The official introduction. This part shows moving a tensor to a GPU; the part before it lists a
+      tensor's shape, dtype and device.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://docs.pytorch.org/docs/2.15/notes/cuda.html#asynchronous-execution">CUDA semantics: Asynchronous execution</a>
+        <span class="fl-src">PyTorch documentation</span>
+        <span class="fl-format">Reference</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">Why GPU work runs in the background, and how to time it correctly.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="automatic-gradients.html">Automatic gradients in PyTorch</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+    <li><a href="mixed-precision.html">Mixed precision: 16-bit numbers (bf16)</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="multi-gpu-training.html">Training on several GPUs at once</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  'use strict';
+  const NS = 'http://www.w3.org/2000/svg';
+  // ---- cores in the static figure
+  const cpu = document.getElementById('cpu-cores');
+  for (let i = 0; i < 8; i++) {
+    const r = document.createElementNS(NS, 'rect');
+    r.setAttribute('x', 22 + (i % 4) * 50); r.setAttribute('y', 44 + Math.floor(i / 4) * 46);
+    r.setAttribute('width', 40); r.setAttribute('height', 38); r.setAttribute('rx', 3);
+    r.setAttribute('class', 'f-s1'); r.setAttribute('fill-opacity', '0.7');
+    cpu.appendChild(r);
+  }
+  const gpu = document.getElementById('gpu-cores');
+  for (let i = 0; i < 24 * 10; i++) {
+    const r = document.createElementNS(NS, 'rect');
+    r.setAttribute('x', 381 + (i % 24) * 8.3); r.setAttribute('y', 44 + Math.floor(i / 24) * 8.6);
+    r.setAttribute('width', 6); r.setAttribute('height', 6.4);
+    r.setAttribute('class', 'f-s3'); r.setAttribute('fill-opacity', '0.75');
+    gpu.appendChild(r);
+  }
+
+  // ---- the race
+  const cv = document.getElementById('race'), ctx = cv.getContext('2d');
+  const slider = document.getElementById('race-steps'), sOut = document.getElementById('race-steps-out');
+  const out = document.getElementById('race-out'), runBtn = document.getElementById('race-run');
+  const N = 256, CPU_RATE = 8, COPY = 40;
+  let t = 0, timer = null;
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const steps = () => Number(slider.value);
+  const cpuTotal = () => 32 * steps(), gpuTotal = () => 2 * COPY + steps();
+  function grid(x0, y0, doneFn, color) {
+    const s = 12;
+    for (let i = 0; i < N; i++) {
+      const x = x0 + (i % 16) * s, y = y0 + Math.floor(i / 16) * s;
+      const d = doneFn(i);
+      ctx.fillStyle = css('--bg'); ctx.fillRect(x, y, s - 2, s - 2);
+      if (d > 0) { ctx.globalAlpha = 0.25 + 0.75 * d; ctx.fillStyle = color; ctx.fillRect(x, y, s - 2, s - 2); ctx.globalAlpha = 1; }
+    }
+  }
+  function draw() {
+    const W = cv.width, H = cv.height, k = steps();
+    ctx.clearRect(0, 0, W, H);
+    ctx.font = '13px ' + css('--font-body');
+    ctx.fillStyle = css('--ink');
+    // CPU: 8 numbers per tick, one step at a time over all numbers
+    const cpuDone = Math.min(t, cpuTotal()) * CPU_RATE;   // number-steps done
+    ctx.fillText('CPU', 20, 18);
+    grid(20, 28, i => { const full = Math.floor(cpuDone / N), rem = cpuDone % N; return Math.min(1, (full + (i < rem ? 1 : 0)) / k); }, css('--s1'));
+    // GPU: copy in, k ticks of work, copy out
+    ctx.fillStyle = css('--ink');
+    ctx.fillText('GPU', 320, 18);
+    const work = Math.max(0, Math.min(k, t - COPY));
+    grid(320, 28, () => work / k, css('--s3'));
+    // copy bars
+    const barY = 218;
+    ctx.fillStyle = css('--ink-2'); ctx.fillText('copy in', 520, 40); ctx.fillText('copy out', 520, 110);
+    const cin = Math.min(1, t / COPY), cout = Math.max(0, Math.min(1, (t - COPY - k) / COPY));
+    [[cin, 50], [cout, 120]].forEach(([f, y]) => {
+      ctx.fillStyle = css('--rule'); ctx.fillRect(520, y, 70, 10);
+      ctx.fillStyle = css('--s2'); ctx.fillRect(520, y, 70 * f, 10);
+    });
+    // finish labels
+    ctx.fillStyle = css('--ink');
+    const cf = t >= cpuTotal(), gf = t >= gpuTotal();
+    if (t === 0) { ctx.fillText('ready', 20, barY + 25); ctx.fillText('ready', 320, barY + 25); return; }
+    ctx.fillText(cf ? 'done at tick ' + cpuTotal() : 'working…', 20, barY + 25);
+    ctx.fillText(gf ? 'done at tick ' + gpuTotal() : (t < COPY ? 'copying in…' : t < COPY + k ? 'working…' : 'copying out…'), 320, barY + 25);
+  }
+  function report() {
+    const c = cpuTotal(), g = gpuTotal();
+    out.textContent = 'Tick ' + Math.min(t, Math.max(c, g)) + '. CPU needs ' + c + ' ticks; GPU needs ' + g + ' ticks. ' +
+      (t >= Math.max(c, g) ? (c < g ? 'The CPU wins: the copies cost more than the work.' : c > g ? 'The GPU wins: enough steps to pay for the copies.' : 'A tie.') : '');
+  }
+  function run() {
+    clearInterval(timer);
+    t = 0;
+    const end = Math.max(cpuTotal(), gpuTotal());
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { t = end; draw(); report(); return; }
+    timer = setInterval(() => { t += 1; draw(); report(); if (t >= end) clearInterval(timer); }, 25);
+  }
+  slider.addEventListener('input', () => { sOut.textContent = slider.value; clearInterval(timer); t = 0; draw(); out.textContent = 'Press Run.'; });
+  runBtn.addEventListener('click', run);
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', draw);
+  draw();
+})();
+</script>
+</body>
+</html>

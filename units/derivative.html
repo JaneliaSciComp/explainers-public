@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="derivative">
+<meta name="unit-level" content="hs">
+<title>The derivative: slope at a point</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>The derivative: slope at a point</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-hs">High school</span> <span class="minutes">8 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Before you start</h2>
+  <p>You need nothing else first. This unit starts from scratch.</p>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>The derivative tells you how fast something changes at one moment. A car's speedometer shows it: the rate at
+  which the distance traveled is growing right now. On a graph, the derivative is the slope of the curve at one
+  point, the steepness of the straight line that just touches the curve there. You find it by measuring the slope
+  over a smaller and smaller step and seeing what number it settles on.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="average">
+    <h2>Average speed over a shorter and shorter time becomes the speed now</h2>
+    <p>A car starts from rest and speeds up. After <var>t</var> seconds it has gone <var>t</var><sup>2</sup> meters:
+    1 meter after 1 second, 4 after 2, 9 after 3, 16 after 4. How fast is it going at exactly 3 seconds?</p>
+    <p>An average is easy. Between 3 and 4 seconds it went 16 − 9 = 7 meters, so it averaged 7 meters per second. But
+    it was speeding up the whole time, so 7 is too high for the moment <var>t</var> = 3. Take a shorter step and the
+    average gets closer to the true speed at that moment.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example</span>
+      <p>Speed at <var>t</var> = 3, for the distance <var>f</var>(<var>t</var>) = <var>t</var><sup>2</sup>. Use a step
+      of length <var>h</var>, and compute the change in distance divided by the change in time.</p>
+      <div class="table-wrap">
+      <table>
+        <tr><th>Step <var>h</var></th><th>Distance at 3 + <var>h</var></th><th>Change</th><th class="r">Average speed</th></tr>
+        <tr><td>1</td><td>4<sup>2</sup> = 16</td><td>16 − 9 = 7</td><td class="r">7 / 1 = 7</td></tr>
+        <tr><td>0.1</td><td>3.1<sup>2</sup> = 9.61</td><td>0.61</td><td class="r">0.61 / 0.1 = 6.1</td></tr>
+        <tr><td>0.01</td><td>3.01<sup>2</sup> = 9.0601</td><td>0.0601</td><td class="r">0.0601 / 0.01 = 6.01</td></tr>
+      </table>
+      </div>
+      <p>The averages settle on 6. So at exactly 3 seconds the car moves at 6 meters per second. Algebra shows why:
+      ((3 + <var>h</var>)<sup>2</sup> − 9) / <var>h</var> = (6<var>h</var> + <var>h</var><sup>2</sup>) / <var>h</var>
+      = 6 + <var>h</var>, which becomes 6 as <var>h</var> shrinks to nothing.</p>
+      <p><b>Your turn.</b> Use the same method to find the speed at <var>t</var> = 1.</p>
+      <details><summary>Answer</summary><p>((1 + <var>h</var>)<sup>2</sup> − 1) / <var>h</var> = 2 + <var>h</var>,
+      which settles on 2 meters per second.</p></details>
+    </div>
+  </section>
+
+  <section id="slope">
+    <h2>On a graph, the derivative is the slope of the touching line</h2>
+    <p>The <dfn>slope</dfn> of a straight line is how much it rises for each step to the right: rise divided by run.
+    The average speed above is the slope of a line through two points of the curve, called a <dfn>secant</dfn>. As the
+    step shrinks, the second point slides toward the first. The line then turns into the <dfn>tangent</dfn>: the line
+    that just touches the curve at that one point. The <dfn>derivative</dfn> is the slope of the tangent.</p>
+    <p>For <var>f</var>(<var>x</var>) = <var>x</var><sup>2</sup>, the same algebra at any point <var>x</var> gives a
+    slope of 2<var>x</var>. People write this as <var>f</var>′(<var>x</var>) = 2<var>x</var> (say "<var>f</var>
+    prime") or as d<var>f</var>/d<var>x</var>, "a tiny change in <var>f</var> per tiny change in <var>x</var>."</p>
+
+    <figure id="fig-tangent">
+      <div class="fig-title">The secant line turns into the tangent as the step shrinks</div>
+      <div class="controls">
+        <label>Point <var>x</var> <input id="der-x" type="range" min="-1.5" max="2.5" step="0.1" value="1.5"> <output id="der-ox">1.5</output></label>
+        <label>Step <var>h</var> <input id="der-h" type="range" min="0" max="1.5" step="0.05" value="1"> <output id="der-oh">1</output></label>
+      </div>
+      <div class="scroll-x">
+      <svg id="der-svg" width="380" height="300" viewBox="0 0 380 300" role="img"
+           aria-label="The curve y equals x squared, with a secant line through two of its points and the tangent line at the first point">
+        <defs><clipPath id="der-clip"><rect x="40" y="12" width="330" height="276"/></clipPath></defs>
+        <g id="der-grid"></g>
+        <path id="der-curve" clip-path="url(#der-clip)" style="fill:none;stroke:var(--ink);stroke-width:2.5"/>
+        <line id="der-tan" clip-path="url(#der-clip)" style="stroke:var(--s3);stroke-width:2.5"/>
+        <line id="der-sec" clip-path="url(#der-clip)" style="stroke:var(--s2);stroke-width:2;stroke-dasharray:6 4"/>
+        <circle id="der-p" r="5.5" style="fill:var(--s3)"/>
+        <circle id="der-q" r="4.5" style="fill:var(--s2)"/>
+        <text x="300" y="34" class="muted">y = x²</text>
+      </svg>
+      </div>
+      <div class="readout-box">
+        <span style="color:var(--s2);font-weight:700">secant slope</span> = <output id="der-osec">4.0</output> &nbsp;
+        <span style="color:var(--s3);font-weight:700">tangent slope</span> 2<var>x</var> = <output id="der-otan">3.0</output>
+      </div>
+      <figcaption><b>Try this.</b> Set the point to <var>x</var> = 2. Predict the tangent's slope, then drag the step
+      <var>h</var> toward 0 and watch the orange secant swing onto the green tangent. Then find the one point where the
+      tangent is flat.</figcaption>
+    </figure>
+
+    <p>The sign of the derivative tells you the direction. A positive slope means the curve is going up as you move
+    right, a negative slope means it is going down, and zero means it is flat right there. A flat spot is often the
+    top of a hill or the bottom of a valley, which is why the derivative helps find the lowest point of a curve.</p>
+
+    <div class="callout warn">
+      <span class="callout-title">This is a simplification</span>
+      <p>The words "settles on" stand for a precise idea called a <dfn>limit</dfn>, which this page skips. Also, not
+      every curve has a slope everywhere. A sharp corner, like the point of a V, has no single touching line, so the
+      derivative does not exist there. And a tangent can cross the curve where it touches it. The curve
+      <var>y</var> = <var>x</var><sup>3</sup> does this at <var>x</var> = 0, where it levels off for an instant
+      between two climbs.</p>
+    </div>
+
+    <p class="code-cap">deriv.py: estimating a slope with smaller and smaller steps</p>
+<pre><code class="py">def f(x):
+    return x ** 2
+
+x = 3.0
+for h in [1.0, 0.1, 0.01, 0.001]:
+    slope = (f(x + h) - f(x)) / h
+    print(h, round(slope, 6))
+</code></pre>
+<pre class="out">1.0 7.0
+0.1 6.1
+0.01 6.01
+0.001 6.001</pre>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>For <var>f</var>(<var>x</var>) = <var>x</var><sup>2</sup>, what is the slope at <var>x</var> = −2? Is the
+      curve going up or down there?</p>
+      <details><summary>Answer</summary><p>2 × (−2) = −4. The slope is negative, so the curve is going down as you
+      move right.</p></details>
+    </li>
+    <li>
+      <p>A cyclist's distance in meters is 5<var>t</var> after <var>t</var> seconds. What is the derivative, and what
+      does it mean?</p>
+      <details><summary>Answer</summary><p>5 at every moment. The graph is a straight line with slope 5, so the
+      cyclist always moves at 5 meters per second.</p></details>
+    </li>
+    <li>
+      <p>The derivative of a curve is zero at some point. What could the curve look like there?</p>
+      <details><summary>Answer</summary><p>Flat for an instant: often the top of a hill or the bottom of a valley,
+      and sometimes a level step between two climbs.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://www.3blue1brown.com/lessons/derivatives/">The paradox of the derivative</a>
+        <span class="fl-src">3Blue1Brown, Essence of calculus, chapter 2</span>
+        <span class="fl-format">Video</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">Starts from a moving car and asks what "speed at one instant" can mean, as this page does.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://phet.colorado.edu/en/simulations/calculus-grapher">Calculus Grapher</a>
+        <span class="fl-src">PhET, University of Colorado</span>
+        <span class="fl-format">Interactive page</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">Draw any curve and see its slope curve drawn beneath it.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="gradient.html">The gradient: the uphill direction</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+    <li><a href="velocity-field.html">Velocity fields: an arrow at every point</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+    <li><a href="chain-rule.html">The chain rule: slopes of chained steps</a> <span class="level-badge level-hs">High school</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const svg = document.getElementById('der-svg');
+  if (!svg) return;
+  const XA = -2, XB = 4, YA = -1, YB = 16, L = 40, R = 370, T = 12, B = 288;
+  const sx = x => L + (x - XA) / (XB - XA) * (R - L), sy = y => B - (y - YA) / (YB - YA) * (B - T);
+  const NS = 'http://www.w3.org/2000/svg', $ = id => document.getElementById(id);
+  const g = $('der-grid');
+  const add = (tag, attrs, text) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text) e.textContent = text; g.appendChild(e); };
+  for (let x = XA; x <= XB; x++) {
+    add('line', { x1: sx(x), x2: sx(x), y1: sy(YA), y2: sy(YB), style: x === 0 ? 'stroke:var(--ink-3)' : 'stroke:var(--rule)' });
+    add('text', { x: sx(x), y: sy(0) + 15, 'text-anchor': 'middle', class: 'muted' }, x === 0 ? '' : String(x).replace('-', '−'));
+  }
+  for (let y = 0; y <= YB; y += 2) {
+    add('line', { y1: sy(y), y2: sy(y), x1: sx(XA), x2: sx(XB), style: y === 0 ? 'stroke:var(--ink-3)' : 'stroke:var(--rule)' });
+    if (y) add('text', { x: sx(0) - 6, y: sy(y) + 4, 'text-anchor': 'end', class: 'muted' }, String(y));
+  }
+  const f = x => x * x;
+  let d = '';
+  for (let i = 0; i <= 120; i++) { const x = -2 + i * 6 / 120; d += (i ? 'L' : 'M') + sx(x).toFixed(1) + ',' + sy(f(x)).toFixed(1); }
+  $('der-curve').setAttribute('d', d);
+  // draw a straight line of slope m through (x0, y0), clipped to the plot's x range
+  const lineThrough = (el, x0, y0, m) => {
+    const xa = XA, xb = XB;
+    el.setAttribute('x1', sx(xa)); el.setAttribute('y1', sy(y0 + m * (xa - x0)));
+    el.setAttribute('x2', sx(xb)); el.setAttribute('y2', sy(y0 + m * (xb - x0)));
+  };
+  const fmt = v => (Math.round(v * 100) / 100).toString().replace('-', '−');
+  function draw() {
+    const x = Number($('der-x').value), h = Number($('der-h').value);
+    const tan = 2 * x;
+    lineThrough($('der-tan'), x, f(x), tan);
+    $('der-p').setAttribute('cx', sx(x)); $('der-p').setAttribute('cy', sy(f(x)));
+    $('der-ox').textContent = fmt(x); $('der-oh').textContent = fmt(h);
+    $('der-otan').textContent = fmt(tan);
+    if (h > 0) {
+      const sec = (f(x + h) - f(x)) / h;
+      lineThrough($('der-sec'), x, f(x), sec);
+      $('der-sec').style.display = ''; $('der-q').style.display = '';
+      $('der-q').setAttribute('cx', sx(x + h)); $('der-q').setAttribute('cy', sy(f(x + h)));
+      $('der-osec').textContent = fmt(sec);
+    } else {
+      $('der-sec').style.display = 'none'; $('der-q').style.display = 'none';
+      $('der-osec').textContent = 'needs a step above 0';
+    }
+  }
+  $('der-x').addEventListener('input', draw);
+  $('der-h').addEventListener('input', draw);
+  draw();
+})();
+</script>
+</body>
+</html>

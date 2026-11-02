@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="dot-product">
+<meta name="unit-level" content="hs">
+<title>The dot product: how much two vectors agree</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>The dot product: how much two vectors agree</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-hs">High school</span> <span class="minutes">7 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="vectors.html">Vectors: arrows made of numbers</a> <span class="level-badge level-hs">High school</span> <span class="minutes">8 min</span></li>
+    <li><a href="distance.html">Distance between two points</a> <span class="level-badge level-hs">High school</span> <span class="minutes">6 min</span></li>
+    <li><a href="sine-waves.html">Sine waves</a> <span class="level-badge level-hs">High school</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>The dot product takes two vectors of the same size and gives back one number. You multiply the matching
+  components and add the results. The number is large and positive when the arrows point the same way, zero when
+  they meet at a right angle, and negative when they point apart. So it measures how much two vectors agree. It is
+  also the weighted sum behind shopping bills, matrices and much of machine learning.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="weighted-sum">
+    <h2>Multiply matching components, then add</h2>
+    <p>Start with a shopping bill. You buy 3 apples and 2 pears. Apples cost 50 cents and pears 80 cents. The bill is
+    3 × 50 + 2 × 80 = 310 cents. You multiplied each amount by its price and added the products.</p>
+    <p>That is the <dfn>dot product</dfn> of the amounts (3, 2) and the prices (50, 80). It is written with a dot
+    between the vectors:</p>
+    <p class="math"><span class="vec">a</span> · <span class="vec">b</span> = <var>a</var><sub>1</sub><var>b</var><sub>1</sub> + <var>a</var><sub>2</sub><var>b</var><sub>2</sub> + … + <var>a</var><sub><var>n</var></sub><var>b</var><sub><var>n</var></sub></p>
+    <p>Both vectors must have the same number of components, <var>n</var>. The result is a single number, not a
+    vector. A sum where each item is first multiplied by its own factor is called a <dfn>weighted sum</dfn>, and the
+    factors are its <dfn>weights</dfn>.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example</span>
+      <p>Take <b>a</b> = (3, 1) and <b>b</b> = (1, 2).</p>
+      <ol>
+        <li>Multiply the first components: 3 × 1 = 3.</li>
+        <li>Multiply the second components: 1 × 2 = 2.</li>
+        <li>Add: 3 + 2 = 5. So <b>a</b> · <b>b</b> = 5.</li>
+      </ol>
+      <p>Now take <b>c</b> = (−1, 3). Then <b>a</b> · <b>c</b> = 3 × (−1) + 1 × 3 = 0.</p>
+      <p><b>Your turn.</b> Find (2, −1, 4) · (1, 3, 0.5).</p>
+      <details><summary>Answer</summary><p>2 × 1 + (−1) × 3 + 4 × 0.5 = 2 − 3 + 2 = 1.</p></details>
+    </div>
+  </section>
+
+  <section id="agreement">
+    <h2>The sign tells you whether two arrows point the same way</h2>
+    <p>In the worked example, <b>a</b> · <b>c</b> came out zero. Draw the two arrows and you find they meet at a right
+    angle. That is no accident. The dot product has a second meaning, in terms of the arrows' lengths and the angle
+    <var>θ</var> (the Greek letter theta) between them:</p>
+    <p class="math"><span class="vec">a</span> · <span class="vec">b</span> = |<span class="vec">a</span>| × |<span class="vec">b</span>| × cos <var>θ</var></p>
+    <p>Here |<b>a</b>| is the length of <b>a</b>, from the <a href="distance.html#three-d">distance unit</a>. The
+    <dfn>cosine</dfn>, cos <var>θ</var>, is 1 when the angle is 0°, 0 at 90°, and −1 at 180°; the
+    <a href="sine-waves.html">sine-waves unit</a> explains it. So, for arrows of fixed length:</p>
+    <ul>
+      <li>pointing the same way, the dot product is as large as it can be;</li>
+      <li>at a right angle, it is zero;</li>
+      <li>pointing in opposite directions, it is as negative as it can be.</li>
+    </ul>
+
+    <figure id="fig-dot">
+      <div class="fig-title">The dot product is positive, zero or negative as the angle opens</div>
+      <div class="scroll-x">
+      <svg id="dot-svg" width="360" height="300" viewBox="0 0 360 300" role="img"
+           aria-label="A fixed arrow a and a draggable arrow b from the same origin, with the shadow of b along a's direction"
+           style="touch-action:none">
+        <defs>
+          <marker id="dah-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--s1)"/></marker>
+          <marker id="dah-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--s2)"/></marker>
+        </defs>
+        <g id="dot-grid"></g>
+        <line id="dot-axis" style="stroke:var(--s1);stroke-opacity:0.35;stroke-width:1.5;stroke-dasharray:4 4"/>
+        <line id="dot-proj" style="stroke:var(--s4);stroke-width:7;stroke-opacity:0.6"/>
+        <line id="dot-drop" style="stroke:var(--ink-3);stroke-dasharray:3 3"/>
+        <line id="dot-a" style="stroke:var(--s1);stroke-width:3.5" marker-end="url(#dah-a)"/>
+        <line id="dot-b" style="stroke:var(--s2);stroke-width:3.5" marker-end="url(#dah-b)"/>
+        <text id="dot-la" style="fill:var(--s1);font-weight:700;font-size:15px">a</text>
+        <text id="dot-lb" style="fill:var(--s2);font-weight:700;font-size:15px">b</text>
+        <circle id="dot-h" r="11" style="fill:var(--s2);fill-opacity:0.25;stroke:var(--s2);cursor:grab"/>
+      </svg>
+      </div>
+      <div class="readout-box">
+        <span style="color:var(--s1);font-weight:700">a</span> = (3, 1) &nbsp;
+        <span style="color:var(--s2);font-weight:700">b</span> = <output id="dot-ob">(1, 2)</output><br>
+        <b>a</b> · <b>b</b> = <output id="dot-calc">3×1 + 1×2 = 5</output> &nbsp; angle <output id="dot-ang">45°</output>
+      </div>
+      <figcaption><b>Try this.</b> Drag the tip of <b>b</b>. The yellow bar is the shadow of <b>b</b> along the
+      direction of <b>a</b>. Goal: find two spots where <b>a</b> · <b>b</b> = 0. Before you drag, predict where they
+      lie.</figcaption>
+    </figure>
+
+    <p>The yellow bar shows why this works. The dot product equals the length of <b>a</b> times the signed length of
+    the shadow that <b>b</b> casts on the line through <b>a</b>. A shadow pointing back along <b>a</b> counts as
+    negative. A vector at a right angle casts no shadow, so the product is zero.</p>
+
+    <div class="callout warn">
+      <span class="callout-title">This is a simplification</span>
+      <p>"How much two vectors agree" mixes two things: the angle and the lengths. Doubling either vector doubles the
+      dot product, even though the angle has not changed. To compare directions alone, divide by both lengths. The
+      result, cos <var>θ</var>, is called the <dfn>cosine similarity</dfn>, and it always lies between −1 and 1.</p>
+    </div>
+
+    <p class="code-cap">dot.py: NumPy writes the dot product as <code>np.dot(a, b)</code> or <code>a @ b</code></p>
+<pre><code class="py">import numpy as np
+
+a = np.array([3, 1])
+b = np.array([1, 2])
+print(np.dot(a, b))      # 3*1 + 1*2
+print(a @ b)             # the same, written with @
+
+c = np.array([-1, 3])
+print(a @ c)             # 3*(-1) + 1*3 = 0: a right angle
+
+cos = (a @ b) / (np.linalg.norm(a) * np.linalg.norm(b))
+print(round(np.degrees(np.arccos(cos)), 1))   # the angle between a and b
+</code></pre>
+<pre class="out">5
+5
+0
+45.0</pre>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>Is the angle between (2, 3) and (3, −2) less than, equal to, or more than 90°?</p>
+      <details><summary>Answer</summary><p>Equal: 2 × 3 + 3 × (−2) = 0, so the arrows meet at a right angle.</p></details>
+    </li>
+    <li>
+      <p>What is <b>a</b> · <b>a</b> for <b>a</b> = (3, 4)? How does it relate to the length of <b>a</b>?</p>
+      <details><summary>Answer</summary><p>9 + 16 = 25, the square of the length 5. A vector dotted with itself is
+      always its squared length.</p></details>
+    </li>
+    <li>
+      <p>A score is computed as 0.5 × size + 2 × color + (−1) × noise. Write it as a dot product.</p>
+      <details><summary>Answer</summary><p>(0.5, 2, −1) · (size, color, noise). The first vector holds the weights,
+      the second the inputs.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://www.3blue1brown.com/lessons/dot-products/">Dot products and duality</a>
+        <span class="fl-src">3Blue1Brown, Essence of linear algebra, chapter 9</span>
+        <span class="fl-format">Video</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">The shadow picture, animated, and why the two meanings of the dot product agree.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://betterexplained.com/articles/vector-calculus-understanding-the-dot-product/">Understanding the dot product</a>
+        <span class="fl-src">BetterExplained</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">Plain-language intuition for the dot product as "how much one vector goes along another."</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="matrix-times-vector.html">Multiplying a matrix by a vector</a> <span class="level-badge level-hs">High school</span> <span class="minutes">8 min</span></li>
+    <li><a href="attention.html">Attention: queries, keys, values</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">10 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const svg = document.getElementById('dot-svg');
+  if (!svg) return;
+  const U = 40, OX = 180, OY = 160, X0 = -4, X1 = 4, Y0 = -3, Y1 = 3;
+  const sx = x => OX + U * x, sy = y => OY - U * y;
+  const NS = 'http://www.w3.org/2000/svg', $ = id => document.getElementById(id);
+  const g = $('dot-grid');
+  const mk = (x1, y1, x2, y2, style) => {
+    const l = document.createElementNS(NS, 'line');
+    l.setAttribute('x1', x1); l.setAttribute('y1', y1); l.setAttribute('x2', x2); l.setAttribute('y2', y2);
+    l.setAttribute('style', style); g.appendChild(l);
+  };
+  for (let x = X0; x <= X1; x++) mk(sx(x), sy(Y0), sx(x), sy(Y1), x === 0 ? 'stroke:var(--ink-3)' : 'stroke:var(--rule)');
+  for (let y = Y0; y <= Y1; y++) mk(sx(X0), sy(y), sx(X1), sy(y), y === 0 ? 'stroke:var(--ink-3)' : 'stroke:var(--rule)');
+  const set = (el, attrs) => { for (const k in attrs) el.setAttribute(k, attrs[k]); };
+  const m = n => String(n).replace('-', '−');
+  const A = [3, 1]; let B = [1, 2];
+  const la = Math.hypot(A[0], A[1]), ua = [A[0] / la, A[1] / la];
+  const nrm = [ua[1], -ua[0]], off = 0.25;   // draw the shadow bar just beside a, so a does not hide it
+  set($('dot-axis'), { x1: sx(-ua[0] * 5), y1: sy(-ua[1] * 5), x2: sx(ua[0] * 5), y2: sy(ua[1] * 5) });
+  set($('dot-a'), { x1: sx(0), y1: sy(0), x2: sx(A[0]), y2: sy(A[1]) });
+  set($('dot-la'), { x: sx(A[0]) + 6, y: sy(A[1]) + 18 });
+  function draw() {
+    const d = A[0] * B[0] + A[1] * B[1], s = d / la, p = [ua[0] * s, ua[1] * s];
+    set($('dot-b'), { x1: sx(0), y1: sy(0), x2: sx(B[0]), y2: sy(B[1]) });
+    set($('dot-h'), { cx: sx(B[0]), cy: sy(B[1]) });
+    set($('dot-lb'), { x: sx(B[0]) + 12, y: sy(B[1]) - 10 });
+    set($('dot-proj'), { x1: sx(nrm[0] * off), y1: sy(nrm[1] * off), x2: sx(p[0] + nrm[0] * off), y2: sy(p[1] + nrm[1] * off) });
+    set($('dot-drop'), { x1: sx(B[0]), y1: sy(B[1]), x2: sx(p[0]), y2: sy(p[1]) });
+    $('dot-ob').textContent = '(' + m(B[0]) + ', ' + m(B[1]) + ')';
+    $('dot-calc').textContent = '3×' + (B[0] < 0 ? '(' + m(B[0]) + ')' : B[0]) + ' + 1×' + (B[1] < 0 ? '(' + m(B[1]) + ')' : B[1]) + ' = ' + m(d);
+    const lb = Math.hypot(B[0], B[1]);
+    $('dot-ang').textContent = lb ? Math.round(Math.acos(Math.max(-1, Math.min(1, d / (la * lb)))) * 180 / Math.PI) + '°' : '–';
+  }
+  let drag = false;
+  const h = $('dot-h');
+  h.addEventListener('pointerdown', e => { drag = true; h.setPointerCapture(e.pointerId); e.preventDefault(); });
+  h.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY;
+    const q = p.matrixTransform(svg.getScreenCTM().inverse());
+    const c = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+    B = [c(Math.round((q.x - OX) / U), X0, X1), c(Math.round((OY - q.y) / U), Y0, Y1)];
+    draw();
+  });
+  h.addEventListener('pointerup', () => { drag = false; });
+  draw();
+})();
+</script>
+</body>
+</html>

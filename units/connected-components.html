@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="connected-components">
+<meta name="unit-level" content="hs">
+<title>Connected pieces of a graph</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Connected pieces of a graph</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-hs">High school</span> <span class="minutes">7 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="graphs.html">Graphs: dots joined by lines</a> <span class="level-badge level-hs">High school</span> <span class="minutes">6 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A graph often falls into separate pieces, with no edge from one piece to
+  another. Each piece is a connected component: a group of nodes you can travel between along edges. A program finds
+  the pieces by starting at any node and spreading out to neighbors, then neighbors of neighbors, until nothing new
+  turns up. Cutting an edge can split a piece in two, but only if there was no other route around it.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="pieces">
+    <h2>A connected component is everything you can reach from a node</h2>
+    <p>A <dfn>path</dfn> in a <a href="graphs.html">graph</a> is a walk from node to node along edges. Two nodes are
+    <dfn>connected</dfn> if some path joins them. A <dfn>connected component</dfn>, or piece, is a largest group of
+    nodes that are all connected to each other. Every node belongs to exactly one piece; a node with no edges is a
+    piece by itself.</p>
+
+    <figure id="fig-cut">
+      <div class="fig-title">Click an edge to cut it; each piece keeps its own color</div>
+      <div class="controls">
+        <button class="btn" id="cc-reset" type="button">Restore all edges</button>
+        <output id="cc-count">2 pieces</output>
+      </div>
+      <div class="scroll-x">
+      <svg id="cc-svg" width="400" height="240" viewBox="0 0 400 240" role="img"
+           aria-label="A graph of ten numbered nodes in two pieces; clicking an edge cuts it and the nodes are recolored by piece">
+        <g id="cc-edges"></g>
+        <g id="cc-nodes"></g>
+      </svg>
+      </div>
+      <figcaption><b>Try this.</b> Before you click, predict which single edges split the big piece when cut. Click
+      each edge to check; click a cut edge again to restore it. Then, starting from all edges, find the fewest cuts
+      inside the four-node loop (4, 5, 6, 7) that separate 5 from 7.</figcaption>
+    </figure>
+
+    <p>Some edges are the only route between two parts of a piece. Cutting such an edge, called a <dfn>bridge</dfn>,
+    splits the piece in two. An edge that lies on a loop, called a <dfn>cycle</dfn>, is never a bridge: after the
+    cut, the walk the other way around the loop still joins its two ends.</p>
+  </section>
+
+  <section id="search">
+    <h2>Spread out from a node until nothing new turns up</h2>
+    <p>To label every piece, a program repeats one search. It picks a node that has no label yet and gives it a new
+    label. Then it visits that node's neighbors, labels them the same, and visits their neighbors in turn. When it
+    runs out of new nodes, the piece is done. It then picks the next unlabeled node and starts a new piece. This
+    spreading search is called <dfn>breadth-first search</dfn>, because it finishes all nodes one step away before
+    those two steps away.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example</span>
+      <p>Nodes 1 to 7, with edges 1–2, 2–3, 3–1, 4–5 and 5–7.</p>
+      <ol>
+        <li>Start at 1 and label it "piece 1." Its neighbors 2 and 3 get the same label. Their neighbors are all
+        labeled already, so piece 1 is {1, 2, 3}.</li>
+        <li>The next unlabeled node is 4. It starts piece 4. Its neighbor 5 joins, then 5's neighbor 7. Piece 4 is
+        {4, 5, 7}.</li>
+        <li>Node 6 has no edges, so it is piece 6 by itself: {6}. There are 3 pieces.</li>
+        <li>Now cut the edge 4–5. Node 4 is left alone, and 5 and 7 form their own piece: 4 pieces in all.
+        Cutting 1–2 instead would split nothing, because 1 still reaches 2 through 3.</li>
+      </ol>
+      <p><b>Your turn.</b> Nodes A to F, with edges A–B, B–C, C–D, D–A and E–F. How many pieces are there? Which single
+      cut would raise the count?</p>
+      <details><summary>Answer</summary><p>Two pieces: {A, B, C, D} and {E, F}. A, B, C and D form a loop, so no single
+      cut there splits it. Only cutting E–F raises the count, to three.</p></details>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-title">This is a simplification</span>
+      <p>This page covers graphs whose edges work both ways. When edges have a direction, "connected" splits into two
+      ideas, depending on whether you must follow the arrows. Also, programs that handle millions of nodes, or edges
+      that arrive one at a time, often use a different method called <dfn>union–find</dfn>; it finds the same pieces.</p>
+    </div>
+
+    <p class="code-cap">cc.py: label each node with its piece by breadth-first search</p>
+<pre><code class="py">from collections import deque
+
+def components(nodes, edges):
+    neighbors = {n: [] for n in nodes}
+    for u, v in edges:
+        neighbors[u].append(v)
+        neighbors[v].append(u)
+    label = {}
+    for start in nodes:
+        if start in label:
+            continue
+        label[start] = start           # name the piece after its first node
+        queue = deque([start])
+        while queue:
+            n = queue.popleft()
+            for m in neighbors[n]:
+                if m not in label:
+                    label[m] = start
+                    queue.append(m)
+    return label
+
+nodes = [1, 2, 3, 4, 5, 6, 7]
+edges = [(1, 2), (2, 3), (3, 1), (4, 5), (5, 7)]
+print(components(nodes, edges))
+edges.remove((4, 5))                    # cut one edge
+print(components(nodes, edges))
+</code></pre>
+<pre class="out">{1: 1, 2: 1, 3: 1, 4: 4, 5: 4, 7: 4, 6: 6}
+{1: 1, 2: 1, 3: 1, 4: 4, 5: 5, 7: 5, 6: 6}</pre>
+    <p class="small">A <code>deque</code> is a queue: nodes leave in the order they arrived, which keeps the search
+    breadth-first. Each output maps a node to the first node of its piece.</p>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>A graph has 10 nodes and no edges. How many pieces does it have?</p>
+      <details><summary>Answer</summary><p>10. Each node is a piece by itself.</p></details>
+    </li>
+    <li>
+      <p>Five nodes are joined in a line: 1–2, 2–3, 3–4, 4–5. You cut one edge. How many pieces are there now? What if
+      the line were closed into a ring with the edge 5–1?</p>
+      <details><summary>Answer</summary><p>Two, whichever edge you cut: every edge of a line is a bridge. In a ring,
+      one cut leaves a single piece, because every edge lies on the loop.</p></details>
+    </li>
+    <li>
+      <p>A shape is stored as points, with an edge between any two points closer than 1 unit. The graph has two
+      pieces. What does that say about the shape?</p>
+      <details><summary>Answer</summary><p>The points form two separate clusters: no point of one lies within 1 unit
+      of any point of the other.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://www.redblobgames.com/pathfinding/a-star/introduction.html#breadth-first-search">Introduction to A*: breadth-first search</a>
+        <span class="fl-src">Red Blob Games</span>
+        <span class="fl-format">Interactive page</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Watch a breadth-first search spread across a map step by step, with short code.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://en.wikipedia.org/wiki/Component_(graph_theory)#Algorithms">Component (graph theory): algorithms</a>
+        <span class="fl-src">Wikipedia</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">How components are found in practice, including union–find for graphs that grow.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <p>No unit or explanation builds on this one yet.</p>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const svg = document.getElementById('cc-svg');
+  if (!svg) return;
+  const NS = 'http://www.w3.org/2000/svg', $ = id => document.getElementById(id);
+  const pos = { 1: [40, 45], 2: [40, 165], 3: [125, 105], 4: [205, 105], 5: [265, 40], 6: [335, 95], 7: [275, 170],
+                8: [365, 205], 9: [60, 215], 10: [150, 215] };
+  const edges = [[1, 2], [2, 3], [3, 1], [3, 4], [4, 5], [5, 6], [6, 7], [7, 4], [7, 8], [9, 10]];
+  const cut = new Set();
+  const COLORS = ['s1', 's2', 's3', 's4', 'pa', 'pb', 'pc', 'pd'];
+  const el = (p, tag, a, text) => { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); if (text !== undefined) e.textContent = text; p.appendChild(e); return e; };
+  const vis = [], circles = {};
+  edges.forEach(([u, v], i) => {
+    const g = el($('cc-edges'), 'g', { tabindex: '0', role: 'button', 'aria-label': 'edge ' + u + ' to ' + v, style: 'cursor:pointer' });
+    vis.push(el(g, 'line', { x1: pos[u][0], y1: pos[u][1], x2: pos[v][0], y2: pos[v][1] }));
+    el(g, 'line', { x1: pos[u][0], y1: pos[u][1], x2: pos[v][0], y2: pos[v][1], style: 'stroke:transparent;stroke-width:18' });
+    const toggle = () => { cut.has(i) ? cut.delete(i) : cut.add(i); draw(); };
+    g.addEventListener('click', toggle);
+    g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+  });
+  for (const n in pos) {
+    el($('cc-nodes'), 'circle', { cx: pos[n][0], cy: pos[n][1], r: 16, style: 'fill:var(--surface)' });
+    circles[n] = el($('cc-nodes'), 'circle', { cx: pos[n][0], cy: pos[n][1], r: 16 });
+    el($('cc-nodes'), 'text', { x: pos[n][0], y: pos[n][1] + 5, 'text-anchor': 'middle', style: 'font-weight:700;font-size:14px;pointer-events:none' }, n);
+  }
+  function draw() {
+    const nb = {}; for (const n in pos) nb[n] = [];
+    edges.forEach(([u, v], i) => { if (!cut.has(i)) { nb[u].push(String(v)); nb[v].push(String(u)); } });
+    const label = {}; let k = 0;
+    for (const s in pos) {
+      if (s in label) continue;
+      label[s] = k; const q = [s];
+      while (q.length) { const n = q.shift(); for (const m of nb[n]) if (!(m in label)) { label[m] = k; q.push(m); } }
+      k++;
+    }
+    for (const n in pos) {
+      const c = COLORS[label[n] % COLORS.length];
+      circles[n].setAttribute('style', `fill:var(--${c});fill-opacity:0.35;stroke:var(--${c});stroke-width:2.5`);
+    }
+    edges.forEach(([u, v], i) => {
+      vis[i].setAttribute('style', cut.has(i) ? 'stroke:var(--bad);stroke-width:2;stroke-dasharray:3 5;opacity:0.7'
+        : `stroke:var(--${COLORS[label[u] % COLORS.length]});stroke-width:3.5`);
+    });
+    $('cc-count').textContent = k + (k === 1 ? ' piece' : ' pieces') + (cut.size ? ', ' + cut.size + ' cut' : '');
+  }
+  $('cc-reset').addEventListener('click', () => { cut.clear(); draw(); });
+  draw();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="loss-function">
+<meta name="unit-level" content="u1">
+<title>Loss: one number for how wrong</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  .plot-pair { display: flex; flex-wrap: wrap; gap: 0.6rem 1rem; }
+  .plot-pair > div { flex: 1 1 250px; min-width: 0; }
+  .plot-cap { font-size: 0.85rem; color: var(--ink-2); margin: 0 0 0.2rem; }
+  svg .gl { stroke: var(--grid); stroke-width: 1; }
+  svg .ax { stroke: var(--ink-3); stroke-width: 1; }
+  svg .tick { font-size: 15px; }
+  svg .sq { fill: var(--s2); fill-opacity: 0.18; stroke: var(--s2); stroke-width: 1; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Loss: one number for how wrong</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">9 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="distance.html">Distance between two points</a> <span class="level-badge level-hs">High school</span> <span class="minutes">6 min</span></li>
+    <li><a href="mean-and-spread.html">Summarizing a list of numbers</a> <span class="level-badge level-hs">High school</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A loss function compares a model's predictions with the right answers and returns one number. Zero means every
+  prediction is right; a bigger number means worse. Training a model means changing its weights to make this number
+  small. The most common loss for predicting numbers is the mean squared error: square each gap between prediction
+  and answer, then average. The choice of loss decides what "good" means for the model.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="one-number">
+    <h2>A loss turns many errors into one number</h2>
+    <p>A model makes a <dfn>prediction</dfn> for each example. Each example also has a <dfn>target</dfn>: the right
+    answer. The <dfn>error</dfn> is prediction minus target. A model makes many predictions, so it has many errors.
+    Some are positive and some negative.</p>
+    <p>To say whether one setting of the weights is better than another, we need a single number. A
+    <dfn>loss function</dfn> provides it. It must be 0 when every prediction is right, and grow as the predictions get
+    worse.</p>
+  </section>
+
+  <section id="mse">
+    <h2>Mean squared error averages the squared gaps</h2>
+    <p>The <dfn>mean squared error</dfn> (MSE) squares each error and takes the
+    <a href="mean-and-spread.html">mean</a>. For <var>n</var> examples with predictions
+    <var>p</var><sub><var>i</var></sub> and targets <var>t</var><sub><var>i</var></sub>:</p>
+    <p class="math">MSE = (1/<var>n</var>) &sum; (<var>p</var><sub><var>i</var></sub> &minus; <var>t</var><sub><var>i</var></sub>)<sup>2</sup></p>
+    <p>Squaring makes every term positive, so errors above and below cannot cancel. A related loss, the
+    <dfn>mean absolute error</dfn> (MAE), averages |<var>p</var><sub><var>i</var></sub> &minus; <var>t</var><sub><var>i</var></sub>|
+    instead.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: three predictions</span>
+      <p>The targets are (3, 5, 7). The model predicts (2.5, 5, 8).</p>
+      <ol>
+        <li>Errors: 2.5 &minus; 3 = &minus;0.5, then 0, then 8 &minus; 7 = 1.</li>
+        <li>Squared errors: 0.25, 0, 1.</li>
+        <li>MSE = (0.25 + 0 + 1) / 3 = 1.25 / 3 &asymp; <b>0.417</b>.</li>
+        <li>For comparison, MAE = (0.5 + 0 + 1) / 3 = <b>0.5</b>.</li>
+      </ol>
+      <p><b>Your turn.</b> The targets are (1, 2) and the predictions are (2, 4). What is the MSE?</p>
+      <details><summary>Answer</summary><p>Errors 1 and 2, squared 1 and 4, mean (1 + 4) / 2 = 2.5.</p></details>
+    </div>
+
+    <p><b>Try it.</b> The figure fits a straight line to five points, and each squared error is drawn as a square whose
+    side is the gap. The MSE is the average area of the squares. Predict first: will the best line pass through every
+    point? Then move the slider until the MSE is as small as you can make it.</p>
+    <figure id="fig-squares">
+      <div class="fig-title">The squared errors of a line through five points</div>
+      <div class="controls">
+        <label>slope of the line <input type="range" id="lf-k" min="-0.5" max="2.5" step="0.02" value="0.2"> <output id="lf-k-out">0.20</output></label>
+        <span>MSE <output id="lf-mse">-</output></span>
+      </div>
+      <div class="plot-pair">
+        <div>
+          <p class="plot-cap">The points, the line and the squared errors</p>
+          <svg id="lf-fit" width="280" height="270" viewBox="0 0 280 270" role="img" aria-label="Five points, a straight line, and a square on each vertical gap between a point and the line."></svg>
+        </div>
+        <div>
+          <p class="plot-cap">The MSE for every slope</p>
+          <svg id="lf-curve" width="280" height="270" viewBox="0 0 280 270" role="img" aria-label="A U-shaped curve of the MSE against the slope, with a dot at the current slope."></svg>
+        </div>
+      </div>
+      <figcaption><b>Each slope gives one MSE, and the MSE curve has a single lowest point.</b> This figure pins the
+      line to the average point (3, 3.2), so only its slope changes. The best line also passes through that point. The second panel is the loss drawn against the one weight the model has. The unit on <a href="gradient-descent.html">gradient descent</a> shows how training walks
+      down such a curve.</figcaption>
+    </figure>
+    <details><summary>Answer</summary><p>No line passes through all five points, so the MSE never reaches 0. The lowest
+    MSE is about 0.117, at a slope of 0.94.</p></details>
+  </section>
+
+  <section id="big-errors">
+    <h2>Squaring punishes one big error more than many small ones</h2>
+    <p>Compare two models on ten examples. Model A is off by 1 on every example. Model B is exactly right on nine and
+    off by 10 on one.</p>
+    <div class="table-wrap"><table>
+      <tr><th></th><th class="r">MSE</th><th class="r">MAE</th></tr>
+      <tr><td>A: ten errors of 1</td><td class="r">(10 &times; 1) / 10 = 1</td><td class="r">10 / 10 = 1</td></tr>
+      <tr><td>B: one error of 10</td><td class="r">100 / 10 = 10</td><td class="r">10 / 10 = 1</td></tr>
+    </table></div>
+    <p>MAE rates the two models the same. MSE rates B ten times worse. So training with MSE works hard to avoid any
+    large error, and a few wrong targets in the data can pull the model a long way. MAE is calmer about such
+    outliers.</p>
+  </section>
+
+  <section id="vectors">
+    <h2>When the answer is a point, the error is a distance</h2>
+    <p>Many models predict several numbers at once, such as the coordinates of a point. Then the natural error is the
+    <a href="distance.html">distance</a> between the predicted point and the target point. The squared distance is
+    the sum of the squared coordinate errors. Averaged over examples, it gives an MSE for points.</p>
+
+    <div class="callout warn">
+      <span class="callout-title">Averages over what? Check the code</span>
+      <p>PyTorch's <code>MSELoss</code> averages over every number, coordinates included. For 3D points, that is the
+      mean squared distance divided by 3. The two differ only by a constant factor, so the best weights are the same.
+      The size of the loss, and of its gradient, differs, so compare loss values only between runs that compute them
+      the same way.</p>
+    </div>
+  </section>
+
+  <section id="best-guess">
+    <h2>When one input has several targets, the mean is the best single prediction</h2>
+    <p>Sometimes the same input comes with different targets. The model can give only one prediction for that input,
+    so it must pick one number <var>c</var> for all of those targets. Take the five targets 4, 8, 6, 5 and 7, the film
+    ratings from <a href="mean-and-spread.html">summarizing a list of numbers</a>. Which <var>c</var> makes the MSE
+    smallest?</p>
+    <p>The answer is their mean, 6. The MSE splits into two parts:</p>
+    <p class="math">MSE(<var>c</var>) = (<var>c</var> &minus; mean)<sup>2</sup> + variance</p>
+    <p>To see why, write each error as (<var>c</var> &minus; mean) + (mean &minus; target) and square it. The cross
+    terms cancel, because the deviations from the mean add up to zero. The variance does not depend on <var>c</var>.
+    So the MSE is smallest when the first part is 0, that is, when <var>c</var> is the mean.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: the best single prediction</span>
+      <ol>
+        <li>Predict 6: the errors are 2, &minus;2, 0, 1 and &minus;1. The MSE is (4 + 4 + 0 + 1 + 1) / 5 = <b>2</b>,
+        the variance.</li>
+        <li>Predict 7: the errors are 3, &minus;1, 1, 2 and 0. The MSE is (9 + 1 + 1 + 4 + 0) / 5 = <b>3</b>, which is
+        (7 &minus; 6)<sup>2</sup> + 2.</li>
+      </ol>
+    </div>
+
+    <p>Two facts follow. First, when the targets disagree, the loss cannot reach 0: the best it can do is their
+    variance. Second, the best prediction need not be any of the targets: for the targets &minus;1 and +1 it is 0. For
+    points, the same holds for each coordinate, so the best single point is the average point. MAE behaves
+    differently: its best single prediction is the median, the middle value.</p>
+  </section>
+
+  <section id="what-training-sees">
+    <h2>The loss is what training sees</h2>
+    <p>Training only makes the loss small. It does not see anything else. So the loss must change smoothly as the
+    weights change, or <a href="gradient-descent.html">gradient descent</a> cannot tell which way to move them. This
+    is why classifiers train on <a href="cross-entropy.html">cross-entropy</a> rather than on the share of correct
+    answers, which changes in jumps.</p>
+    <p>A small loss on the training examples is also no promise about new examples. A
+    <a href="validation-set.html">validation set</a> checks that.</p>
+    <p class="code-cap">loss_numpy.py</p>
+<pre><code class="py">import numpy as np
+
+target = np.array([3.0, 5.0, 7.0])
+pred   = np.array([2.5, 5.0, 8.0])
+
+err = pred - target
+print(err)
+print("MSE", np.mean(err ** 2))
+print("MAE", np.mean(np.abs(err)))
+</code></pre>
+<pre class="out"><code>[-0.5  0.   1. ]
+MSE 0.4166666666666667
+MAE 0.5</code></pre>
+    <p>PyTorch has both losses built in. MAE is called <code>L1Loss</code> there.</p>
+    <p class="code-cap">loss_torch.py</p>
+<pre><code class="py">import torch
+
+target = torch.tensor([3.0, 5.0, 7.0])
+pred   = torch.tensor([2.5, 5.0, 8.0])
+print(torch.nn.MSELoss()(pred, target))
+print(torch.nn.L1Loss()(pred, target))
+</code></pre>
+<pre class="out"><code>tensor(0.4167)
+tensor(0.5000)</code></pre>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>The targets are (0, 0, 0, 0) and the predictions are (1, &minus;1, 1, &minus;1). What are the MSE and the MAE?
+      What would a plain average of the errors give, and why is that useless?</p>
+      <details><summary>Answer</summary><p>MSE = 4 / 4 = 1 and MAE = 4 / 4 = 1. The plain average of the errors is 0,
+      because the positive and negative errors cancel. It would call a wrong model perfect.</p></details>
+    </li>
+    <li>
+      <p>A data set has a few targets that were typed in wrong and are far too large. Which loss lets them pull the
+      model further, MSE or MAE?</p>
+      <details><summary>Answer</summary><p>MSE. Their large errors are squared, so they dominate the average.</p></details>
+    </li>
+    <li>
+      <p>A model predicts the point (1, 2) and the target is (4, 6). What is the squared distance, and what does
+      PyTorch's <code>MSELoss</code> report for this one example?</p>
+      <details><summary>Answer</summary><p>The coordinate errors are 3 and 4, so the squared distance is 9 + 16 = 25.
+      <code>MSELoss</code> averages over the two coordinates and reports 12.5.</p></details>
+    </li>
+    <li>
+      <p>The targets 1, 2 and 6 all belong to one input. Which single prediction gives the lowest MSE, and what is that
+      MSE?</p>
+      <details><summary>Answer</summary><p>The mean, 3. The errors are 2, 1 and &minus;3, so the MSE is
+      (4 + 1 + 9) / 3 &asymp; 4.67, the variance of the three targets.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://developers.google.com/machine-learning/crash-course/linear-regression/loss">Linear regression: Loss</a>
+        <span class="fl-src">Google Machine Learning Crash Course</span>
+        <span class="fl-format">Course</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">Compares squared and absolute losses on the same data, with exercises.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://mlu-explain.github.io/linear-regression/">Linear Regression</a>
+        <span class="fl-src">MLU-Explain</span>
+        <span class="fl-format">Interactive page</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">A scrolling page that fits a line and shows the squared error as it changes.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://d2l.ai/chapter_linear-regression/linear-regression.html#loss-function">Dive into Deep Learning, 3.1.1.2 Loss Function</a>
+        <span class="fl-src">Zhang, Lipton, Li and Smola</span>
+        <span class="fl-format">Book</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">The squared loss written in vector form, as code uses it.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="gradient-descent.html">Gradient descent</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+    <li><a href="validation-set.html">Held-out data: the validation set</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+    <li><a href="binary-cross-entropy.html">Binary cross-entropy: scoring yes-or-no guesses</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="cross-entropy.html">Cross-entropy: scoring a choice among many</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="flow-matching.html">Flow matching: turning noise into shapes</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">10 min</span></li>
+    <li><a href="backpropagation.html">Backpropagation: gradients by the chain rule</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (tag, attrs, parent, text) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text !== undefined) e.textContent = text;
+    parent.appendChild(e);
+    return e;
+  };
+  const X = [1, 2, 3, 4, 5], Y = [1.5, 2.0, 3.5, 3.6, 5.4], MX = 3, MY = 3.2;
+  const fit = document.getElementById('lf-fit'), curve = document.getElementById('lf-curve');
+  const slider = document.getElementById('lf-k'), kOut = document.getElementById('lf-k-out'), mOut = document.getElementById('lf-mse');
+  if (!fit || !curve || !slider) return;
+  const mse = k => X.reduce((s, x, i) => s + (MY + k * (x - MX) - Y[i]) ** 2, 0) / X.length;
+  // Left panel: equal scale on both axes, so squares look square.
+  const L = 34, T = 8, S = 37;               // 37 px per unit, range 0..6
+  const fx = x => L + x * S, fy = y => T + (6.6 - y) * S;
+  function drawFit(k) {
+    while (fit.firstChild) fit.removeChild(fit.firstChild);
+    const clip = el('clipPath', { id: 'lf-clip' }, el('defs', {}, fit));
+    el('rect', { x: fx(0), y: fy(6.6), width: 6.6 * S, height: 6.6 * S }, clip);
+    for (let g = 0; g <= 6; g++) {
+      el('line', { x1: fx(g), y1: fy(0), x2: fx(g), y2: fy(6.6), class: 'gl' }, fit);
+      el('line', { x1: fx(0), y1: fy(g), x2: fx(6.6), y2: fy(g), class: 'gl' }, fit);
+    }
+    for (const g of [0, 2, 4, 6]) {
+      el('text', { x: fx(g), y: fy(0) + 16, 'text-anchor': 'middle', class: 'muted tick' }, fit, g);
+      el('text', { x: fx(0) - 6, y: fy(g) + 4, 'text-anchor': 'end', class: 'muted tick' }, fit, g);
+    }
+    const g = el('g', { 'clip-path': 'url(#lf-clip)' }, fit);
+    X.forEach((x, i) => {
+      const p = MY + k * (x - MX), side = Math.abs(p - Y[i]);
+      el('rect', { x: fx(x), y: fy(Math.max(p, Y[i])), width: side * S, height: side * S, class: 'sq' }, g);
+    });
+    el('line', { x1: fx(0), y1: fy(MY - k * MX), x2: fx(6.6), y2: fy(MY + k * (6.6 - MX)), class: 'st-s1', 'stroke-width': 2.5 }, g);
+    X.forEach((x, i) => el('circle', { cx: fx(x), cy: fy(Y[i]), r: 4.5, fill: 'var(--ink)' }, fit));
+  }
+  // Right panel: MSE against slope.
+  const KL = -0.5, KH = 2.5, CL = 44, CR = 272, CT = 10, CB = 236, MH = 4;
+  const cx = k => CL + (k - KL) / (KH - KL) * (CR - CL), cy = v => CB - Math.min(v, MH) / MH * (CB - CT);
+  const curveG = el('g', {}, curve);
+  for (let v = 0; v <= MH; v++) {
+    el('line', { x1: CL, y1: cy(v), x2: CR, y2: cy(v), class: 'gl' }, curveG);
+    el('text', { x: CL - 6, y: cy(v) + 4, 'text-anchor': 'end', class: 'muted tick' }, curveG, v);
+  }
+  for (const k of [-0.5, 0.5, 1.5, 2.5]) el('text', { x: cx(k), y: CB + 16, 'text-anchor': 'middle', class: 'muted tick' }, curveG, String(k).replace('-', '−'));
+  el('text', { x: (CL + CR) / 2, y: CB + 31, 'text-anchor': 'middle', class: 'ink2 tick' }, curveG, 'slope');
+  let d = '';
+  let pen = false;
+  for (let i = 0; i <= 200; i++) {
+    const k = KL + (KH - KL) * i / 200, v = mse(k);
+    if (v > MH) { pen = false; continue; }
+    d += (pen ? 'L' : 'M') + cx(k).toFixed(1) + ' ' + cy(v).toFixed(1); pen = true;
+  }
+  el('path', { d, fill: 'none', stroke: 'var(--ink-3)', 'stroke-width': 2 }, curveG);
+  const dot = el('circle', { r: 6, class: 'f-s2' }, curve);
+  function update() {
+    const k = Number(slider.value), v = mse(k);
+    kOut.textContent = k.toFixed(2).replace('-', '−');
+    mOut.textContent = v.toFixed(3);
+    drawFit(k);
+    dot.setAttribute('cx', cx(k)); dot.setAttribute('cy', cy(v));
+  }
+  slider.addEventListener('input', update);
+  update();
+})();
+</script>
+</body>
+</html>

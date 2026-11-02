@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="automatic-gradients">
+<meta name="unit-level" content="u1">
+<title>Automatic gradients in PyTorch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Automatic gradients in PyTorch</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="tensors-on-gpu.html">PyTorch tensors on the GPU</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+    <li><a href="chain-rule.html">The chain rule: slopes of chained steps</a> <span class="level-badge level-hs">High school</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>To improve a model, you need to know how the loss, one number that says how wrong the model is, changes when you nudge each weight: its
+  <a href="derivative.html">derivative</a>. PyTorch finds these for you. Mark a tensor with
+  <code>requires_grad=True</code>, and PyTorch records every operation that uses it, building a chain of steps from the
+  inputs to the final number. Calling <code>.backward()</code> on that number walks the chain in reverse. At each step
+  it multiplies by that step's local slope, which is the <a href="chain-rule.html">chain rule</a>. The derivative of the
+  final number with respect to each marked tensor ends up in that tensor's <code>.grad</code>.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+
+  <section id="graph">
+    <h2>PyTorch records each step on the way forward</h2>
+    <p>Take a tiny model with one weight <var>w</var>. It predicts <var>p</var> = <var>w</var> × <var>x</var> for an
+    input <var>x</var> = 2, and the right answer is <var>t</var> = 7. The error is <var>e</var> = <var>p</var> −
+    <var>t</var>. The <dfn>loss</dfn>, one number that says how wrong the model is, is <var>L</var> = <var>e</var>².
+    With <var>w</var> = 3, the steps give <var>p</var> = 6, <var>e</var> = −1 and <var>L</var> = 1.</p>
+    <p>When <var>w</var> is a tensor with <code>requires_grad=True</code>, PyTorch keeps a record of these steps as it
+    runs them. The record is the <dfn>computation graph</dfn>: each result remembers which operation made it and from
+    which inputs. The figure draws it.</p>
+
+    <figure id="fig-graph">
+      <div class="fig-title">Forward values go right; gradients come back left</div>
+      <p class="small" style="margin-top:0">Before you move the slider, predict the sign of <var>dL/dw</var> at
+      <var>w</var> = 3: should <var>w</var> go up or down to make <var>L</var> smaller? Then drag <var>w</var> until the
+      gradient is 0.</p>
+      <div class="controls">
+        <label>weight <var>w</var> <input type="range" id="w" min="0" max="6" step="0.25" value="3"> <output id="w-out">3.00</output></label>
+      </div>
+      <div class="scroll-x">
+      <svg id="graph-svg" width="640" height="200" viewBox="0 0 640 200" style="min-width:520px" role="img" aria-label="A chain of boxes: w and x feed a multiply node giving p, then subtract t giving e, then square giving L. Blue numbers above each arrow show forward values. Orange numbers below show the gradient of L with respect to each value.">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-3)"/></marker>
+        </defs>
+        <g font-family="var(--font-mono)" text-anchor="middle">
+          <!-- inputs -->
+          <rect x="10" y="40" width="56" height="34" rx="5" fill="var(--surface)" stroke="var(--s1)" stroke-width="2"/>
+          <text x="38" y="62">w</text>
+          <rect x="10" y="120" width="56" height="34" rx="5" fill="var(--bg)" stroke="var(--ink-3)"/>
+          <text x="38" y="142">x = 2</text>
+          <!-- ops -->
+          <circle cx="160" cy="97" r="22" fill="var(--bg)" stroke="var(--ink-3)"/><text x="160" y="102">×</text>
+          <circle cx="330" cy="97" r="22" fill="var(--bg)" stroke="var(--ink-3)"/><text x="330" y="102">− 7</text>
+          <circle cx="500" cy="97" r="22" fill="var(--bg)" stroke="var(--ink-3)"/><text x="500" y="102">( )²</text>
+          <rect x="575" y="80" width="56" height="34" rx="5" fill="var(--surface)" stroke="var(--s2)" stroke-width="2"/>
+          <text x="603" y="102">L</text>
+          <!-- arrows -->
+          <path d="M66 62 L139 88" stroke="var(--ink-3)" marker-end="url(#arr)" fill="none"/>
+          <path d="M66 132 L139 106" stroke="var(--ink-3)" marker-end="url(#arr)" fill="none"/>
+          <path d="M182 97 H306" stroke="var(--ink-3)" marker-end="url(#arr)"/>
+          <path d="M352 97 H476" stroke="var(--ink-3)" marker-end="url(#arr)"/>
+          <path d="M522 97 H573" stroke="var(--ink-3)" marker-end="url(#arr)"/>
+          <!-- labels -->
+          <text x="244" y="86" style="fill:var(--s1)" id="v-p">p = 6</text>
+          <text x="414" y="86" style="fill:var(--s1)" id="v-e">e = −1</text>
+          <text x="603" y="70" style="fill:var(--s1)" id="v-L">1</text>
+          <text x="38" y="30" style="fill:var(--s1)" id="v-w">3</text>
+          <text x="244" y="124" style="fill:var(--s2)" id="g-p">dL/dp = −2</text>
+          <text x="414" y="124" style="fill:var(--s2)" id="g-e">dL/de = −2</text>
+          <text x="8" y="96" style="fill:var(--s2)" text-anchor="start" id="g-w">dL/dw = −4</text>
+          <text x="244" y="150" class="muted" style="font-size:11px">local slope dp/dw = x = 2</text>
+          <text x="414" y="150" class="muted" style="font-size:11px">local slope de/dp = 1</text>
+          <text x="566" y="150" class="muted" style="font-size:11px">local slope 2e</text>
+          <text x="10" y="186" style="font-size:11px;fill:var(--s1)" text-anchor="start">blue: value on the way forward</text><text x="250" y="186" style="font-size:11px;fill:var(--s2)" text-anchor="start">orange: gradient of L, on the way back</text>
+        </g>
+      </svg>
+      </div>
+      <div class="readout-box"><output id="graph-out"></output></div>
+      <figcaption><b>Multiply the local slopes along the path.</b> The gradient at <var>w</var> is 2<var>e</var> × 1 ×
+      <var>x</var>. When it is negative, raising <var>w</var> lowers the loss.</figcaption>
+    </figure>
+  </section>
+
+  <section id="backward">
+    <h2><code>.backward()</code> multiplies local slopes from the end to the start</h2>
+    <p>Each step in the graph has a simple <dfn>local slope</dfn>: how much its output changes per unit change of its
+    input. PyTorch knows the local slope of every built-in operation. <code>L.backward()</code> starts at <var>L</var>,
+    where the slope of <var>L</var> with respect to itself is 1. It then moves back one step at a time, multiplying by
+    each local slope. That product is the chain rule. The result for each marked tensor is stored in its
+    <code>.grad</code>.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: the gradient at <var>w</var> = 3, by hand</span>
+      <ol>
+        <li>Forward: <var>p</var> = 3 × 2 = 6, <var>e</var> = 6 − 7 = −1, <var>L</var> = (−1)² = 1.</li>
+        <li>Square step: <var>dL/de</var> = 2<var>e</var> = −2.</li>
+        <li>Subtract step: <var>de/dp</var> = 1, so <var>dL/dp</var> = −2 × 1 = −2.</li>
+        <li>Multiply step: <var>dp/dw</var> = <var>x</var> = 2, so <var>dL/dw</var> = −2 × 2 = −4.</li>
+        <li>Check by nudging: at <var>w</var> = 3.01, <var>L</var> = (6.02 − 7)² = 0.9604. The loss fell by 0.0396 for a
+        step of 0.01, a slope of −3.96. That is close to −4, as it should be for a small nudge.</li>
+      </ol>
+    </div>
+    <p class="code-cap">one_weight.py</p>
+<pre><code class="py">import torch
+
+x, t = 2.0, 7.0
+w = torch.tensor(3.0, requires_grad=True)
+p = w * x          # prediction: 6
+e = p - t          # error: -1
+L = e ** 2         # loss: 1
+L.backward()       # work backward from L
+print(L.item(), w.grad.item())
+</code></pre>
+<pre class="out"><code>1.0 -4.0</code></pre>
+    <p><code>.item()</code> turns a one-number tensor into a plain Python number.</p>
+  </section>
+
+  <section id="many">
+    <h2>One backward pass gives the gradient for every weight</h2>
+    <p>Real models have millions of weights. A single call to <code>.backward()</code> fills <code>.grad</code> for all of
+    them, and it costs about as much as a few forward passes. The list of these derivatives is the
+    <a href="gradient.html">gradient</a>, and it is what <a href="gradient-descent.html">gradient descent</a> uses to update
+    the weights. <a href="backpropagation.html">Backpropagation</a> shows how this backward pass runs through the layers
+    of a network.</p>
+    <p>Here the model has three weights and one loss. Before you read the output, use the worked example to predict
+    <code>w.grad</code>: the error is −2, so each gradient is 2 × (−2) × <var>x</var>.</p>
+    <p class="code-cap">three_weights.py</p>
+<pre><code class="py">import torch
+
+w = torch.tensor([1.0, -2.0, 0.5], requires_grad=True)
+x = torch.tensor([3.0, 1.0, 4.0])
+L = ((w * x).sum() - 5.0) ** 2   # one number from three weights
+L.backward()
+print(L.item())
+print(w.grad)
+</code></pre>
+<pre class="out"><code>4.0
+tensor([-12.,  -4., -16.])</code></pre>
+  </section>
+
+  <section id="rules">
+    <h2>Two habits: clear old gradients, and switch recording off when you do not need it</h2>
+    <p><code>.backward()</code> <em>adds</em> to <code>.grad</code>; it does not replace it. Training code therefore clears
+    the gradients before each step, by setting them to <code>None</code> or by calling the optimizer's
+    <code>zero_grad()</code>. Recording also costs memory, because the graph keeps every intermediate result. Code that
+    only uses the model, such as testing or generating, runs inside <code>torch.no_grad()</code>, which turns recording
+    off.</p>
+    <p class="code-cap">habits.py</p>
+<pre><code class="py">import torch
+
+w = torch.tensor(3.0, requires_grad=True)
+for step in range(2):
+    L = (w * 2.0 - 7.0) ** 2
+    L.backward()
+    print("after backward", step + 1, "w.grad =", w.grad.item())
+w.grad = None                  # clear it before the next step
+
+with torch.no_grad():          # no recording inside this block
+    L = (w * 2.0 - 7.0) ** 2
+print(L.requires_grad)
+</code></pre>
+<pre class="out"><code>after backward 1 w.grad = -4.0
+after backward 2 w.grad = -8.0
+False</code></pre>
+
+    <div class="callout warn">
+      <span class="callout-title">Details this page leaves out</span>
+      <p><code>.backward()</code> with no argument works only on a single number, such as a loss. PyTorch frees the graph
+      after the backward pass, so each step builds a new one; that is why the loop above recomputes <code>L</code>. Only
+      tensors created with <code>requires_grad=True</code> keep a <code>.grad</code>. A model's weights are such tensors,
+      because PyTorch layers create them that way. Intermediate results such as <var>p</var> keep no <code>.grad</code>,
+      unless you ask. The method is called reverse-mode automatic differentiation.</p>
+    </div>
+  </section>
+
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>Your turn with new numbers: <var>x</var> = 3, <var>t</var> = 2 and <var>w</var> = 1, with the same model
+      <var>L</var> = (<var>w</var><var>x</var> − <var>t</var>)². Find <var>L</var> and <var>dL/dw</var> by hand.</p>
+      <details><summary>Answer</summary><p><var>p</var> = 3, <var>e</var> = 1, <var>L</var> = 1. Then
+      <var>dL/dw</var> = 2<var>e</var> × 1 × <var>x</var> = 2 × 1 × 3 = 6. It is positive, so lowering <var>w</var> lowers
+      the loss.</p></details>
+    </li>
+    <li>
+      <p>A training loop calls <code>loss.backward()</code> on every batch but never clears the gradients. What goes
+      wrong?</p>
+      <details><summary>Answer</summary><p>Each <code>.grad</code> becomes the sum of the gradients of all batches so far,
+      not the gradient of the current batch. The weight updates grow and point in a stale direction.</p></details>
+    </li>
+    <li>
+      <p>Why does code that generates new samples from a trained model run inside <code>torch.no_grad()</code>?</p>
+      <details><summary>Answer</summary><p>It never calls <code>.backward()</code>, so recording the graph only wastes memory
+      and time. Turning recording off saves both.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://docs.pytorch.org/tutorials/beginner/basics/autogradqs_tutorial.html#tensors-functions-and-computational-graph">Automatic Differentiation with torch.autograd</a>
+        <span class="fl-src">PyTorch tutorials</span>
+        <span class="fl-format">Tutorial</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">The official tutorial, starting at its drawing of the computational graph. It also covers turning
+      recording off.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://github.com/karpathy/micrograd">micrograd</a>
+        <span class="fl-src">Andrej Karpathy</span>
+        <span class="fl-format">Code</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Automatic gradients in about 100 lines of Python. Reading it shows that nothing here is magic.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="training-loop.html">The training loop</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  'use strict';
+  const X = 2, T = 7;
+  const s = document.getElementById('w'), o = document.getElementById('w-out'), out = document.getElementById('graph-out');
+  const f = v => { const r = Math.round(v * 100) / 100; return (r < 0 ? '−' : '') + Math.abs(r).toString(); };
+  const set = (id, txt) => { document.getElementById(id).textContent = txt; };
+  function update() {
+    const w = Number(s.value), p = w * X, e = p - T, L = e * e, dLde = 2 * e, dLdw = dLde * X;
+    o.textContent = w.toFixed(2);
+    set('v-w', 'w = ' + f(w)); set('v-p', 'p = ' + f(p)); set('v-e', 'e = ' + f(e)); set('v-L', 'L = ' + f(L));
+    set('g-p', 'dL/dp = ' + f(dLde)); set('g-e', 'dL/de = ' + f(dLde)); set('g-w', 'dL/dw = ' + f(dLdw));
+    let msg = 'L = ' + f(L) + ', dL/dw = ' + f(dLdw) + '. ';
+    if (dLdw < 0) msg += 'Negative: raise w to lower the loss.';
+    else if (dLdw > 0) msg += 'Positive: lower w to lower the loss.';
+    else msg += 'Zero: the loss is at its lowest, L = 0, at w = 3.5. Goal reached.';
+    out.textContent = msg;
+  }
+  s.addEventListener('input', update);
+  update();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="checkpoints">
+<meta name="unit-level" content="u1">
+<title>Checkpoints: saving training to resume it</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>svg.wide-text text { font-size: 14px; }</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Checkpoints: saving training to resume it</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="minibatches.html">Minibatches: a few examples per step</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>Training a model can take hours or days, and a job can stop at any moment: a time limit, a crash, a
+  machine that is needed elsewhere. A checkpoint is a file that saves everything needed to carry on: the
+  weights, the optimizer's own memory, and the step count. The program writes one every so often. After a
+  stop, it loads the latest checkpoint and continues as if nothing had happened. Only the steps since that
+  save are lost.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="contents">
+    <h2>A checkpoint holds more than the weights</h2>
+    <p>The weights alone are enough to use a finished model. To continue training, you need everything that
+    the next step depends on:</p>
+    <ul>
+      <li>The <b>model's weights</b>.</li>
+      <li>The <b>optimizer state</b>: the numbers the optimizer keeps between steps. For example,
+      <a href="adamw.html">AdamW</a> keeps two running averages for every weight. Without them, the first
+      steps after a resume behave differently.</li>
+      <li>The <b>step count</b>, so that the <a href="learning-rate-schedule.html">learning-rate
+      schedule</a> continues from the right place and the run knows when to stop.</li>
+      <li>Any <b>extra copies</b>, such as the <a href="ema-weights.html">averaged weights</a>.</li>
+      <li>The state of the <b>random-number generators</b>, so that the batches and random choices that follow
+      are the ones the run would have made (see <a href="random-draws.html">random draws</a>).</li>
+    </ul>
+
+    <div class="example">
+      <span class="example-title">Worked example: how big is a checkpoint?</span>
+      <p>A model has 100 million weights, each stored as a 4-byte number.</p>
+      <ol>
+        <li>The weights take 100,000,000 × 4 bytes = <b>400 MB</b>.</li>
+        <li>AdamW keeps two numbers per weight: 2 × 400 MB = <b>800 MB</b>.</li>
+        <li>An averaged copy of the weights adds another <b>400 MB</b>.</li>
+        <li>The step count and generator states take a few kilobytes.</li>
+      </ol>
+      <p>The checkpoint is about 1.6 GB, four times the size of the weights alone.</p>
+      <p><b>Your turn.</b> How big is the checkpoint for a model with 25 million weights, with AdamW and no
+      averaged copy? <span class="small">(Answer: 100 MB + 200 MB = 300 MB.)</span></p>
+    </div>
+
+    <figure id="fig-contents">
+      <div class="fig-title">What fills a 1.6 GB checkpoint</div>
+      <svg class="wide-text" width="420" height="96" viewBox="0 0 420 96" role="img"
+           aria-label="A bar split into weights 400 MB, optimizer state 800 MB and averaged copy 400 MB; the step count is too small to see">
+        <rect x="10" y="10" width="100" height="34" rx="3" class="f-s1"/>
+        <rect x="110" y="10" width="200" height="34" rx="3" class="f-s2"/>
+        <rect x="310" y="10" width="100" height="34" rx="3" class="f-s3"/>
+        <text x="60" y="32" text-anchor="middle" style="fill:#fff">400 MB</text>
+        <text x="210" y="32" text-anchor="middle" style="fill:#fff">800 MB</text>
+        <text x="360" y="32" text-anchor="middle" style="fill:#fff">400 MB</text>
+        <text x="60" y="64" text-anchor="middle">weights</text>
+        <text x="210" y="64" text-anchor="middle">optimizer state</text>
+        <text x="360" y="64" text-anchor="middle">averaged copy</text>
+        <text x="210" y="86" text-anchor="middle" class="muted">step count and generator states: a few kB</text>
+      </svg>
+      <figcaption><b>What to notice.</b> The optimizer state is the largest part. A file with only the weights
+      is enough to use the model, but too little to continue training it.</figcaption>
+    </figure>
+  </section>
+
+  <section id="resume">
+    <h2>A full resume continues exactly where training stopped</h2>
+    <p>The snippet runs the same training in four parts. Run A takes 20 steps without stopping. Run B takes 10
+    steps and saves a checkpoint. Run C loads that checkpoint into new objects and takes the other 10 steps.
+    Run D loads only the weights and starts a fresh optimizer.</p>
+    <p class="code-cap">resume.py</p>
+<pre><code class="py" data-hl="20,21,24,25,26">import torch
+
+def make():
+    model = torch.nn.Linear(3, 1)
+    return model, torch.optim.AdamW(model.parameters(), lr=0.01)
+
+def train(model, opt, steps):
+    for _ in range(steps):
+        x = torch.randn(8, 3)                     # a random minibatch
+        loss = (model(x) - x.sum(1, keepdim=True)).pow(2).mean()
+        opt.zero_grad(); loss.backward(); opt.step()
+
+torch.manual_seed(0)                              # run A: 20 steps without stopping
+a, opt_a = make()
+train(a, opt_a, 20)
+
+torch.manual_seed(0)                              # run B: 10 steps, save, stop
+b, opt_b = make()
+train(b, opt_b, 10)
+torch.save({"model": b.state_dict(), "optimizer": opt_b.state_dict(),
+            "step": 10, "rng": torch.get_rng_state()}, "ckpt.pt")
+
+c, opt_c = make()                                 # later: new objects, then resume
+ck = torch.load("ckpt.pt")
+c.load_state_dict(ck["model"]); opt_c.load_state_dict(ck["optimizer"])
+torch.set_rng_state(ck["rng"])
+train(c, opt_c, 20 - ck["step"])
+
+d, opt_d = make()                                 # resume, but forget the optimizer
+d.load_state_dict(ck["model"])
+torch.set_rng_state(ck["rng"])
+train(d, opt_d, 20 - ck["step"])
+
+print("full resume matches run A:   ", torch.equal(a.weight, c.weight))
+print("without optimizer state:     ", torch.equal(a.weight, d.weight))
+</code></pre>
+<pre class="out"><code>full resume matches run A:    True
+without optimizer state:      False</code></pre>
+    <p>With everything saved, the resumed run ends with exactly the same weights as the run that never
+    stopped. Without the optimizer state, it ends somewhere else. A <code>state_dict()</code> is PyTorch's
+    name for all of an object's numbers, gathered into a dictionary that <code>torch.save</code> can write.</p>
+  </section>
+
+  <section id="how-often">
+    <h2>Save often enough to lose little, rarely enough to stay fast</h2>
+    <p>Saving takes time, during which training pauses. Saving rarely risks losing more work when the job
+    stops. The interval between saves trades one against the other.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: a stop at step 47,350</span>
+      <p>A run takes 3 steps per second. It saves every 2,000 steps, which is every 2,000 ÷ 3 ≈ 667 seconds,
+      about 11 minutes. Each save takes 20 seconds.</p>
+      <ol>
+        <li>The job stops at step 47,350. The latest checkpoint is from step 46,000.</li>
+        <li>The restarted job repeats 47,350 − 46,000 = 1,350 steps: 1,350 ÷ 3 = 450 seconds, or 7.5 minutes of
+        lost work.</li>
+        <li>The worst case is a stop just before a save: 2,000 steps, about 11 minutes.</li>
+        <li>Saving costs 20 seconds out of every 667 + 20, so about 3% of the run time.</li>
+      </ol>
+    </div>
+
+    <p><b>Try it.</b> The figure repeats the worked example with an interval you choose. Find an interval that
+    keeps the worst-case loss under 15 minutes and the time spent saving under 3%.</p>
+    <figure id="fig-interval">
+      <div class="fig-title">Checkpoints along a run that stops at step 47,350</div>
+      <div class="controls">
+        <label>Save every <input type="range" id="ck-i" min="500" max="10000" step="500" value="5000"> <output id="ck-i-out">5,000</output> steps</label>
+      </div>
+      <svg id="ck-svg" class="wide-text" style="width:100%" width="420" height="130" viewBox="0 0 420 130" role="img"
+           aria-label="A timeline of training steps with a tick at each checkpoint, a stop at step 47,350, and the lost work since the last checkpoint shaded"></svg>
+      <p class="readout-box"><output id="ck-out">Lost work and saving time.</output></p>
+      <figcaption><b>What to notice.</b> The shaded stretch is the work that the restarted job repeats. Shorter
+      intervals shrink it but add more pauses for saving.</figcaption>
+    </figure>
+
+    <h3>Write each checkpoint safely</h3>
+    <ul>
+      <li>Write to a temporary file, then rename it to the real name. A rename happens all at once, so a stop
+      during the save leaves the previous checkpoint whole.</li>
+      <li>Keep the last few checkpoints, not only the latest, in case one is damaged.</li>
+      <li>Keep the checkpoint with the lowest <a href="validation-set.html">validation loss</a> as well; that
+      is often the model you want in the end.</li>
+    </ul>
+    <div class="callout warn">
+      <span class="callout-title">This is a simplification</span>
+      <p>The snippet resumes exactly because its batches come from one random generator. A real run also needs
+      to know where it was in the shuffled order of the current epoch. With several
+      <a href="data-loaders.html">data-loader workers</a> or <a href="multi-gpu-training.html">several
+      GPUs</a>, there are several generators. Some GPU operations also give slightly different results from
+      run to run. Many projects therefore accept a resume that is close rather than identical.</p>
+    </div>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>A colleague saves only <code>model.state_dict()</code> every hour and trains with AdamW. What goes
+      wrong when the job restarts?</p>
+      <details><summary>Answer</summary><p>The optimizer starts with empty running averages and the step count
+      starts from zero, so the learning-rate schedule restarts too. Training continues, but not as the
+      original run would have. The snippet shows the weights end up different.</p></details>
+    </li>
+    <li>
+      <p>A run takes 5 steps per second and saves every 3,000 steps. What is the most work it can lose, in
+      minutes?</p>
+      <details><summary>Answer</summary><p>3,000 ÷ 5 = 600 seconds, which is 10 minutes.</p></details>
+    </li>
+    <li>
+      <p>Why write the checkpoint to a temporary file first and then rename it?</p>
+      <details><summary>Answer</summary><p>If the job stops in the middle of writing, the half-written file
+      has the temporary name, and the last good checkpoint is untouched. Writing straight over the old file
+      could leave no good checkpoint at all.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more depth.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://docs.pytorch.org/tutorials/beginner/saving_loading_models.html#saving-loading-a-general-checkpoint-for-inference-and-or-resuming-training">Saving and loading a general checkpoint</a>
+        <span class="fl-src">PyTorch tutorials</span>
+        <span class="fl-format">Tutorial</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">The standard save-and-resume code, with the model and optimizer state in one
+      dictionary.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="training-loop.html">The training loop</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  'use strict';
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.getElementById('ck-svg');
+  const slider = document.getElementById('ck-i');
+  const out = document.getElementById('ck-out');
+  if (!svg || !slider) return;
+  const el = (tag, attrs, parent) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  };
+  const STOP = 47350, RATE = 3, SAVE_S = 20, END = 60000;
+  const fmt = n => n.toLocaleString('en-US');
+  function draw() {
+    const I = Number(slider.value);
+    document.getElementById('ck-i-out').textContent = fmt(I);
+    const W = Math.max(300, Math.min(700, Math.round(svg.getBoundingClientRect().width) || 420));
+    const H = 130, L = 12, R = W - 12, y = 58;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.setAttribute('width', W);
+    svg.textContent = '';
+    const X = s => L + s / END * (R - L);
+    const last = Math.floor(STOP / I) * I;
+    el('rect', { x: X(0), y: y - 10, width: X(STOP) - X(0), height: 20, rx: 3, fill: 'var(--s1)', opacity: 0.25 }, svg);
+    el('rect', { x: X(last), y: y - 10, width: Math.max(2, X(STOP) - X(last)), height: 20, fill: 'var(--s2)', opacity: 0.8 }, svg);
+    el('line', { x1: X(0), x2: X(END), y1: y, y2: y, stroke: 'var(--ink-3)' }, svg);
+    for (let s = I; s <= END; s += I) {
+      el('line', { x1: X(s), x2: X(s), y1: y - 14, y2: y + 14, stroke: s <= STOP ? 'var(--ink)' : 'var(--ink-3)', 'stroke-width': 1.5, opacity: s <= STOP ? 1 : 0.35 }, svg);
+    }
+    el('text', { x: X(STOP), y: y - 22, 'text-anchor': 'middle', style: 'fill:var(--bad);font-weight:600' }, svg).textContent = 'stop';
+    el('line', { x1: X(STOP), x2: X(STOP), y1: y - 18, y2: y + 18, stroke: 'var(--bad)', 'stroke-width': 2.5 }, svg);
+    [0, 20000, 40000, 60000].forEach(s => {
+      el('text', { x: X(s), y: y + 36, 'text-anchor': s === 0 ? 'start' : s === END ? 'end' : 'middle', class: 'muted' }, svg).textContent = s === 0 ? '0' : (s / 1000) + 'k';
+    });
+    el('text', { x: (L + R) / 2, y: y + 58, 'text-anchor': 'middle', class: 'ink2' }, svg).textContent = 'training step (each tick is a checkpoint)';
+    const lostMin = (STOP - last) / RATE / 60, worstMin = I / RATE / 60;
+    const share = SAVE_S / (I / RATE + SAVE_S) * 100;
+    const ok = worstMin < 15 && share < 3;
+    out.textContent = `Every ${fmt(I)} steps (${worstMin.toFixed(1)} min): last checkpoint at step ${fmt(last)}, so ` +
+      `${lostMin.toFixed(1)} min of work is lost. Worst case ${worstMin.toFixed(1)} min. Time spent saving ${share.toFixed(1)}%.` +
+      (ok ? ' Both goals met.' : '');
+  }
+  slider.addEventListener('input', draw);
+  let lastW = 0;
+  window.addEventListener('resize', () => {
+    const wNow = Math.round(svg.getBoundingClientRect().width);
+    if (Math.abs(wNow - lastW) > 4) { lastW = wNow; draw(); }
+  });
+  draw();
+})();
+</script>
+</body>
+</html>

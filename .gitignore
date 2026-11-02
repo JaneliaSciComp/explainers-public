@@ -1,0 +1,6 @@
+# scratch output of the render, link and snippet checks
+tmp/
+_site/
+__pycache__/
+*.pyc
+.DS_Store

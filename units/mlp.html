@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="mlp">
+<meta name="unit-level" content="u1">
+<title>The multilayer perceptron (MLP)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  svg .node { fill: var(--surface); stroke: var(--ink-3); stroke-width: 1.5; }
+  svg .edge { stroke: var(--ink-3); stroke-width: 1; opacity: 0.45; }
+  svg .lbl { font-size: 16px; }
+  svg .gl { stroke: var(--grid); stroke-width: 1; }
+  svg .ax { stroke: var(--ink-3); stroke-width: 1; }
+  svg .tick { font-size: 15px; }
+  .math.wrap { white-space: normal; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>The multilayer perceptron (MLP)</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="linear-layer.html">A linear layer: weighted sums</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+    <li><a href="activation-functions.html">Activation functions: bending straight lines</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A multilayer perceptron, or MLP, is a stack of linear layers with an activation function after each one except
+  the last. Numbers flow in at one end and come out at the other. The middle layers are called hidden layers. Each
+  activation adds bends, so a wide enough MLP can follow almost any smooth relationship between its inputs and its
+  outputs. MLPs are the basic building block of neural networks, and they appear inside most larger designs.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="stack">
+    <h2>An MLP alternates linear layers and activation functions</h2>
+    <p>A <a href="linear-layer.html">linear layer</a> computes weighted sums. An
+    <a href="activation-functions.html">activation function</a>, such as ReLU, bends each number afterwards. An MLP
+    simply repeats the pair:</p>
+    <p class="math wrap">input &rarr; linear &rarr; ReLU &rarr; linear &rarr; ReLU &rarr; linear &rarr; output</p>
+    <p>The lists of numbers between the input and the output are the <dfn>hidden layers</dfn>. They are called
+    hidden because the training data gives no values for them: it fixes only the inputs and the targets. The length of a hidden list is the layer's
+    <dfn>width</dfn>. The number of linear layers is the network's <dfn>depth</dfn>.</p>
+
+    <figure id="fig-mlp">
+      <div class="fig-title">An MLP with 2 inputs, two hidden layers of width 4, and 1 output</div>
+      <svg id="mlp-svg" width="420" height="250" viewBox="0 0 420 250" role="img"
+           aria-label="Four columns of circles: 2 inputs, 4 hidden, 4 hidden, 1 output. Every circle in one column is joined to every circle in the next. Labels under the gaps say linear then ReLU, linear then ReLU, and linear."></svg>
+      <figcaption><b>Every number in one column feeds every number in the next.</b> Each gap between columns is a linear
+      layer. The first two gaps are followed by ReLU; the last is not. This network has 37 parameters: 2 &times; 4 + 4,
+      then 4 &times; 4 + 4, then 4 &times; 1 + 1.</figcaption>
+    </figure>
+
+    <div class="example">
+      <span class="example-title">Worked example: one pass through a tiny MLP</span>
+      <p>The network has 2 inputs, one hidden layer of width 2 with ReLU, and 1 output. Its parameters are:</p>
+      <ul>
+        <li>first layer: <b>W</b><sub>1</sub> = [[1, &minus;1], [0.5, 1]], <b>b</b><sub>1</sub> = (0, &minus;1);</li>
+        <li>second layer: <b>W</b><sub>2</sub> = [[2, 1]], <var>b</var><sub>2</sub> = 0.5.</li>
+      </ul>
+      <p>Feed in <b>x</b> = (1, 2).</p>
+      <ol>
+        <li>First layer: <var>z</var><sub>1</sub> = 1 &times; 1 &minus; 1 &times; 2 + 0 = &minus;1 and
+        <var>z</var><sub>2</sub> = 0.5 &times; 1 + 1 &times; 2 &minus; 1 = 1.5.</li>
+        <li>ReLU: <b>h</b> = (max(0, &minus;1), max(0, 1.5)) = (0, 1.5). The first hidden number is switched off.</li>
+        <li>Second layer: <var>y</var> = 2 &times; 0 + 1 &times; 1.5 + 0.5 = <b>2</b>.</li>
+      </ol>
+      <p><b>Your turn.</b> Feed in <b>x</b> = (2, 0). What is <var>y</var>?</p>
+      <details><summary>Answer</summary><p><b>z</b> = (2, 0), so <b>h</b> = (2, 0) and
+      <var>y</var> = 2 &times; 2 + 0 + 0.5 = 4.5.</p></details>
+    </div>
+  </section>
+
+  <section id="width">
+    <h2>More hidden units give more bends</h2>
+    <p>Each hidden unit with ReLU switches on at one input value, which adds one corner to the output. With enough
+    corners, the output can trace a curve as closely as you like. The figure below shows this with weights chosen by
+    hand. Training finds its own weights, but the pieces it builds with are the same.</p>
+    <p><b>Try it.</b> The MLP has one input, one hidden layer with ReLU, and one output. It tries to follow the curve
+    sin(<var>x</var>). Predict how many hidden units it needs before the largest gap between the two curves is below
+    0.05. Then move the slider to find the fewest that do it.</p>
+
+    <figure id="fig-width">
+      <div class="fig-title">A one-hidden-layer MLP following sin(<var>x</var>)</div>
+      <div class="controls">
+        <label>hidden units <input type="range" id="mw-n" min="1" max="16" step="1" value="3"> <output id="mw-n-out">3</output></label>
+        <span>largest gap <output id="mw-err">-</output></span>
+      </div>
+      <svg id="mw-svg" width="420" height="230" viewBox="0 0 420 230" role="img"
+           aria-label="The target curve sin x and the MLP's output, a chain of straight pieces, for x from minus pi to pi."></svg>
+      <div class="legend"><span><i class="sw" style="background:var(--ink-3)"></i>target sin(<var>x</var>)</span><span><i class="sw" style="background:var(--s2)"></i>MLP output</span><span><i class="sw" style="background:var(--s1)"></i>where a hidden unit switches on</span></div>
+      <figcaption><b>The output is made of straight pieces, one more for each hidden unit.</b> Hidden unit
+      <var>i</var> computes ReLU(<var>x</var> &minus; <var>t</var><sub><var>i</var></sub>), so it switches on at
+      <var>t</var><sub><var>i</var></sub>. The output layer weights each one by how much the slope must change
+      there.</figcaption>
+    </figure>
+    <details><summary>Answer</summary><p>10 hidden units. The largest gap is about 0.049 with 10 and about 0.059 with 9.
+    Halving the gap takes about 1.4 times as many units here, because the gap shrinks with the square of the piece
+    length.</p></details>
+
+    <div class="callout warn">
+      <span class="callout-title">"Almost any relationship" has limits</span>
+      <p>The <em>universal approximation theorem</em> says that one wide enough hidden layer can approximate any
+      continuous function on a bounded range. It says such weights exist. It does not say how many units are needed,
+      or that training will find them. In practice, deeper networks often need far fewer units than one very wide
+      layer.</p>
+    </div>
+  </section>
+
+  <section id="last-layer">
+    <h2>The last layer usually has no activation</h2>
+    <p>The output layer is left linear so that the output can take any value: negative, positive, large or small. A
+    ReLU there would forbid negative outputs. When an output must be a probability, a later step such as the
+    <a href="sigmoid.html">sigmoid</a> or <a href="softmax.html">softmax</a> turns it into one.</p>
+    <p>In PyTorch, an MLP is a list of layers run in order:</p>
+    <p class="code-cap">mlp_torch.py</p>
+<pre><code class="py">import torch
+from torch import nn
+
+mlp = nn.Sequential(
+    nn.Linear(2, 4), nn.ReLU(),
+    nn.Linear(4, 4), nn.ReLU(),
+    nn.Linear(4, 1),
+)
+print(sum(p.numel() for p in mlp.parameters()))
+
+points = torch.randn(5, 2)   # a batch of 5 inputs, 2 numbers each
+print(mlp(points).shape)
+</code></pre>
+<pre class="out"><code>37
+torch.Size([5, 1])</code></pre>
+    <p>The worked example, step by step in NumPy:</p>
+    <p class="code-cap">mlp_numpy.py</p>
+<pre><code class="py">import numpy as np
+
+x  = np.array([1.0, 2.0])
+W1 = np.array([[1.0, -1.0],
+               [0.5,  1.0]])
+b1 = np.array([0.0, -1.0])
+W2 = np.array([[2.0, 1.0]])
+b2 = np.array([0.5])
+
+z = W1 @ x + b1          # first linear layer
+h = np.maximum(0.0, z)   # ReLU
+y = W2 @ h + b2          # second linear layer
+print(z, h, y)
+</code></pre>
+<pre class="out"><code>[-1.   1.5] [0.  1.5] [2.]</code></pre>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>An MLP takes 3 inputs, has one hidden layer of width 8, and gives 1 output. How many parameters does it
+      have?</p>
+      <details><summary>Answer</summary><p>First layer 3 &times; 8 + 8 = 32. Second layer 8 &times; 1 + 1 = 9. Total
+      41.</p></details>
+    </li>
+    <li>
+      <p>Using the worked example's network, what is <var>y</var> for <b>x</b> = (0, 0)?</p>
+      <details><summary>Answer</summary><p><b>z</b> = <b>b</b><sub>1</sub> = (0, &minus;1), so
+      <b>h</b> = (0, 0) and <var>y</var> = <var>b</var><sub>2</sub> = 0.5.</p></details>
+    </li>
+    <li>
+      <p>An MLP predicts tomorrow's temperature in degrees Celsius. Someone puts a ReLU after its last layer. What goes
+      wrong?</p>
+      <details><summary>Answer</summary><p>The output can never be below 0, so the network cannot predict a frost.
+      The last layer should stay linear.</p></details>
+    </li>
+    <li>
+      <p>Someone deletes every ReLU from an MLP with four linear layers. What can the result still do?</p>
+      <details><summary>Answer</summary><p>Only what one linear layer can do: the four layers work out to a single
+      weighted sum plus a constant, so every output is a straight-line (flat) function of the inputs.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://playground.tensorflow.org/">TensorFlow Playground</a>
+        <span class="fl-src">Google</span>
+        <span class="fl-format">Interactive page</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">Add and remove hidden layers and units, train in the browser, and watch what shapes the network
+      can then separate.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://www.3blue1brown.com/lessons/neural-networks/">But what is a neural network?</a>
+        <span class="fl-src">3Blue1Brown</span>
+        <span class="fl-format">Video</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">The best first picture of layers of numbers feeding the next layer, on a digit-reading MLP.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://cs231n.github.io/neural-networks-1/#layer-wise-organization">Neural Networks Part 1: Layer-wise organization</a>
+        <span class="fl-src">Stanford CS231n notes</span>
+        <span class="fl-format">Course notes</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Names, sizes and parameter counts of fully connected networks, with a worked forward pass.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="residual-connections.html">Residual connections</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">5 min</span></li>
+    <li><a href="transformer-block.html">The transformer block</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">8 min</span></li>
+    <li><a href="pointnet-pooling.html">PointNet pooling: one summary for a set</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="flow-matching.html">Flow matching: turning noise into shapes</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">10 min</span></li>
+    <li><a href="time-conditioning.html">Time conditioning: telling a network the time</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="backpropagation.html">Backpropagation: gradients by the chain rule</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (tag, attrs, parent, text) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text !== undefined) e.textContent = text;
+    parent.appendChild(e);
+    return e;
+  };
+
+  // Figure 1: the layer diagram.
+  const ms = document.getElementById('mlp-svg');
+  if (ms) {
+    const cols = [2, 4, 4, 1], X = [40, 160, 280, 380], names = ['input', 'hidden', 'hidden', 'output'];
+    const ys = n => Array.from({ length: n }, (_, i) => 118 + (i - (n - 1) / 2) * 46);
+    const eg = el('g', {}, ms);
+    for (let c = 0; c < 3; c++) for (const a of ys(cols[c])) for (const b of ys(cols[c + 1]))
+      el('line', { x1: X[c], y1: a, x2: X[c + 1], y2: b, class: 'edge' }, eg);
+    cols.forEach((n, c) => {
+      for (const y of ys(n)) el('circle', { cx: X[c], cy: y, r: 13, class: 'node' }, ms);
+      el('text', { x: X[c], y: 16, 'text-anchor': 'middle', class: 'ink2 lbl' }, ms, names[c]);
+    });
+    const gaps = [['linear', 'ReLU'], ['linear', 'ReLU'], ['linear', '']];
+    gaps.forEach((g, c) => {
+      const mx = (X[c] + X[c + 1]) / 2;
+      el('text', { x: mx, y: 220, 'text-anchor': 'middle', class: 'lbl', fill: 'var(--s1)' }, ms, g[0]).style.fill = 'var(--s1)';
+      if (g[1]) el('text', { x: mx, y: 238, 'text-anchor': 'middle', class: 'lbl' }, ms, '+ ' + g[1]).style.fill = 'var(--s2)';
+    });
+  }
+
+  // Figure 2: one hidden layer of ReLU units following sin(x).
+  const svg = document.getElementById('mw-svg'), slider = document.getElementById('mw-n');
+  const nOut = document.getElementById('mw-n-out'), errOut = document.getElementById('mw-err');
+  if (!svg || !slider) return;
+  const L = 40, R = 410, T = 12, B = 196, lo = -1.25, hi = 1.25, PI = Math.PI;
+  const px = x => L + (x + PI) / (2 * PI) * (R - L), py = y => B - (y - lo) / (hi - lo) * (B - T);
+  function net(n) {
+    const t = Array.from({ length: n + 1 }, (_, i) => -PI + 2 * PI * i / n);
+    const f = t.map(Math.sin), s = [];
+    for (let i = 0; i < n; i++) s.push((f[i + 1] - f[i]) / (t[i + 1] - t[i]));
+    const w = s.map((v, i) => v - (i ? s[i - 1] : 0));   // output weights: change of slope at each knot
+    return { t, fn: x => f[0] + w.reduce((acc, wi, i) => acc + wi * Math.max(0, x - t[i]), 0) };
+  }
+  const path = fn => { let d = ''; for (let i = 0; i <= 400; i++) { const x = -PI + 2 * PI * i / 400; d += (i ? 'L' : 'M') + px(x).toFixed(1) + ' ' + py(fn(x)).toFixed(1); } return d; };
+  function update() {
+    const n = Number(slider.value), m = net(n);
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    for (const gx of [-PI, -PI / 2, 0, PI / 2, PI]) el('line', { x1: px(gx), y1: T, x2: px(gx), y2: B, class: 'gl' }, svg);
+    el('line', { x1: L, y1: py(0), x2: R, y2: py(0), class: 'ax' }, svg);
+    el('path', { d: path(Math.sin), fill: 'none', stroke: 'var(--ink-3)', 'stroke-width': 2, 'stroke-dasharray': '5 4' }, svg);
+    for (let i = 0; i < n; i++) el('circle', { cx: px(m.t[i]), cy: py(m.fn(m.t[i])), r: 4, class: 'f-s1' }, svg);
+    el('path', { d: path(m.fn), fill: 'none', class: 'st-s2', 'stroke-width': 2.5, 'stroke-linejoin': 'round' }, svg);
+    [['−π', -PI], ['0', 0], ['π', PI]].forEach(([s, x]) => el('text', { x: px(x), y: B + 18, 'text-anchor': 'middle', class: 'muted tick' }, svg, s));
+    el('text', { x: L - 6, y: py(1) + 4, 'text-anchor': 'end', class: 'muted tick' }, svg, '1');
+    el('text', { x: L - 6, y: py(-1) + 4, 'text-anchor': 'end', class: 'muted tick' }, svg, '−1');
+    el('text', { x: (L + R) / 2, y: B + 32, 'text-anchor': 'middle', class: 'ink2 tick' }, svg, 'x');
+    let err = 0;
+    for (let i = 0; i <= 4000; i++) { const x = -PI + 2 * PI * i / 4000; err = Math.max(err, Math.abs(m.fn(x) - Math.sin(x))); }
+    nOut.textContent = n;
+    errOut.textContent = err.toFixed(3) + (err < 0.05 ? '  (below 0.05)' : '');
+  }
+  slider.addEventListener('input', update);
+  update();
+})();
+</script>
+</body>
+</html>

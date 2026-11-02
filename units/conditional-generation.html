@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="conditional-generation">
+<meta name="unit-level" content="u1">
+<title>Conditional generation: generating from a hint</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  .wcanvas { width: 100%; max-width: 400px; height: auto; aspect-ratio: 1 / 1; margin: 0 auto; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Conditional generation: generating from a hint</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="generative-models.html">Generative models: making new examples</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A conditional generative model takes two inputs: random noise, as before, and a condition that says what kind of
+  example you want. The condition can be a label such as "cat", a sentence, or part of a shape. The model generates
+  examples that fit the condition. Give it the same condition with new noise, and you get a different example that also
+  fits. One model learns every condition at once, because the condition is just another input.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="hint">
+    <h2>The condition picks which examples the model draws from</h2>
+    <p>A plain <a href="generative-models.html">generative model</a> draws from the whole collection. A conditional
+    one draws only from the examples that match a condition <var>c</var>. We write that distribution
+    <var>p</var>(<var>x</var> | <var>c</var>), read "the distribution of <var>x</var> given <var>c</var>". The model
+    turns noise into an example, as before, but the condition changes which function it applies.</p>
+    <div class="example">
+      <span class="example-title">Worked example: heights for two age groups</span>
+      <p>A model of heights in centimeters takes the condition "child" or "adult". For a child it uses mean 130 and
+      spread 8; for an adult, mean 170 and spread 7. A sample is mean + spread × <var>z</var>, where <var>z</var> is a
+      draw from the standard bell curve.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>noise <var>z</var></th><th class="r">condition "child"</th><th class="r">condition "adult"</th></tr></thead>
+          <tbody>
+            <tr><td>0.5</td><td class="r">130 + 8 × 0.5 = 134</td><td class="r">170 + 7 × 0.5 = 173.5</td></tr>
+            <tr><td>−1</td><td class="r">130 − 8 = 122</td><td class="r">170 − 7 = 163</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Read down a column: the same condition with new noise gives a new example of the same kind. Read across a row:
+      the same noise with a new condition gives a different kind of example.</p>
+    </div>
+    <p><b>Your turn.</b> What does each condition give for the noise draw <var>z</var> = 2?</p>
+    <details><summary>Answer</summary><p>Child: 130 + 8 × 2 = 146 cm. Adult: 170 + 7 × 2 = 184 cm.</p></details>
+  </section>
+
+  <section id="two-shapes">
+    <h2>Same condition, new noise: a new example that still fits</h2>
+    <p>In two dimensions, let the examples be points of two kinds: points on a circle and points along a line. The
+    condition names the kind.</p>
+    <figure id="fig-cond">
+      <div class="fig-title">Samples (large dots) for the chosen condition, over the real examples (faint)</div>
+      <canvas id="cg-canvas" class="wcanvas" role="img" aria-label="Faint circle and line of example points, with larger, solid samples for the chosen condition"></canvas>
+      <div class="controls">
+        <span role="group" aria-label="Condition">
+          <button class="btn" type="button" data-cond="circle" aria-pressed="true">Circle</button>
+          <button class="btn" type="button" data-cond="line" aria-pressed="false">Line</button>
+          <button class="btn" type="button" data-cond="none" aria-pressed="false">No condition</button>
+        </span>
+        <button class="btn" type="button" id="cg-draw">Draw again</button>
+      </div>
+      <p class="readout-box" id="cg-read">…</p>
+      <figcaption><b>Try this.</b> Choose <i>Circle</i> and press <i>Draw again</i> twice. What stays the same, and what
+      changes? Then predict where the samples go with <i>No condition</i>, and check. Here the samples come from a
+      hand-written rule for each shape, standing in for a trained model.</figcaption>
+    </figure>
+    <details><summary>What you should find</summary><p>With a condition, every sample lands on the named shape, but
+    the samples change with each draw. With no condition, the samples land on both shapes, about half on each, because
+    the two kinds are equally common in the collection.</p></details>
+    <p>Without a condition, the model draws from the whole collection. That is the same as first picking a condition at
+    random, as often as it occurs in the collection, and then drawing an example for it. In symbols,
+    <var>p</var>(<var>x</var>) is the mix of the <var>p</var>(<var>x</var> | <var>c</var>), each weighted by how common
+    <var>c</var> is.</p>
+  </section>
+
+  <section id="training">
+    <h2>Training uses examples paired with their conditions</h2>
+    <p>Each training example comes with its condition: a photo with its caption, a height with its age group, a
+    complete shape with the part of it the model will be shown. The model receives the condition as extra input
+    numbers, next to the noise. A label becomes a vector through an <a href="embeddings.html">embedding</a>. A sentence
+    or a set of points can be read with <a href="cross-attention.html">cross-attention</a>. Sometimes the condition is
+    cut from the example itself, as in <a href="shape-completion.html">shape completion</a>.</p>
+    <div class="callout warn">
+      <span class="callout-title">Models can follow a condition only loosely</span>
+      <p>A trained model does not always respect its condition. Its samples may fit the condition only roughly, or
+      sometimes not at all. <a href="classifier-free-guidance.html">Classifier-free guidance</a> is a common way to
+      make a model follow its condition more strongly.</p>
+    </div>
+  </section>
+
+  <section id="many-answers">
+    <h2>A conditional model gives many answers where a predictor gives one</h2>
+    <p>A <dfn>predictor</dfn> (a regression model) returns one answer for each input. Trained with squared error, it
+    returns the average of the answers it saw for that input (see <a href="loss-function.html#best-guess">loss</a>).
+    For the answers −1 and +1, predicting 0 gives squared errors 1 + 1 = 2, and predicting +1 gives 4 + 0 = 4. That
+    works when one answer is right. It fails when several different answers are right, because their average may be
+    none of them.</p>
+    <figure id="fig-fork">
+      <div class="fig-title">A path reaches a fork: generated paths take a branch; the average takes neither</div>
+      <svg width="380" height="210" viewBox="0 0 380 210" role="img" aria-label="A road forks left and right. Blue generated paths follow one branch or the other. A dashed orange line, the average, goes straight up between the branches.">
+        <path d="M190 200 V118 L80 22 M190 118 L300 22" fill="none" stroke="var(--grid)" stroke-width="22" stroke-linejoin="round" stroke-linecap="round"/>
+        <path d="M188 200 V120 L84 26" fill="none" class="st-s1" stroke-width="2"/>
+        <path d="M192 200 V120 L298 26" fill="none" class="st-s1" stroke-width="2"/>
+        <path d="M186 200 V116 L76 22" fill="none" class="st-s1" stroke-width="1.5" opacity="0.6"/>
+        <path d="M194 200 V116 L304 22" fill="none" class="st-s1" stroke-width="1.5" opacity="0.6"/>
+        <path d="M190 118 V22" fill="none" class="st-s2" stroke-width="2.5" stroke-dasharray="6 5"/>
+        <text x="62" y="16" text-anchor="middle">left, −1</text>
+        <text x="318" y="16" text-anchor="middle">right, +1</text>
+        <text x="200" y="66" class="ink2">average, 0</text>
+        <text x="200" y="182" class="muted">start</text>
+      </svg>
+      <figcaption><b>What to notice.</b> Half the paths go left (−1) and half go right (+1). The average, 0, runs
+      straight into the gap between the branches, where no path goes. A conditional generative model gives −1 or +1,
+      each about half the time.</figcaption>
+    </figure>
+
+    <p class="code-cap">conditional_bell.py</p>
+<pre><code class="py">import numpy as np
+
+rng = np.random.default_rng(1)
+
+# One model, two conditions: the condition picks the mean and the spread.
+params = {"child": (130.0, 8.0), "adult": (170.0, 7.0)}
+
+def generate(condition, n):
+    mu, sigma = params[condition]
+    return mu + sigma * rng.standard_normal(n)
+
+print("child:", np.round(generate("child", 4), 1))
+print("adult:", np.round(generate("adult", 4), 1))
+
+# A fork in a path: it ends at -1 (left) or +1 (right), half the time each.
+ends = rng.choice([-1.0, 1.0], size=1000)
+print("single best guess (the average):", round(ends.mean(), 2))
+print("generated ends:", ends[:6])
+</code></pre>
+<pre class="out">child: [132.8 136.6 132.6 119.6]
+adult: [176.3 173.1 166.2 174.1]
+single best guess (the average): -0.02
+generated ends: [ 1.  1. -1. -1.  1.  1.]</pre>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>You give a conditional model the condition "adult" twice, with two different noise draws. Should the two
+      outputs be equal?</p>
+      <details><summary>Answer</summary><p>No. Both should fit the condition, but they should differ, because different
+      noise gives different examples of the same kind.</p></details>
+    </li>
+    <li>
+      <p>A road splits into three lanes that end at −2, 0 and +2, and each is equally common. What does a squared-error
+      predictor answer? Is that a real lane? Would it be one if only the lanes −2 and +2 existed?</p>
+      <details><summary>Answer</summary><p>It answers 0, the average. With three lanes, 0 happens to be a real lane. With
+      only −2 and +2, the average is still 0, which is not a lane. Averaging fails exactly when the average is not one of
+      the right answers.</p></details>
+    </li>
+    <li>
+      <p>A conditional model knows three conditions. In the collection they occur 50%, 30% and 20% of the time. How do
+      you draw a sample with no condition?</p>
+      <details><summary>Answer</summary><p>Pick a condition at random with probabilities 0.5, 0.3 and 0.2. Then draw a
+      sample from the model with that condition.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers with more time.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://poloclub.github.io/diffusion-explainer/">Diffusion Explainer</a>
+        <span class="fl-src">Polo Club, Georgia Tech</span>
+        <span class="fl-format">Interactive page</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Change the text prompt, which is the condition, and watch an image model generate a matching
+      picture step by step.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://lilianweng.github.io/posts/2021-07-11-diffusion-models/#conditioned-generation">What are Diffusion Models? Conditioned generation</a>
+        <span class="fl-src">Lilian Weng</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">Surveys the ways diffusion models take a condition. It uses more mathematics than this page.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="shape-completion.html">Shape completion: generating the missing part</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="classifier-free-guidance.html">Classifier-free guidance</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  'use strict';
+  const root = document.documentElement;
+  const css = n => getComputedStyle(root).getPropertyValue(n).trim();
+  const fit = cv => {
+    const dpr = window.devicePixelRatio || 1;
+    const w = Math.max(1, Math.round(cv.clientWidth)), h = Math.max(1, Math.round(cv.clientHeight));
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
+      cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    }
+    const ctx = cv.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    return { ctx, w, h };
+  };
+  const rand = seed => () => {
+    seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const gauss = r => { let u = 0; while (u === 0) u = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * r()); };
+
+  const cv = document.getElementById('cg-canvas');
+  if (!cv) return;
+  const read = document.getElementById('cg-read');
+  const R = 2.1;
+  // hand-written generators, one per condition
+  const GEN = {
+    circle: r => { const a = 2 * Math.PI * r(), rad = 0.8 + 0.04 * gauss(r); return [-0.9 + rad * Math.cos(a), rad * Math.sin(a)]; },
+    line: r => { const u = r(); return [0.5 + 1.0 * u + 0.04 * gauss(r), -1.2 + 2.4 * u + 0.04 * gauss(r)]; },
+  };
+  const r0 = rand(5);
+  const data = [];
+  for (let i = 0; i < 160; i++) data.push({ c: 'circle', p: GEN.circle(r0) }, { c: 'line', p: GEN.line(r0) });
+  let cond = 'circle', seed = 1, samples = [];
+  const drawSamples = () => {
+    const r = rand(seed);
+    samples = [];
+    for (let i = 0; i < 40; i++) {
+      const c = cond === 'none' ? (r() < 0.5 ? 'circle' : 'line') : cond;
+      samples.push({ c, p: GEN[c](r) });
+    }
+    paint();
+  };
+  function paint() {
+    const { ctx, w, h } = fit(cv);
+    const S = Math.min(w, h) / (2 * R), X = x => w / 2 + x * S, Y = y => h / 2 - y * S;
+    const col = { circle: css('--s1'), line: css('--s2') };
+    ctx.globalAlpha = 0.25;
+    for (const d of data) { ctx.fillStyle = col[d.c]; ctx.beginPath(); ctx.arc(X(d.p[0]), Y(d.p[1]), 2.2, 0, 2 * Math.PI); ctx.fill(); }
+    ctx.globalAlpha = 1;
+    for (const s of samples) {
+      ctx.fillStyle = cond === 'none' ? css('--ink') : col[s.c];
+      ctx.beginPath(); ctx.arc(X(s.p[0]), Y(s.p[1]), 4, 0, 2 * Math.PI); ctx.fill();
+    }
+    ctx.font = '13px ' + css('--font-body'); ctx.fillStyle = css('--ink-2');
+    ctx.fillText('circle', X(-0.9) - 18, Y(1.05));
+    ctx.fillText('line', X(1.55) + 4, Y(1.3));
+    const onCircle = samples.filter(s => s.c === 'circle').length;
+    read.textContent = cond === 'none'
+      ? `No condition: ${onCircle} of 40 samples on the circle, ${40 - onCircle} on the line.`
+      : `Condition "${cond}": all 40 samples on the ${cond}. Draw number ${seed}.`;
+  }
+  document.querySelectorAll('button[data-cond]').forEach(b => b.addEventListener('click', () => {
+    cond = b.dataset.cond;
+    document.querySelectorAll('button[data-cond]').forEach(o => o.setAttribute('aria-pressed', String(o === b)));
+    drawSamples();
+  }));
+  document.getElementById('cg-draw').addEventListener('click', () => { seed += 1; drawSamples(); });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', paint);
+  new MutationObserver(paint).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+  window.addEventListener('resize', paint);
+  drawSamples();
+})();
+</script>
+</body>
+</html>

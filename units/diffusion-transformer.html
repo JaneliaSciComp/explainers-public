@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="diffusion-transformer">
+<meta name="unit-level" content="u2">
+<title>Diffusion transformers (DiT)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  .dg text { font-size: 13px; }
+  .dg text.sm { font-size: 12px; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Diffusion transformers (DiT)</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">8 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="transformer-block.html">The transformer block</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">8 min</span></li>
+    <li><a href="flow-matching.html">Flow matching: turning noise into shapes</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">10 min</span></li>
+    <li><a href="time-conditioning.html">Time conditioning: telling a network the time</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A diffusion transformer, or DiT, is the network inside many diffusion and flow-matching models. It reads a noisy
+  example as a set of tokens, such as the points of a point cloud. A stack of transformer blocks lets every token
+  gather information from the others. The time, and any condition, reach every block through adaptive layer
+  normalization. A last layer turns each token back into an output of its own; in flow matching, that output is the
+  velocity of each point.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="job">
+    <h2>The network's job: noisy tokens and a time in, one velocity per token out</h2>
+    <p>Picture a cloud of 1,024 points, part way from noise to a shape, at time <var>t</var>. In
+    <a href="flow-matching.html">flow matching</a>, the network must return 1,024 arrows: the velocity of each point.
+    Each arrow depends on where the other points are. A point at the tip of a half-formed branch should move
+    differently from one in the middle of a cluster.</p>
+    <p>A DiT handles this in three stages. First, a linear layer turns each point's 3 coordinates into a vector of
+    <var>D</var> numbers, its <dfn>token</dfn> (see <a href="embeddings.html">embeddings</a>). For an image, a token is
+    a small square patch instead of a point. Second, a stack of blocks updates all the tokens. Third, a final layer turns
+    each token into that token's output.</p>
+    <figure id="fig-pipeline">
+      <div class="fig-title">From noisy points to one velocity per point</div>
+      <svg class="dg" width="380" height="300" viewBox="0 0 380 300" role="img" aria-label="Noisy points are embedded as tokens, pass through a stack of DiT blocks that each receive the time embedding, and a final layer outputs a velocity per point">
+        <defs><marker id="dt-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-2)"/></marker></defs>
+        <g fill="none" stroke-width="1.6">
+          <rect x="150" y="8" width="226" height="40" rx="5" class="st-s1"/>
+          <rect x="150" y="68" width="226" height="40" rx="5" class="st-s3"/>
+          <rect x="162" y="122" width="214" height="40" rx="5" class="st-s2" opacity="0.5"/>
+          <rect x="156" y="128" width="220" height="40" rx="5" class="st-s2" opacity="0.75"/>
+          <rect x="150" y="134" width="226" height="40" rx="5" class="st-s2" stroke-width="2.2"/>
+          <rect x="150" y="194" width="226" height="40" rx="5" class="st-s3"/>
+          <rect x="150" y="254" width="226" height="40" rx="5" class="st-s1"/>
+          <rect x="4" y="68" width="116" height="40" rx="5" class="st-s4"/>
+          <rect x="4" y="134" width="116" height="40" rx="5" class="st-s4"/>
+        </g>
+        <g text-anchor="middle">
+          <text x="263" y="25">noisy points <tspan font-style="italic">x</tspan><tspan font-size="10" dy="3" font-style="italic">t</tspan></text>
+          <text x="263" y="42" class="muted sm">1,024 points × 3 coordinates</text>
+          <text x="263" y="85">embed each point</text>
+          <text x="263" y="102" class="muted sm">linear layer, 3 → D</text>
+          <text x="263" y="151">DiT blocks, × 12</text>
+          <text x="263" y="168" class="muted sm">tokens: 1,024 × D</text>
+          <text x="263" y="211">final layer</text>
+          <text x="263" y="228" class="muted sm">adaLN, then linear D → 3</text>
+          <text x="263" y="271">a velocity for each point</text>
+          <text x="263" y="288" class="muted sm">1,024 × 3</text>
+          <text x="62" y="85">time <tspan font-style="italic">t</tspan></text>
+          <text x="62" y="102" class="muted sm">and any condition</text>
+          <text x="62" y="151">embedding <tspan font-weight="700">c</tspan></text>
+          <text x="62" y="168" class="muted sm">D numbers</text>
+        </g>
+        <g stroke="var(--ink-2)" stroke-width="1.5" fill="none" marker-end="url(#dt-ah)">
+          <path d="M263 48 V66"/><path d="M263 108 V120"/><path d="M263 174 V192"/><path d="M263 234 V252"/>
+          <path d="M62 108 V132"/><path d="M120 154 H148"/><path d="M100 174 V214 H148"/>
+        </g>
+        <text x="6" y="248" class="muted sm">into every block</text>
+        <text x="6" y="263" class="muted sm">and the final layer</text>
+      </svg>
+      <figcaption><b>What to notice.</b> The tokens keep their count all the way through: 1,024 in, 1,024 out. The time
+      enters from the side, into every block, rather than as one more token.</figcaption>
+    </figure>
+  </section>
+
+  <section id="block">
+    <h2>Inside a block: attention and an MLP, each steered by the time</h2>
+    <p>A DiT block is a <a href="transformer-block.html">transformer block</a> with two changes, both from
+    <a href="time-conditioning.html">time conditioning</a>. First, each layer normalization takes its scale and shift
+    from the conditioning vector <b>c</b>. Second, each branch's output is multiplied by a gate before it is added
+    back. A small layer (a SiLU activation, then a linear layer) maps <b>c</b> to six vectors of <var>D</var>
+    numbers: <b>γ</b><sub>1</sub>, <b>β</b><sub>1</sub>, <b>α</b><sub>1</sub> for the attention branch and <b>γ</b><sub>2</sub>, <b>β</b><sub>2</sub>,
+    <b>α</b><sub>2</sub> for the MLP branch. With LN for layer normalization and ⊙ for feature-by-feature products, the block
+    computes:</p>
+    <p class="math"><span class="vec">z</span> = LN(<span class="vec">h</span>) ⊙ (1 + <span class="vec">γ</span><sub>1</sub>) + <span class="vec">β</span><sub>1</sub><br><span class="vec">h</span> ← <span class="vec">h</span> + <span class="vec">α</span><sub>1</sub> ⊙ Attention(<span class="vec">z</span>)</p>
+    <p class="math"><span class="vec">z</span> = LN(<span class="vec">h</span>) ⊙ (1 + <span class="vec">γ</span><sub>2</sub>) + <span class="vec">β</span><sub>2</sub><br><span class="vec">h</span> ← <span class="vec">h</span> + <span class="vec">α</span><sub>2</sub> ⊙ MLP(<span class="vec">z</span>)</p>
+    <figure id="fig-block">
+      <div class="fig-title">One DiT block: six vectors from the time steer two branches</div>
+      <svg class="dg" width="380" height="470" viewBox="0 0 380 470" role="img" aria-label="Tokens pass through layer norm, scale and shift by gamma1 and beta1, self-attention, gate alpha1, and are added back; then layer norm, gamma2 and beta2, an MLP, gate alpha2, and are added back. A conditioning column makes the six vectors.">
+        <defs><marker id="db-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-2)"/></marker></defs>
+        <g fill="none" stroke-width="1.6">
+          <rect x="170" y="6" width="180" height="30" rx="5" class="st-s1"/>
+          <rect x="170" y="52" width="180" height="30" rx="5" class="st-s3"/>
+          <rect x="170" y="94" width="180" height="30" rx="5" class="st-s2" stroke-width="2.2"/>
+          <rect x="170" y="136" width="180" height="30" rx="5" class="st-s3"/>
+          <rect x="170" y="178" width="180" height="30" rx="5" class="st-s2" stroke-width="2.2"/>
+          <circle cx="260" cy="234" r="12" class="st-s1"/>
+          <rect x="170" y="262" width="180" height="30" rx="5" class="st-s3"/>
+          <rect x="170" y="304" width="180" height="30" rx="5" class="st-s2" stroke-width="2.2"/>
+          <rect x="170" y="346" width="180" height="30" rx="5" class="st-s3"/>
+          <rect x="170" y="388" width="180" height="30" rx="5" class="st-s2" stroke-width="2.2"/>
+          <circle cx="260" cy="440" r="12" class="st-s1"/>
+          <rect x="4" y="52" width="124" height="30" rx="5" class="st-s4"/>
+          <rect x="4" y="110" width="124" height="30" rx="5" class="st-s4"/>
+          <rect x="4" y="168" width="124" height="44" rx="5" class="st-s4"/>
+        </g>
+        <g text-anchor="middle">
+          <text x="260" y="26">tokens <tspan font-weight="700">h</tspan></text>
+          <text x="260" y="72">layer norm</text>
+          <text x="260" y="114">× (1 + <tspan font-weight="700">γ₁</tspan>), then + <tspan font-weight="700">β₁</tspan></text>
+          <text x="260" y="156">self-attention</text>
+          <text x="260" y="198">× <tspan font-weight="700">α₁</tspan></text>
+          <text x="260" y="239">+</text>
+          <text x="260" y="282">layer norm</text>
+          <text x="260" y="324">× (1 + <tspan font-weight="700">γ₂</tspan>), then + <tspan font-weight="700">β₂</tspan></text>
+          <text x="260" y="366">MLP</text>
+          <text x="260" y="408">× <tspan font-weight="700">α₂</tspan></text>
+          <text x="260" y="445">+</text>
+          <text x="66" y="72">conditioning <tspan font-weight="700">c</tspan></text>
+          <text x="66" y="130">SiLU, then linear</text>
+          <text x="66" y="187"><tspan font-weight="700">γ₁</tspan> <tspan font-weight="700">β₁</tspan> <tspan font-weight="700">α₁</tspan></text>
+          <text x="66" y="204"><tspan font-weight="700">γ₂</tspan> <tspan font-weight="700">β₂</tspan> <tspan font-weight="700">α₂</tspan></text>
+        </g>
+        <text x="280" y="465" class="muted sm">to the next block</text>
+        <g stroke="var(--ink-2)" stroke-width="1.5" fill="none" marker-end="url(#db-ah)">
+          <path d="M260 36 V50"/><path d="M260 82 V92"/><path d="M260 124 V134"/><path d="M260 166 V176"/><path d="M260 208 V220"/>
+          <path d="M260 246 V260"/><path d="M260 292 V302"/><path d="M260 334 V344"/><path d="M260 376 V386"/><path d="M260 418 V426"/>
+          <path d="M66 82 V108"/><path d="M66 140 V166"/>
+          <path d="M128 180 L168 110"/><path d="M128 190 L168 193"/><path d="M128 200 L168 318"/><path d="M128 208 L168 402"/>
+          <path d="M350 21 H366 V234 H274"/><path d="M366 234 V440 H274"/>
+        </g>
+      </svg>
+      <figcaption><b>What to notice.</b> The orange boxes are where the time acts: two scale-and-shift steps and two
+      gates. The lines on the right are residual paths, which add each branch's input back to its output.</figcaption>
+    </figure>
+    <p>The final layer is one more adaLN step (a scale and a shift, no gate), then a linear layer from <var>D</var>
+    numbers to the output size of each token: 3 for a velocity in 3D. In the DiT paper, the layers that make the six
+    vectors and the final linear layer all start at zero. So the untrained network passes tokens through every block
+    unchanged and outputs zero for every token.</p>
+  </section>
+
+  <section id="sizes">
+    <h2>Worked example: the sizes for a point cloud</h2>
+    <div class="example">
+      <span class="example-title">Worked example: following the shapes of the data</span>
+      <p>Take a batch of 2 point clouds of 1,024 points each, <var>D</var> = 384 features, 6 attention heads and 12
+      blocks. This is the size of the smallest model in the DiT paper, DiT-S.</p>
+      <ol>
+        <li>Input: 2 × 1,024 × 3 numbers. After embedding: 2 × 1,024 × 384.</li>
+        <li>Time: 2 numbers, one per cloud. After the time embedding: <b>c</b> is 2 × 384.</li>
+        <li>In each block, the conditioning layer maps 384 numbers to 6 × 384 = 2,304. It has 384 × 2,304 weights plus
+        2,304 biases: 887,040 parameters.</li>
+        <li>Self-attention compares every token with every token: 1,024 × 1,024 ≈ 1.05 million pairs, per head and per
+        block.</li>
+        <li>Output: 2 × 1,024 × 384, and after the final layer, 2 × 1,024 × 3: one velocity per point.</li>
+      </ol>
+    </div>
+    <p><b>Your turn.</b> With 2,048 points per cloud, how many token pairs does attention compare per head and per block?
+    And how many parameters does each block's conditioning layer have when <var>D</var> = 768?</p>
+    <details><summary>Answer</summary><p>2,048 × 2,048 = 4,194,304 pairs, four times as many: doubling the points
+    quadruples the pairs. The conditioning layer maps 768 to 6 × 768 = 4,608 numbers: 768 × 4,608 + 4,608 = 3,543,552
+    parameters.</p></details>
+
+    <p class="code-cap">dit_block.py (PyTorch)</p>
+<pre><code class="py">import torch
+import torch.nn as nn
+
+class DiTBlock(nn.Module):
+    """One transformer block whose normalization is set by the time (adaLN-Zero)."""
+    def __init__(self, d, heads):
+        super().__init__()
+        self.norm1 = nn.LayerNorm(d, elementwise_affine=False)
+        self.attn = nn.MultiheadAttention(d, heads, batch_first=True)
+        self.norm2 = nn.LayerNorm(d, elementwise_affine=False)
+        self.mlp = nn.Sequential(nn.Linear(d, 4 * d), nn.GELU(), nn.Linear(4 * d, d))
+        self.ada = nn.Sequential(nn.SiLU(), nn.Linear(d, 6 * d))
+        nn.init.zeros_(self.ada[1].weight)    # "Zero": every gate starts at 0
+        nn.init.zeros_(self.ada[1].bias)
+
+    def forward(self, h, c):                  # h: (batch, tokens, d); c: (batch, d)
+        g1, b1, a1, g2, b2, a2 = self.ada(c)[:, None].chunk(6, dim=-1)
+        z = self.norm1(h) * (1 + g1) + b1
+        h = h + a1 * self.attn(z, z, z, need_weights=False)[0]
+        z = self.norm2(h) * (1 + g2) + b2
+        return h + a2 * self.mlp(z)
+
+torch.manual_seed(0)
+block = DiTBlock(d=384, heads=6)
+h = torch.randn(2, 1024, 384)                 # 2 examples, 1024 tokens each
+c = torch.randn(2, 384)                       # time (plus condition) embedding
+out = block(h, c)
+print(out.shape, "unchanged at the start:", torch.equal(out, h))
+print("parameters in the time layer:", sum(p.numel() for p in block.ada.parameters()))
+</code></pre>
+<pre class="out">torch.Size([2, 1024, 384]) unchanged at the start: True
+parameters in the time layer: 887040</pre>
+  </section>
+
+  <section id="sets">
+    <h2>Without position labels, a DiT treats points as a set</h2>
+    <p>An image DiT adds a position embedding to each patch token, because a patch's place in the grid matters. A point
+    token already carries its position: its coordinates. If nothing else marks an order, attention and the per-token MLP
+    treat all tokens alike. Shuffle the input points, and the output velocities come out shuffled the same way. This
+    property is called <dfn>permutation equivariance</dfn>, and it suits point clouds, which have no order (see
+    <a href="permutation-invariance.html">permutation invariance</a>).</p>
+    <p>A condition can enter in two ways. A short one, such as a class label, is added to <b>c</b>. A long one, such
+    as the known points of a <a href="shape-completion.html">shape to complete</a> or a sentence, becomes its own set of
+    tokens that the blocks read with <a href="cross-attention.html">cross-attention</a>, or joins the data tokens in
+    self-attention.</p>
+  </section>
+
+  <section id="name">
+    <h2>The name says diffusion, but the network fits flow matching too</h2>
+    <p>The DiT paper (Peebles and Xie, 2023) trained the network as a diffusion model that predicts the added noise, on
+    image patches in a compressed form of the image. Nothing in the network depends on that choice. To use it for flow
+    matching, change only the training target, to the velocity <var>x</var><sub>1</sub> − <var>x</var><sub>0</sub>.</p>
+    <div class="callout warn">
+      <span class="callout-title">This is the original block; later models vary it</span>
+      <p>This page shows the block as the DiT paper defines it. Later models change details. Some feed conditions
+      through cross-attention or joint attention, and some use other normalizations or position encodings. The pattern
+      stays the same: tokens in, blocks steered by the time, one output per token.</p>
+    </div>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>You switch a DiT from predicting noise to flow matching. What changes in the network?</p>
+      <details><summary>Answer</summary><p>Nothing in the network. Only the training target in the loss changes, from the
+      added noise to the velocity <var>x</var><sub>1</sub> − <var>x</var><sub>0</sub>.</p></details>
+    </li>
+    <li>
+      <p>All six vectors from a block's conditioning layer are zero. What does the block output?</p>
+      <details><summary>Answer</summary><p>Its input, unchanged. With <b>α</b><sub>1</sub> = <b>α</b><sub>2</sub> = 0, both branches
+      add nothing.</p></details>
+    </li>
+    <li>
+      <p>A point-cloud DiT without position embeddings gets the same 1,024 points in a new order. What happens to its
+      output?</p>
+      <details><summary>Answer</summary><p>It returns the same 1,024 velocities, in the new order. Each point still gets
+      the velocity it had before.</p></details>
+    </li>
+    <li>
+      <p>Why can the same DiT handle clouds of 500 points and of 2,000 points?</p>
+      <details><summary>Answer</summary><p>The same weights apply to every token, and attention works for any number of
+      tokens. The cost of attention grows with the square of the number of points.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers with more time.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://www.wpeebles.com/DiT">Scalable Diffusion Models with Transformers, project page</a>
+        <span class="fl-src">Peebles and Xie</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">The block designs the authors compared, and how image quality improves as the model grows.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://arxiv.org/abs/2212.09748">Scalable Diffusion Models with Transformers</a>
+        <span class="fl-src">Peebles and Xie</span>
+        <span class="fl-format">Paper</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">Section 3 defines the block, adaLN-Zero and the model sizes exactly.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://diffusion.csail.mit.edu/2026/#labs">Lab 3: Diffusion Transformer and VAEs (MIT 6.S184)</a>
+        <span class="fl-src">Holderrieth and Erives, MIT</span>
+        <span class="fl-format">Notebook</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">Builds a diffusion transformer step by step in a notebook.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <p>No unit or explanation builds on this one yet.</p>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+</body>
+</html>

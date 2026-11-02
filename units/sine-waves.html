@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="sine-waves">
+<meta name="unit-level" content="hs">
+<title>Sine waves</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Sine waves</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-hs">High school</span> <span class="minutes">7 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Before you start</h2>
+  <p>You need nothing else first. This unit starts from scratch.</p>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>Walk a point around a circle of radius 1. Its height goes up to 1, back through 0, down to −1 and up again, over
+  and over. That height, as a function of the angle turned, is the sine; the sideways position is the cosine. Plot
+  either against the angle and you get a smooth wave that repeats every full turn. Multiply the input by a larger
+  number and the wave repeats faster. So sine and cosine turn any angle or position into a value between −1 and 1
+  that cycles.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="circle">
+    <h2>Sine is the height of a point going around a circle</h2>
+    <p>Draw a circle of radius 1 around the origin. Start a point at (1, 0) and turn it counterclockwise by an angle
+    <var>θ</var> (the Greek letter theta). The point's position is then (cos <var>θ</var>, sin <var>θ</var>). That is
+    the definition: the <dfn>cosine</dfn> is the point's <var>x</var>, and the <dfn>sine</dfn> is its <var>y</var>.</p>
+    <p>At 0° the point is at (1, 0), so sin 0° = 0 and cos 0° = 1. At 90° it is at the top, (0, 1). At 180° it is at
+    (−1, 0), and at 270° at the bottom, (0, −1). At 360° it is back where it started, and everything repeats.</p>
+
+    <figure id="fig-circle">
+      <div class="fig-title">The point's height, plotted against the angle, traces a sine wave</div>
+      <div class="controls">
+        <label>Angle <input id="sw-ang" type="range" min="0" max="720" step="5" value="120"> <output id="sw-oang">120°</output></label>
+      </div>
+      <div class="scroll-x">
+      <svg id="sw-svg" width="420" height="200" viewBox="0 0 420 200" role="img"
+           aria-label="Left, a circle with a point on it at the chosen angle; right, the sine wave traced so far, with a dashed line joining the point's height to the end of the wave">
+        <g id="sw-plot"></g>
+      </svg>
+      </div>
+      <div class="readout-box">sin <output id="sw-osin">120°</output> = <output id="sw-vsin">0.866</output> &nbsp;
+        cos = <output id="sw-vcos">−0.500</output></div>
+      <figcaption><b>Try this.</b> The green line is the point's height, sin <var>θ</var>; the wave on the right
+      records it at every angle so far. Predict the first angle after 0° where the sine is −1, then slide to check.
+      Keep going past 360° and watch the wave repeat.</figcaption>
+    </figure>
+
+    <div class="example">
+      <span class="example-title">Worked example</span>
+      <p>Find sin 30°. Turn the point 30° from (1, 0). Draw a line from it straight down to the <var>x</var>-axis. You
+      get a right triangle with long side 1 and a 30° angle at the origin. Now reflect it in the <var>x</var>-axis.
+      The triangle and its mirror image together have a 60° angle at the origin, between two sides of length 1.
+      Because those two sides are equal, the other two angles are equal too. All three add up to 180°, so each is
+      60°. The two triangles form an equilateral triangle with sides of 1. Its vertical side, of length 1, is twice
+      the point's height, so the height is 0.5.</p>
+      <p>So sin 30° = 0.5. By Pythagoras, cos 30° = √(1 − 0.25) = √0.75 ≈ 0.866.</p>
+      <p><b>Your turn.</b> Use the circle's symmetry to find sin 150° and sin 210°.</p>
+      <details><summary>Answer</summary><p>150° is the mirror image of 30° across the vertical axis, at the same
+      height: sin 150° = 0.5. 210° is 30° past the left side, below the axis: sin 210° = −0.5.</p></details>
+    </div>
+  </section>
+
+  <section id="radians">
+    <h2>Code measures angles in radians</h2>
+    <p>Most programs, including NumPy, measure angles in <dfn>radians</dfn> rather than degrees. One radian is the
+    angle at which the point has traveled a distance of 1 along the circle's edge. The whole edge is 2π ≈ 6.283
+    long, so a full turn is 2π radians. Half a turn is π, and a quarter turn is π / 2. To convert, multiply degrees by
+    π / 180.</p>
+    <p>A full wave, from one peak to the next, is called a <dfn>period</dfn>. The sine's period is 2π radians.</p>
+  </section>
+
+  <section id="frequency">
+    <h2>Multiplying the input makes the wave repeat faster</h2>
+    <p>Sines are also used to turn a <em>position</em>, not an angle, into a wave. Take a position <var>x</var> between
+    0 and 1 and compute sin(2π<var>f</var><var>x</var>). The 2π makes one unit of <var>x</var> a full turn, and the
+    <dfn>frequency</dfn> <var>f</var> says how many full waves fit between 0 and 1. A larger <var>f</var> means a
+    shorter period and more waves. Low frequencies change slowly across the range; high frequencies tell nearby
+    positions apart.</p>
+
+    <figure id="fig-freq">
+      <div class="fig-title">The frequency sets how many waves fit between 0 and 1</div>
+      <div class="controls">
+        <label>Frequency <var>f</var> <input id="sw-f" type="range" min="1" max="8" step="1" value="1"> <output id="sw-of">1</output></label>
+      </div>
+      <div class="scroll-x">
+      <svg id="sw-fsvg" width="400" height="150" viewBox="0 0 400 150" role="img"
+           aria-label="The curve sine of 2 pi f x for x from 0 to 1, with two marked positions close together">
+        <g id="sw-fplot"></g>
+      </svg>
+      </div>
+      <figcaption><b>Try this.</b> The two dots sit at <var>x</var> = 0.30 and <var>x</var> = 0.35. At <var>f</var> = 1
+      their sines are close: 0.95 and 0.81. Goal: find the smallest frequency at which the two dots end up on opposite sides of
+      zero.</figcaption>
+    </figure>
+
+    <div class="callout warn">
+      <span class="callout-title">This is a simplification</span>
+      <p>This page shows only the plain wave. A wave can also be stretched up and down by multiplying it, called its
+      <dfn>amplitude</dfn>, or slid sideways by adding to the input, called its <dfn>phase</dfn>. The cosine is the
+      sine slid a quarter turn: cos <var>θ</var> = sin(<var>θ</var> + 90°).</p>
+    </div>
+
+    <p class="code-cap">sine.py: NumPy's <code>sin</code> takes radians</p>
+<pre><code class="py">import numpy as np
+
+degrees = np.array([0, 30, 90, 180, 270, 360])
+print(np.round(np.sin(np.radians(degrees)), 3))
+
+x = np.array([0, 1/12, 1/6, 1/4])
+print(np.round(np.sin(2 * np.pi * 3 * x), 3))   # 3 waves per unit of x
+</code></pre>
+<pre class="out">[ 0.   0.5  1.   0.  -1.  -0. ]
+[ 0.  1.  0. -1.]</pre>
+    <p class="small">The <code>-0.</code> is a tiny rounding error, about −2 × 10<sup>−16</sup>, rounded to zero.</p>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>What is cos 0°? What is sin(<var>θ</var> + 360°) compared with sin <var>θ</var>?</p>
+      <details><summary>Answer</summary><p>cos 0° = 1, the <var>x</var> of the starting point (1, 0). sin(<var>θ</var> +
+      360°) equals sin <var>θ</var>, because a full turn brings the point back to the same place.</p></details>
+    </li>
+    <li>
+      <p>How many peaks does sin(2π × 2 × <var>x</var>) have for <var>x</var> between 0 and 1?</p>
+      <details><summary>Answer</summary><p>Two. The frequency 2 fits two full waves, each with one peak.</p></details>
+    </li>
+    <li>
+      <p>You call <code>np.sin(90)</code> expecting 1 and get 0.894. What went wrong?</p>
+      <details><summary>Answer</summary><p>NumPy read 90 as 90 radians, not 90 degrees. Use
+      <code>np.sin(np.radians(90))</code> or <code>np.sin(np.pi / 2)</code>.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://www.mathsisfun.com/algebra/trig-interactive-unit-circle.html">Interactive unit circle</a>
+        <span class="fl-src">Math Is Fun</span>
+        <span class="fl-format">Interactive page</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">Drag a point around the circle and read off sine and cosine.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://betterexplained.com/articles/intuitive-understanding-of-sine-waves/">Intuitive understanding of sine waves</a>
+        <span class="fl-src">BetterExplained</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">Sine as a smooth back-and-forth motion, beyond the triangle definition.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://www.mathsisfun.com/algebra/amplitude-period-frequency-phase-shift.html">Amplitude, period, phase shift and frequency</a>
+        <span class="fl-src">Math Is Fun</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">The four ways to change a wave, which this page only mentions.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="rotation-matrices.html">Rotating points with a matrix</a> <span class="level-badge level-hs">High school</span> <span class="minutes">8 min</span></li>
+    <li><a href="fourier-features.html">Fourier features: positions as waves</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">8 min</span></li>
+    <li><a href="dot-product.html">The dot product: how much two vectors agree</a> <span class="level-badge level-hs">High school</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const NS = 'http://www.w3.org/2000/svg', $ = id => document.getElementById(id);
+  const mk = g => (tag, a, text) => { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); if (text !== undefined) e.textContent = text; g.appendChild(e); return e; };
+  const fmt = v => (Math.abs(v) < 5e-4 ? 0 : v).toFixed(3).replace('-', '−');
+
+  // ---- figure 1: circle and traced wave
+  if ($('sw-svg')) {
+    const CX = 75, CY = 100, RAD = 60, WX = 165, WW = 245, MAXA = 720;
+    const wx = deg => WX + deg / MAXA * WW, wy = v => CY - v * RAD;
+    const draw = () => {
+      const g = $('sw-plot'); g.textContent = ''; const add = mk(g);
+      const deg = Number($('sw-ang').value), t = deg * Math.PI / 180, c = Math.cos(t), s = Math.sin(t);
+      add('line', { x1: CX - RAD - 8, x2: CX + RAD + 8, y1: CY, y2: CY, style: 'stroke:var(--rule)' });
+      add('line', { x1: CX, x2: CX, y1: CY - RAD - 8, y2: CY + RAD + 8, style: 'stroke:var(--rule)' });
+      add('circle', { cx: CX, cy: CY, r: RAD, style: 'fill:none;stroke:var(--ink-3)' });
+      add('line', { x1: WX, x2: WX + WW, y1: CY, y2: CY, style: 'stroke:var(--ink-3)' });
+      for (const d of [0, 180, 360, 540, 720]) {
+        add('line', { x1: wx(d), x2: wx(d), y1: CY - 3, y2: CY + 3, style: 'stroke:var(--ink-3)' });
+        add('text', { x: wx(d), y: CY + RAD + 26, 'text-anchor': 'middle', class: 'muted', style: 'font-size:11px' }, d + '°');
+      }
+      add('text', { x: WX - 4, y: wy(1) + 4, 'text-anchor': 'end', class: 'muted', style: 'font-size:11px' }, '1');
+      add('text', { x: WX - 4, y: wy(-1) + 4, 'text-anchor': 'end', class: 'muted', style: 'font-size:11px' }, '−1');
+      let d = '';
+      for (let a = 0; a <= deg; a += 2) d += (a ? 'L' : 'M') + wx(a).toFixed(1) + ',' + wy(Math.sin(a * Math.PI / 180)).toFixed(1);
+      if (deg > 0) add('path', { d, style: 'fill:none;stroke:var(--s2);stroke-width:2.5' });
+      const px = CX + c * RAD, py = CY - s * RAD;
+      add('line', { x1: CX, y1: CY, x2: px, y2: py, style: 'stroke:var(--ink-3)' });
+      add('line', { x1: px, y1: CY, x2: px, y2: py, style: 'stroke:var(--s3);stroke-width:3' });
+      add('line', { x1: px, y1: py, x2: wx(deg), y2: py, style: 'stroke:var(--ink-3);stroke-dasharray:3 3' });
+      add('circle', { cx: px, cy: py, r: 6, style: 'fill:var(--s2)' });
+      add('circle', { cx: wx(deg), cy: py, r: 4, style: 'fill:var(--s2)' });
+      $('sw-oang').textContent = deg + '°'; $('sw-osin').textContent = deg + '°';
+      $('sw-vsin').textContent = fmt(s); $('sw-vcos').textContent = fmt(c);
+    };
+    $('sw-ang').addEventListener('input', draw);
+    draw();
+  }
+
+  // ---- figure 2: frequency
+  if ($('sw-fsvg')) {
+    const L = 30, R = 390, CY = 70, A = 50;
+    const sx = x => L + x * (R - L), sy = v => CY - v * A;
+    const draw = () => {
+      const g = $('sw-fplot'); g.textContent = ''; const add = mk(g);
+      const f = Number($('sw-f').value);
+      add('line', { x1: L, x2: R, y1: CY, y2: CY, style: 'stroke:var(--ink-3)' });
+      for (const x of [0, 0.25, 0.5, 0.75, 1]) add('text', { x: sx(x), y: CY + A + 24, 'text-anchor': 'middle', class: 'muted', style: 'font-size:11px' }, String(x));
+      let d = '';
+      for (let i = 0; i <= 400; i++) { const x = i / 400; d += (i ? 'L' : 'M') + sx(x).toFixed(1) + ',' + sy(Math.sin(2 * Math.PI * f * x)).toFixed(1); }
+      add('path', { d, style: 'fill:none;stroke:var(--s1);stroke-width:2.2' });
+      for (const [x, c] of [[0.30, 's2'], [0.35, 's3']]) {
+        const v = Math.sin(2 * Math.PI * f * x);
+        add('line', { x1: sx(x), x2: sx(x), y1: CY, y2: sy(v), style: `stroke:var(--${c});stroke-width:2` });
+        add('circle', { cx: sx(x), cy: sy(v), r: 5.5, style: `fill:var(--${c})` });
+      }
+      $('sw-of').textContent = String(f);
+    };
+    $('sw-f').addEventListener('input', draw);
+    draw();
+  }
+})();
+</script>
+</body>
+</html>

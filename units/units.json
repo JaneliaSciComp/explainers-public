@@ -1,0 +1,1101 @@
+{
+  "version": 1,
+  "levels": {
+    "hs": "High school",
+    "u1": "Intro undergraduate",
+    "u2": "Upper undergraduate"
+  },
+  "statuses": [
+    "planned",
+    "draft",
+    "reviewed"
+  ],
+  "units": [
+    {
+      "id": "vectors",
+      "title": "Vectors: arrows made of numbers",
+      "level": "hs",
+      "kind": "concept",
+      "minutes": 8,
+      "prereqs": [],
+      "summary": "A point in space is a list of numbers, and a vector is an arrow you can add to another or stretch.",
+      "owner": "A",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "distance",
+      "title": "Distance between two points",
+      "level": "hs",
+      "kind": "concept",
+      "minutes": 6,
+      "prereqs": [
+        "vectors"
+      ],
+      "summary": "The straight-line distance between two points comes from Pythagoras' theorem, in 2D or 3D.",
+      "owner": "A",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "matrix-times-vector",
+      "title": "Multiplying a matrix by a vector",
+      "level": "hs",
+      "kind": "concept",
+      "minutes": 8,
+      "prereqs": [
+        "dot-product"
+      ],
+      "summary": "A matrix is a table of numbers that turns one vector into another through weighted sums.",
+      "owner": "A",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "rotation-matrices",
+      "title": "Rotating points with a matrix",
+      "level": "hs",
+      "kind": "concept",
+      "minutes": 8,
+      "prereqs": [
+        "matrix-times-vector",
+        "sine-waves"
+      ],
+      "summary": "A rotation matrix turns every point of a shape by the same angle without changing its size.",
+      "owner": "A",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "derivative",
+      "title": "The derivative: slope at a point",
+      "level": "hs",
+      "kind": "concept",
+      "minutes": 8,
+      "prereqs": [],
+      "summary": "The derivative measures how fast a quantity changes: the slope of its graph at one point.",
+      "owner": "A",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "gradient",
+      "title": "The gradient: the uphill direction",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 8,
+      "prereqs": [
+        "derivative",
+        "vectors"
+      ],
+      "summary": "The gradient collects one slope per input into a vector that points uphill fastest.",
+      "owner": "A",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "random-draws",
+      "title": "Random draws: chance you can repeat",
+      "level": "hs",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [],
+      "summary": "A random draw picks a value by chance, and a seed makes a computer's random choices repeatable.",
+      "owner": "A",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "bell-curve",
+      "title": "The bell curve (normal distribution)",
+      "level": "hs",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [
+        "random-draws",
+        "mean-and-spread"
+      ],
+      "summary": "The normal distribution describes values that cluster around an average and thin out evenly on both sides.",
+      "owner": "A",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "mean-and-spread",
+      "title": "Summarizing a list of numbers",
+      "level": "hs",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [],
+      "summary": "The mean gives a list's typical value, and the standard deviation its typical distance from that value.",
+      "owner": "A",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "normalizing-data",
+      "title": "Normalizing data",
+      "level": "hs",
+      "kind": "concept",
+      "minutes": 6,
+      "prereqs": [
+        "mean-and-spread",
+        "vectors",
+        "distance"
+      ],
+      "summary": "Normalizing shifts data to center on zero and rescales it, so different examples share one size.",
+      "owner": "A",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "sine-waves",
+      "title": "Sine waves",
+      "level": "hs",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [],
+      "summary": "Sine and cosine turn an angle or a position into a smooth wave that repeats.",
+      "owner": "A",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "exponentials",
+      "title": "Exponentials, undone by logarithms",
+      "level": "hs",
+      "kind": "concept",
+      "minutes": 8,
+      "prereqs": [],
+      "summary": "An exponential grows by repeated multiplication, and the logarithm counts the multiplications back.",
+      "owner": "A",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "graphs",
+      "title": "Graphs: dots joined by lines",
+      "level": "hs",
+      "kind": "concept",
+      "minutes": 6,
+      "prereqs": [],
+      "summary": "A graph is a set of things, called nodes, with links, called edges, between some pairs of them.",
+      "owner": "A",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "connected-components",
+      "title": "Connected pieces of a graph",
+      "level": "hs",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [
+        "graphs"
+      ],
+      "summary": "A connected component is a group of nodes you can travel between along edges; cutting an edge can split it in two.",
+      "owner": "A",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "python-basics",
+      "title": "Reading Python for this course",
+      "level": "hs",
+      "kind": "hub",
+      "minutes": 8,
+      "prereqs": [],
+      "summary": "Just enough Python to read the code here (variables, lists, loops, functions), with pointers to full courses.",
+      "owner": "B",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "numpy-arrays",
+      "title": "Arrays in NumPy",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 9,
+      "prereqs": [
+        "python-basics",
+        "vectors"
+      ],
+      "summary": "A NumPy array holds many numbers in a grid with a shape, so one line of code can work on all of them at once.",
+      "owner": "B",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "tensors-on-gpu",
+      "title": "PyTorch tensors on the GPU",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 8,
+      "prereqs": [
+        "numpy-arrays"
+      ],
+      "summary": "A PyTorch tensor is an array that can live on a graphics card, where thousands of numbers are processed at once.",
+      "owner": "B",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "automatic-gradients",
+      "title": "Automatic gradients in PyTorch",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 8,
+      "prereqs": [
+        "tensors-on-gpu",
+        "chain-rule"
+      ],
+      "summary": "PyTorch records the operations that produced a number and works backward to find how each input changes it.",
+      "owner": "B",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "nearest-neighbor-search",
+      "title": "Nearest-neighbor search",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 6,
+      "prereqs": [
+        "distance",
+        "numpy-arrays"
+      ],
+      "summary": "Finding the closest point to a query by checking every point works, but it slows down as the points multiply.",
+      "owner": "B",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "kd-tree",
+      "title": "KD-trees: nearest neighbors fast",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 9,
+      "prereqs": [
+        "nearest-neighbor-search"
+      ],
+      "summary": "A KD-tree splits space into boxes, so a search can skip every box that cannot hold a closer point.",
+      "owner": "B",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "farthest-point-sampling",
+      "title": "Farthest-point sampling",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [
+        "distance",
+        "point-clouds",
+        "numpy-arrays"
+      ],
+      "summary": "Farthest-point sampling covers a shape evenly with a few points, always taking the point whose nearest picked point is farthest away.",
+      "owner": "B",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "assignment-problem",
+      "title": "Matching two sets: the assignment problem",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 8,
+      "prereqs": [
+        "distance",
+        "numpy-arrays"
+      ],
+      "summary": "The assignment problem pairs each item of one set with one item of another so that the total cost is as small as possible.",
+      "owner": "B",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "point-clouds",
+      "title": "Shapes as point clouds",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [
+        "vectors",
+        "numpy-arrays"
+      ],
+      "summary": "A point cloud describes a shape by many points on or inside it, in no particular order.",
+      "owner": "C",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "voxels",
+      "title": "3D images made of voxels",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 8,
+      "prereqs": [
+        "vectors",
+        "distance",
+        "numpy-arrays"
+      ],
+      "summary": "A 3D image is a grid of tiny boxes called voxels, which need not be the same size along every axis.",
+      "owner": "C",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "segmentation",
+      "title": "Segmentation: a label for every voxel",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [
+        "voxels"
+      ],
+      "summary": "Segmentation gives every voxel a label number that says which object it belongs to.",
+      "owner": "C",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "supervoxels",
+      "title": "Supervoxels: small pieces to merge",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 6,
+      "prereqs": [
+        "segmentation"
+      ],
+      "summary": "Supervoxels are small, confident pieces of a segmentation that are later joined into whole objects.",
+      "owner": "C",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "connectomics",
+      "title": "Connectomics: mapping neurons from images",
+      "level": "u1",
+      "kind": "hub",
+      "minutes": 6,
+      "prereqs": [
+        "segmentation",
+        "point-clouds"
+      ],
+      "summary": "Connectomics reconstructs neurons and their connections from electron-microscope images.",
+      "owner": "C",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "segmentation-errors",
+      "title": "Two kinds of segmentation error",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [
+        "segmentation",
+        "supervoxels"
+      ],
+      "summary": "A merge error joins two objects under one label, and a split error cuts one object into several.",
+      "owner": "C",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "proofreading",
+      "title": "Proofreading a segmentation",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 6,
+      "prereqs": [
+        "segmentation-errors",
+        "supervoxels"
+      ],
+      "summary": "Proofreading finds and fixes merge and split errors, by hand or with software that proposes fixes.",
+      "owner": "C",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "data-augmentation",
+      "title": "Data augmentation: new views of an example",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [
+        "rotation-matrices",
+        "random-draws",
+        "point-clouds",
+        "bell-curve"
+      ],
+      "summary": "Data augmentation trains on randomly rotated or jittered copies of each example, so a model learns what should not matter.",
+      "owner": "C",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "linear-layer",
+      "title": "A linear layer: weighted sums",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 8,
+      "prereqs": [
+        "matrix-times-vector"
+      ],
+      "summary": "A linear layer turns an input vector into an output vector through weighted sums whose weights are learned.",
+      "owner": "D",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "activation-functions",
+      "title": "Activation functions: bending straight lines",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 6,
+      "prereqs": [
+        "linear-layer"
+      ],
+      "summary": "An activation function bends each output of a layer, which lets stacked layers describe curved relationships.",
+      "owner": "D",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "mlp",
+      "title": "The multilayer perceptron (MLP)",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [
+        "linear-layer",
+        "activation-functions"
+      ],
+      "summary": "An MLP stacks linear layers with activation functions between them; it is the basic building block of neural networks.",
+      "owner": "D",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "loss-function",
+      "title": "Loss: one number for how wrong",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 9,
+      "prereqs": [
+        "distance",
+        "mean-and-spread"
+      ],
+      "summary": "A loss function scores a model's predictions with one number that training tries to make small.",
+      "owner": "D",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "gradient-descent",
+      "title": "Gradient descent",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 8,
+      "prereqs": [
+        "gradient",
+        "loss-function"
+      ],
+      "summary": "Gradient descent improves a model by repeatedly moving its weights a small step downhill on the loss.",
+      "owner": "D",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "adamw",
+      "title": "AdamW: steps that adapt",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 8,
+      "prereqs": [
+        "gradient-descent"
+      ],
+      "summary": "AdamW sizes each weight's step by how its gradients behaved recently, and gently shrinks weights toward zero.",
+      "owner": "D",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "gradient-clipping",
+      "title": "Gradient clipping",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 5,
+      "prereqs": [
+        "gradient-descent"
+      ],
+      "summary": "Gradient clipping caps the length of the gradient, so one unusual batch cannot throw the weights far off.",
+      "owner": "D",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "learning-rate-schedule",
+      "title": "Learning-rate schedules: warm-up, decay",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 6,
+      "prereqs": [
+        "gradient-descent"
+      ],
+      "summary": "A learning-rate schedule starts with small steps, grows them, then shrinks them as training settles.",
+      "owner": "D",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "minibatches",
+      "title": "Minibatches: a few examples per step",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 6,
+      "prereqs": [
+        "gradient-descent"
+      ],
+      "summary": "Training estimates the loss from a small random batch of examples at each step, which is much faster than using them all.",
+      "owner": "E",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "data-loaders",
+      "title": "Data loaders: preparing examples in parallel",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [
+        "minibatches",
+        "python-basics"
+      ],
+      "summary": "A data loader uses worker processes to prepare the next batches while the GPU trains on the current one.",
+      "owner": "E",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "validation-set",
+      "title": "Held-out data: the validation set",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 6,
+      "prereqs": [
+        "loss-function",
+        "gradient-descent"
+      ],
+      "summary": "A validation set is data the model never trains on, used to check that it has learned rather than memorized.",
+      "owner": "E",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "ema-weights",
+      "title": "A moving average of the weights (EMA)",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 6,
+      "prereqs": [
+        "gradient-descent",
+        "mean-and-spread",
+        "minibatches"
+      ],
+      "summary": "An exponential moving average keeps a smoothed copy of the weights, which often gives better results than the latest weights.",
+      "owner": "E",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "checkpoints",
+      "title": "Checkpoints: saving training to resume it",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [
+        "minibatches"
+      ],
+      "summary": "A checkpoint saves the weights, the optimizer state and the step count, so training can stop and resume where it left off.",
+      "owner": "E",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "mixed-precision",
+      "title": "Mixed precision: 16-bit numbers (bf16)",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [
+        "tensors-on-gpu",
+        "gradient-descent",
+        "backpropagation"
+      ],
+      "summary": "Mixed precision does most arithmetic in 16-bit numbers, which roughly halves the memory for activations and speeds up GPUs built for it, at a small cost in accuracy.",
+      "owner": "E",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "multi-gpu-training",
+      "title": "Training on several GPUs at once",
+      "level": "u2",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [
+        "minibatches",
+        "tensors-on-gpu"
+      ],
+      "summary": "Data-parallel training gives each GPU its own share of a batch and averages their gradients before every step.",
+      "owner": "E",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "training-loop",
+      "title": "The training loop",
+      "level": "u1",
+      "kind": "hub",
+      "minutes": 6,
+      "prereqs": [
+        "minibatches",
+        "gradient-descent",
+        "data-loaders",
+        "checkpoints",
+        "validation-set",
+        "ema-weights",
+        "mixed-precision",
+        "backpropagation",
+        "automatic-gradients",
+        "gradient-clipping",
+        "adamw",
+        "learning-rate-schedule"
+      ],
+      "summary": "A training loop repeats one cycle (get a batch, compute the loss, take a step) and now and then evaluates and saves.",
+      "owner": "E",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "sigmoid",
+      "title": "The sigmoid: from score to probability",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 6,
+      "prereqs": [
+        "exponentials"
+      ],
+      "summary": "The sigmoid squashes any number into a probability between 0 and 1.",
+      "owner": "P",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "binary-cross-entropy",
+      "title": "Binary cross-entropy: scoring yes-or-no guesses",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [
+        "sigmoid",
+        "loss-function"
+      ],
+      "summary": "Binary cross-entropy charges a model heavily for confident wrong yes-or-no answers and little for confident right ones.",
+      "owner": "P",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "softmax",
+      "title": "Softmax: probabilities over many choices",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 6,
+      "prereqs": [
+        "exponentials"
+      ],
+      "summary": "Softmax turns a list of scores into probabilities that are all positive and add up to 1.",
+      "owner": "P",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "cross-entropy",
+      "title": "Cross-entropy: scoring a choice among many",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [
+        "softmax",
+        "loss-function"
+      ],
+      "summary": "Cross-entropy is the loss for choosing one class among many: minus the logarithm of the probability given to the right one.",
+      "owner": "P",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "top-k-accuracy",
+      "title": "Top-K accuracy",
+      "level": "hs",
+      "kind": "concept",
+      "minutes": 5,
+      "prereqs": [],
+      "summary": "Top-K accuracy asks whether the right answer appears among the first K entries of a ranked list.",
+      "owner": "P",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "embeddings",
+      "title": "Embeddings: things as vectors",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [
+        "vectors",
+        "linear-layer"
+      ],
+      "summary": "An embedding represents each item, such as a word or a point, as a learned vector that a network can compute with.",
+      "owner": "T",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "fourier-features",
+      "title": "Fourier features: positions as waves",
+      "level": "u2",
+      "kind": "concept",
+      "minutes": 8,
+      "prereqs": [
+        "sine-waves",
+        "embeddings"
+      ],
+      "summary": "Fourier features describe a position by sine waves of several frequencies, which helps a network represent fine detail.",
+      "owner": "T",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "attention",
+      "title": "Attention: queries, keys, values",
+      "level": "u2",
+      "kind": "concept",
+      "minutes": 10,
+      "prereqs": [
+        "embeddings",
+        "softmax",
+        "matrix-times-vector",
+        "dot-product"
+      ],
+      "summary": "Attention lets each token gather information from the others, weighting each by how well its key matches the token's query.",
+      "owner": "T",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "cross-attention",
+      "title": "Cross-attention: reading from another set",
+      "level": "u2",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [
+        "attention"
+      ],
+      "summary": "Cross-attention lets one set of tokens send its queries to a second set, such as the tokens of a condition.",
+      "owner": "T",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "residual-connections",
+      "title": "Residual connections",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 5,
+      "prereqs": [
+        "mlp",
+        "chain-rule"
+      ],
+      "summary": "A residual connection adds a layer's input to its output, so a deep network learns small corrections and trains stably.",
+      "owner": "T",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "layer-normalization",
+      "title": "Layer normalization",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 6,
+      "prereqs": [
+        "normalizing-data",
+        "linear-layer"
+      ],
+      "summary": "Layer normalization rescales each token's numbers to a standard mean and spread before the next layer uses them.",
+      "owner": "T",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "transformer-block",
+      "title": "The transformer block",
+      "level": "u2",
+      "kind": "concept",
+      "minutes": 8,
+      "prereqs": [
+        "attention",
+        "mlp",
+        "residual-connections",
+        "layer-normalization"
+      ],
+      "summary": "A transformer block combines attention with an MLP, each wrapped in normalization and a residual connection.",
+      "owner": "T",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "pointnet-pooling",
+      "title": "PointNet pooling: one summary for a set",
+      "level": "u2",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [
+        "mlp",
+        "permutation-invariance"
+      ],
+      "summary": "PointNet applies the same MLP to every point and then takes a maximum, so the result does not depend on the points' order.",
+      "owner": "T",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "generative-models",
+      "title": "Generative models: making new examples",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [
+        "random-draws",
+        "bell-curve"
+      ],
+      "summary": "A generative model learns what a collection of examples looks like, so it can produce new examples that fit in.",
+      "owner": "G",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "conditional-generation",
+      "title": "Conditional generation: generating from a hint",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 6,
+      "prereqs": [
+        "generative-models"
+      ],
+      "summary": "A conditional generative model takes extra input, such as part of a shape, and generates outputs that fit it.",
+      "owner": "G",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "shape-completion",
+      "title": "Shape completion: generating the missing part",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [
+        "conditional-generation",
+        "point-clouds"
+      ],
+      "summary": "Shape completion generates the missing part of a partial shape, with the known part as the condition.",
+      "owner": "G",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "velocity-field",
+      "title": "Velocity fields: an arrow at every point",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 6,
+      "prereqs": [
+        "vectors",
+        "derivative"
+      ],
+      "summary": "A velocity field gives every point of space, at every moment, an arrow saying where something there moves next.",
+      "owner": "G",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "euler-steps",
+      "title": "Euler's method: small steps along a field",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [
+        "velocity-field",
+        "exponentials"
+      ],
+      "summary": "Euler's method follows a velocity field by many small straight steps, each along the arrow where you stand.",
+      "owner": "G",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "flow-matching",
+      "title": "Flow matching: turning noise into shapes",
+      "level": "u2",
+      "kind": "concept",
+      "minutes": 10,
+      "prereqs": [
+        "generative-models",
+        "euler-steps",
+        "bell-curve",
+        "loss-function",
+        "gradient-descent",
+        "mlp"
+      ],
+      "summary": "Flow matching trains a network to predict the velocity that carries random noise along straight paths to real examples.",
+      "owner": "G",
+      "status": "reviewed",
+      "media": [
+        "media/flow-matching.mp4",
+        "media/flow-matching-poster.png",
+        "media/flow-matching.vtt",
+        "media/flow-matching-narration.md"
+      ]
+    },
+    {
+      "id": "time-conditioning",
+      "title": "Time conditioning: telling a network the time",
+      "level": "u2",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [
+        "layer-normalization",
+        "fourier-features",
+        "mlp"
+      ],
+      "summary": "A network that removes noise must know how noisy its input is; adaptive layer normalization (adaLN) feeds it the time.",
+      "owner": "G",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "diffusion-transformer",
+      "title": "Diffusion transformers (DiT)",
+      "level": "u2",
+      "kind": "concept",
+      "minutes": 8,
+      "prereqs": [
+        "transformer-block",
+        "flow-matching",
+        "time-conditioning"
+      ],
+      "summary": "A diffusion transformer is a transformer, told the time in every block, that predicts how to move noisy tokens toward data.",
+      "owner": "G",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "classifier-free-guidance",
+      "title": "Classifier-free guidance",
+      "level": "u2",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [
+        "conditional-generation",
+        "flow-matching"
+      ],
+      "summary": "Classifier-free guidance strengthens a condition's effect by extrapolating from an unconditional prediction past a conditional one.",
+      "owner": "G",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "dot-product",
+      "title": "The dot product: how much two vectors agree",
+      "level": "hs",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [
+        "vectors",
+        "distance",
+        "sine-waves"
+      ],
+      "summary": "The dot product multiplies two vectors entry by entry and adds the results; it is large when they point the same way.",
+      "owner": "A",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "chain-rule",
+      "title": "The chain rule: slopes of chained steps",
+      "level": "hs",
+      "kind": "concept",
+      "minutes": 7,
+      "prereqs": [
+        "derivative"
+      ],
+      "summary": "The chain rule finds the slope of a chain of steps by multiplying the slopes of the steps.",
+      "owner": "A",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "broadcasting",
+      "title": "Broadcasting: arrays of different shapes",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 6,
+      "prereqs": [
+        "numpy-arrays"
+      ],
+      "summary": "Broadcasting lets NumPy combine arrays of different shapes by stretching each array along any axis that it lacks or that has length 1, without copying it.",
+      "owner": "B",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "backpropagation",
+      "title": "Backpropagation: gradients by the chain rule",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 8,
+      "prereqs": [
+        "chain-rule",
+        "mlp",
+        "loss-function"
+      ],
+      "summary": "Backpropagation computes every weight's gradient in one backward pass, applying the chain rule layer by layer.",
+      "owner": "D",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "permutation-invariance",
+      "title": "Order doesn't matter: permutation invariance",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 6,
+      "prereqs": [
+        "point-clouds"
+      ],
+      "summary": "A permutation-invariant function gives the same answer however its inputs are ordered, which a model of point sets needs.",
+      "owner": "T",
+      "status": "reviewed",
+      "media": []
+    }
+  ],
+  "explanations": [],
+  "kinds": {
+    "concept": "One idea, about 5 to 10 minutes. The default.",
+    "hub": "A short overview that ties several focused units together."
+  }
+}

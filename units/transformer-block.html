@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="transformer-block">
+<meta name="unit-level" content="u2">
+<title>The transformer block</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  #fig-block svg { margin: 0 auto; }
+  #fig-block svg text { font-size: 14px; }
+  #fig-block .stream { stroke: var(--accent); stroke-width: 6; fill: none; stroke-linecap: round; }
+  #fig-block .branch { stroke: var(--ink-3); stroke-width: 2; fill: none; }
+  #fig-block .box { fill: var(--surface); stroke: var(--ink-2); stroke-width: 1.5; }
+  #fig-block .box.ln { fill: var(--bg); }
+  #fig-block .box.onpath { stroke: var(--warn); stroke-width: 3; fill: var(--warn-soft); }
+  #fig-block .plus { fill: var(--surface); stroke: var(--accent); stroke-width: 3; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>The transformer block</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">8 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="attention.html">Attention: queries, keys, values</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">10 min</span></li>
+    <li><a href="mlp.html">The multilayer perceptron (MLP)</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="residual-connections.html">Residual connections</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">5 min</span></li>
+    <li><a href="layer-normalization.html">Layer normalization</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A <dfn>transformer block</dfn> updates a set of tokens in two steps. First, <a href="attention.html">attention</a>
+  lets every token gather information from the other tokens. Second, an <a href="mlp.html">MLP</a> processes each
+  token on its own. Each step reads a layer-normalized copy of the tokens and adds its result back through a residual
+  connection. A <dfn>transformer</dfn> stacks many such blocks, each with its own weights. The tokens come out of a
+  block in the same shape they went in: <var>n</var> tokens of <var>d</var> numbers each.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="two-steps">
+    <h2>Attention mixes across tokens; the MLP works within each token</h2>
+    <p>A block has two <dfn>sublayers</dfn>, and they divide the work.</p>
+    <ul>
+      <li><b>Attention</b> is the only place where tokens exchange information. Each token's output is a weighted sum
+      of values from all the tokens. Usually it is multi-head self-attention.</li>
+      <li><b>The MLP</b>, also called the feed-forward network, applies the same small network to every token
+      separately: a linear layer that widens the token, an activation function, and a linear layer that narrows it
+      back. The hidden width is often 4<var>d</var>. The original transformer used ReLU; many newer models use a
+      smoother activation called GELU.</li>
+    </ul>
+    <p>Each sublayer is wrapped in two helpers. <a href="layer-normalization.html">Layer normalization</a> resets each
+    token to a standard size before the sublayer reads it. A <a href="residual-connections.html">residual
+    connection</a> adds the sublayer's output to the token, so the sublayer makes an edit rather than a
+    replacement.</p>
+  </section>
+
+  <section id="pre-post">
+    <h2>This page draws the pre-norm block; the original transformer used post-norm</h2>
+    <p>Two placements of the layer normalization are in common use. This page draws the <dfn>pre-norm</dfn> block,
+    which normalizes the input of each sublayer. For tokens <b>x</b> (one row per token):</p>
+    <p class="math"><span class="vec">h</span> = <span class="vec">x</span> + Attention( LN<sub>1</sub>(<span class="vec">x</span>) )</p>
+    <p class="math"><span class="vec">y</span> = <span class="vec">h</span> + MLP( LN<sub>2</sub>(<span class="vec">h</span>) )</p>
+    <p>The original transformer of 2017 used the <dfn>post-norm</dfn> block, which normalizes after each residual
+    addition:</p>
+    <p class="math"><span class="vec">h</span> = LN<sub>1</sub>( <span class="vec">x</span> + Attention(<span class="vec">x</span>) )</p>
+    <p class="math"><span class="vec">y</span> = LN<sub>2</sub>( <span class="vec">h</span> + MLP(<span class="vec">h</span>) )</p>
+    <p>Here LN<sub>1</sub> and LN<sub>2</sub> are two layer normalizations, each with its own <b>γ</b> and <b>β</b>. The running
+    vector that the additions keep updating is called the <dfn>residual path</dfn>, or residual stream.</p>
+
+    <figure id="fig-block">
+      <div class="fig-title">One transformer block, with its residual path in thick blue</div>
+      <div class="controls" role="group" aria-label="Which version to draw">
+        <button class="btn" type="button" id="tb-pre" aria-pressed="true">Pre-norm (this page)</button>
+        <button class="btn" type="button" id="tb-post" aria-pressed="false">Post-norm (2017 original)</button>
+      </div>
+      <div class="scroll-x">
+      <svg id="tb-svg" width="380" height="436" viewBox="0 0 380 436" role="img"
+           aria-label="A block diagram drawn top to bottom. A thick blue residual path runs straight down from tokens in to tokens out. Two side branches leave it and rejoin at plus signs: the first holds attention, the second the MLP. In the pre-norm version each branch starts with a layer norm box and the blue path passes no layer norm. In the post-norm version the branches have no layer norm, and the blue path passes through a layer norm box after each plus sign.">
+        <defs>
+          <marker id="tb-arr" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--ink-3)"/>
+          </marker>
+          <marker id="tb-arr-a" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+          </marker>
+        </defs>
+        <text x="100" y="16" text-anchor="middle" font-weight="700">tokens in (n × d)</text>
+        <text x="100" y="432" text-anchor="middle" font-weight="700">tokens out (n × d)</text>
+
+        <g id="tb-g-pre">
+          <path class="stream" d="M100,26 V166 M100,190 V326 M100,350 V400" marker-end="url(#tb-arr-a)"/>
+          <path class="branch" d="M100,52 H260 V64"/>
+          <rect class="box ln" x="190" y="64" width="140" height="32" rx="5"/>
+          <text x="260" y="85" text-anchor="middle">Layer norm 1</text>
+          <path class="branch" d="M260,96 V110" marker-end="url(#tb-arr)"/>
+          <rect class="box" x="190" y="112" width="140" height="44" rx="5"/>
+          <text x="260" y="131" text-anchor="middle" font-weight="700">Attention</text>
+          <text x="260" y="148" text-anchor="middle" class="muted">mixes the tokens</text>
+          <path class="branch" d="M260,156 V178 H116" marker-end="url(#tb-arr)"/>
+          <circle class="plus" cx="100" cy="178" r="12"/><text x="100" y="183" text-anchor="middle" font-weight="700">+</text>
+          <path class="branch" d="M100,212 H260 V224"/>
+          <rect class="box ln" x="190" y="224" width="140" height="32" rx="5"/>
+          <text x="260" y="245" text-anchor="middle">Layer norm 2</text>
+          <path class="branch" d="M260,256 V270" marker-end="url(#tb-arr)"/>
+          <rect class="box" x="190" y="272" width="140" height="44" rx="5"/>
+          <text x="260" y="291" text-anchor="middle" font-weight="700">MLP</text>
+          <text x="260" y="308" text-anchor="middle" class="muted">each token alone</text>
+          <path class="branch" d="M260,316 V338 H116" marker-end="url(#tb-arr)"/>
+          <circle class="plus" cx="100" cy="338" r="12"/><text x="100" y="343" text-anchor="middle" font-weight="700">+</text>
+          <text x="86" y="44" text-anchor="end" class="ink2" font-weight="700">x</text>
+          <text x="86" y="206" text-anchor="end" class="ink2" font-weight="700">h</text>
+          <text x="86" y="378" text-anchor="end" class="ink2" font-weight="700">y</text>
+        </g>
+
+        <g id="tb-g-post" hidden>
+          <path class="stream" d="M100,26 V126 M100,150 V160 M100,192 V286 M100,310 V320 M100,352 V400" marker-end="url(#tb-arr-a)"/>
+          <path class="branch" d="M100,52 H260 V66" marker-end="url(#tb-arr)"/>
+          <rect class="box" x="190" y="68" width="140" height="44" rx="5"/>
+          <text x="260" y="87" text-anchor="middle" font-weight="700">Attention</text>
+          <text x="260" y="104" text-anchor="middle" class="muted">mixes the tokens</text>
+          <path class="branch" d="M260,112 V138 H116" marker-end="url(#tb-arr)"/>
+          <circle class="plus" cx="100" cy="138" r="12"/><text x="100" y="143" text-anchor="middle" font-weight="700">+</text>
+          <rect class="box onpath" x="40" y="160" width="120" height="32" rx="5"/>
+          <text x="100" y="181" text-anchor="middle">Layer norm 1</text>
+          <path class="branch" d="M100,214 H260 V228" marker-end="url(#tb-arr)"/>
+          <rect class="box" x="190" y="230" width="140" height="44" rx="5"/>
+          <text x="260" y="249" text-anchor="middle" font-weight="700">MLP</text>
+          <text x="260" y="266" text-anchor="middle" class="muted">each token alone</text>
+          <path class="branch" d="M260,274 V298 H116" marker-end="url(#tb-arr)"/>
+          <circle class="plus" cx="100" cy="298" r="12"/><text x="100" y="303" text-anchor="middle" font-weight="700">+</text>
+          <rect class="box onpath" x="40" y="320" width="120" height="32" rx="5"/>
+          <text x="100" y="341" text-anchor="middle">Layer norm 2</text>
+          <text x="86" y="44" text-anchor="end" class="ink2" font-weight="700">x</text>
+          <text x="86" y="208" text-anchor="end" class="ink2" font-weight="700">h</text>
+          <text x="86" y="378" text-anchor="end" class="ink2" font-weight="700">y</text>
+        </g>
+      </svg>
+      </div>
+      <p class="small"><b>Try it.</b> Switch between the two versions and follow the thick blue path from "tokens
+      in" to "tokens out". In which version does that path pass through no layer normalization at all? Why could
+      that help a deep stack of blocks train?</p>
+      <details><summary>Answer</summary><p>In the pre-norm version. There, a token reaches the output through
+      additions only, so each block's skip path contributes its plain "1" to the slope, as in the residual
+      connections unit, and the training signal crosses many blocks intact. In the post-norm version every block
+      rescales the path twice. A 2020 study (Xiong and others) found that post-norm stacks need a slow learning-rate
+      warm-up to train, while pre-norm stacks train without one.</p></details>
+      <figcaption><b>What to notice.</b> Side branches leave the blue path, compute an edit, and add it back at a
+      plus sign. The attention branch is the only place where tokens see each other. In the post-norm version, the orange boxes are layer
+      normalizations that sit on the residual path itself.</figcaption>
+    </figure>
+
+    <p>Many recent models use pre-norm because deep pre-norm stacks train more stably. A pre-norm transformer
+    usually adds one more layer normalization after its last block, so the final output is normalized too. Both
+    placements appear in published models, so check which one a model uses before reading its code.</p>
+  </section>
+
+  <section id="sizes">
+    <h2>The learned weights do not depend on the number of tokens</h2>
+    <p><b>Predict first.</b> A block reads 1,000 tokens. Then it reads 2,000. Does it need more learned weights for
+    the larger input?</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: a block with d = 256, 8 heads and an MLP of width 1,024</span>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Part</th><th>Learned numbers</th><th class="r">Count</th></tr></thead>
+          <tbody>
+            <tr><td>Attention</td><td><b>W</b><sub>Q</sub>, <b>W</b><sub>K</sub>, <b>W</b><sub>V</sub>, <b>W</b><sub>O</sub>: each 256 × 256, plus a bias of 256</td><td class="r">4 × 65,792 = 263,168</td></tr>
+            <tr><td>MLP</td><td>256 → 1,024: 262,144 weights and 1,024 biases; 1,024 → 256: 262,144 weights and 256 biases</td><td class="r">525,568</td></tr>
+            <tr><td>Two layer norms</td><td><b>γ</b> and <b>β</b>, 256 each, twice</td><td class="r">1,024</td></tr>
+            <tr><td><b>Total</b></td><td></td><td class="r"><b>789,760</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>No entry mentions the number of tokens <var>n</var>, and none mentions the 8 heads: the heads split the same
+      256 × 256 matrices into 8 slices of 32. The block uses the same weights for 10 tokens or 10,000.</p>
+      <p>What does grow with <var>n</var> is the work. Each head computes a weight for every pair of tokens, so 1,000
+      tokens give 8 × 1,000 × 1,000 = 8,000,000 attention weights per block. These are computed from the input each
+      time, not learned. Doubling <var>n</var> doubles the MLP's work but quadruples the attention weights.</p>
+    </div>
+
+    <p class="code-cap">block.py</p>
+<pre><code class="py">import torch
+
+torch.manual_seed(0)
+block = torch.nn.TransformerEncoderLayer(
+    d_model=256, nhead=8, dim_feedforward=1024,
+    dropout=0.0, batch_first=True, norm_first=True)   # norm_first: pre-norm
+print(sum(p.numel() for p in block.parameters()))
+
+x = torch.randn(1, 1000, 256)        # 1 example: 1000 tokens of 256 numbers
+y = block(x)
+print(y.shape)
+
+perm = torch.randperm(1000)          # shuffle the tokens
+print(torch.allclose(block(x[:, perm]), y[:, perm], atol=1e-5))
+</code></pre>
+<pre class="out">789760
+torch.Size([1, 1000, 256])
+True</pre>
+    <p>The last line shows that a block treats its tokens as a set: shuffling the input tokens shuffles the output
+    tokens in the same way and changes nothing else. Attention has no notion of position, and the MLP and layer
+    norms work on each token alone. A <a href="point-clouds.html">point cloud</a> fits this directly. Models of
+    sentences or images add position information to each token before the first block.</p>
+
+    <div class="callout warn">
+      <span class="callout-title">What this page leaves out</span>
+      <p>Real blocks often add dropout (randomly zeroing some numbers during training) and, in language models, an
+      attention mask. Newer models swap in variants: RMS normalization instead of layer normalization, or a gated
+      MLP. Generative models that must know a time step or a condition change the layer norms so that <b>γ</b> and <b>β</b> come
+      from that input (see <a href="diffusion-transformer.html">diffusion transformers</a>). The overall pattern,
+      normalize, sublayer, add back, stays the same.</p>
+    </div>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>Which sublayer lets a token's output depend on other tokens, and which treats each token alone?</p>
+      <details><summary>Answer</summary><p>Attention mixes information across tokens. The MLP, and the layer
+      normalizations, work on each token by itself.</p></details>
+    </li>
+    <li>
+      <p>Work a similar problem. Count the learned numbers in a block with <var>d</var> = 128, 4 heads and an MLP of
+      width 512.</p>
+      <details><summary>Answer</summary><p>Attention: 4 × (128 × 128 + 128) = 66,048. MLP: 128 × 512 + 512 +
+      512 × 128 + 128 = 131,712. Layer norms: 4 × 128 = 512. Total 198,272. PyTorch's
+      <code>TransformerEncoderLayer(128, 4, 512)</code> reports the same.</p></details>
+    </li>
+    <li>
+      <p>Rewrite the post-norm block <b>h</b> = LN<sub>1</sub>(<b>x</b> + Attention(<b>x</b>)) as
+      pre-norm.</p>
+      <details><summary>Answer</summary><p><b>h</b> = <b>x</b> + Attention(LN<sub>1</sub>(<b>x</b>)).
+      The normalization moves inside the branch, and the residual addition stays outside any
+      normalization.</p></details>
+    </li>
+    <li>
+      <p>A block reads 2,000 tokens instead of 1,000. By how much do its learned weights grow, and by how much do its
+      attention weights grow?</p>
+      <details><summary>Answer</summary><p>The learned weights do not grow at all. The attention weights grow four
+      times, from 1,000 × 1,000 to 2,000 × 2,000 per head.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://peterbloem.nl/blog/transformers#the-transformer-block">Transformers from scratch: "The transformer block"</a>
+        <span class="fl-src">Peter Bloem</span>
+        <span class="fl-format">Article with code</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">A short section with one diagram and the PyTorch code of a block. Its block is post-norm,
+      the 2017 order, so compare it with the post-norm version of the figure above.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://poloclub.github.io/transformer-explainer/">Transformer Explainer</a>
+        <span class="fl-src">Georgia Tech Polo Club</span>
+        <span class="fl-format">Interactive page</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">Open "Transformer Block" to see attention, the MLP, layer normalization and the residual
+      connections of a live model, with the real numbers.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://arxiv.org/abs/2002.04745">On Layer Normalization in the Transformer Architecture</a>
+        <span class="fl-src">Xiong and others (2020)</span>
+        <span class="fl-format">Paper</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">The study of pre-norm against post-norm. Its Figure 1 draws both blocks side by
+      side.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="diffusion-transformer.html">Diffusion transformers (DiT)</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">8 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const pre = document.getElementById('tb-pre'), post = document.getElementById('tb-post');
+  if (!pre || !post) return;
+  const gPre = document.getElementById('tb-g-pre'), gPost = document.getElementById('tb-g-post');
+  function show(isPre) {
+    pre.setAttribute('aria-pressed', String(isPre));
+    post.setAttribute('aria-pressed', String(!isPre));
+    if (isPre) { gPre.removeAttribute('hidden'); gPost.setAttribute('hidden', ''); }
+    else { gPost.removeAttribute('hidden'); gPre.setAttribute('hidden', ''); }
+  }
+  pre.addEventListener('click', () => show(true));
+  post.addEventListener('click', () => show(false));
+})();
+</script>
+</body>
+</html>

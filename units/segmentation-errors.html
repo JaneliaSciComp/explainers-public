@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="segmentation-errors">
+<meta name="unit-level" content="u1">
+<title>Two kinds of segmentation error</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  .sv-num { font-size: 15px; font-weight: 700; text-anchor: middle; dominant-baseline: central; fill: #fff; }
+  .panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.8rem; }
+  .panel-title { font-weight: 600; font-size: 0.92rem; text-align: center; margin: 0 0 0.2rem; }
+  .panel-note { font-size: 0.85rem; color: var(--ink-2); text-align: center; margin: 0.2rem 0 0; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Two kinds of segmentation error</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="segmentation.html">Segmentation: a label for every voxel</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="supervoxels.html">Supervoxels: small pieces to merge</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A segmentation can be wrong in two ways. A merge error gives one label to parts of two or more real objects. A
+  split error spreads one real object over two or more labels. A merge needs a cut to fix, and a split needs a
+  join. To count the errors, compare each label with the true objects it covers, and each true object with the
+  labels it is spread over.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="two-kinds">
+    <h2>A merge joins too much; a split joins too little</h2>
+    <p>Imagine two thin cells that run side by side and touch at one spot. A correct
+    <a href="segmentation.html">segmentation</a> gives each cell its own label. The figure shows that, and the two
+    ways it can go wrong. Each cell is drawn in three pieces, its <a href="supervoxels.html">supervoxels</a>, and
+    pieces with one color share one label.</p>
+
+    <figure id="fig-kinds">
+      <div class="fig-title">The truth, a merge error and a split error</div>
+      <div class="panels">
+        <div>
+          <p class="panel-title">Truth: two objects</p>
+          <svg class="err-panel" data-objs="1,1,1,4,4,4" width="330" height="170" viewBox="0 0 330 170" role="img"
+            aria-label="The top tube, pieces 1 to 3, is one color. The bottom tube, pieces 4 to 6, is another."></svg>
+          <p class="panel-note">Top and bottom have different labels.</p>
+        </div>
+        <div>
+          <p class="panel-title">Merge error: one label for both</p>
+          <svg class="err-panel" data-objs="1,1,1,1,1,1" width="330" height="170" viewBox="0 0 330 170" role="img"
+            aria-label="All six pieces share one color: both tubes have one label."></svg>
+          <p class="panel-note">Joined where they touch.</p>
+        </div>
+        <div>
+          <p class="panel-title">Split error: one object in two labels</p>
+          <svg class="err-panel" data-objs="1,2,2,4,4,4" width="330" height="170" viewBox="0 0 330 170" role="img"
+            aria-label="Piece 1 has one color and pieces 2 and 3 another, so the top tube is in two labels. The bottom tube is correct."></svg>
+          <p class="panel-note">The top object is cut between pieces 1 and 2.</p>
+        </div>
+      </div>
+      <figcaption><b>What to notice.</b> In the merge, one color covers two separate tubes. In the split, one tube
+      shows two colors.</figcaption>
+    </figure>
+
+    <p>A <dfn>merge error</dfn> happens when one label covers parts of two or more true objects. It usually comes
+    from a wrong join, often where two objects touch, or from a supervoxel that spans two objects. A
+    <dfn>split error</dfn> happens when one true object is spread over two or more labels. It usually comes from a
+    missing join, for example where the image is blurry and a faint smudge looks like a membrane cutting through an object.</p>
+  </section>
+
+  <section id="counting">
+    <h2>Count errors by comparing labels with true objects</h2>
+    <p>Suppose you know the true objects, from careful hand work. Then you can count both kinds of error with two
+    rules:</p>
+    <ul>
+      <li>For each label, count the true objects it covers. Every one beyond the first is a merge error.</li>
+      <li>For each true object, count the labels it is spread over. Every one beyond the first is a split error.</li>
+    </ul>
+    <p>Each merge error needs one cut to fix. Each split error needs one join.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: one merge and one split at once</span>
+      <p>The truth is object A = {1, 2, 3} and object B = {4, 5, 6}. A program gives two labels: {1} and
+      {2, 3, 4, 5, 6}.</p>
+      <ol>
+        <li>Label {1} covers only A: no merge. Label {2, 3, 4, 5, 6} covers A and B: one merge error.</li>
+        <li>Object A is spread over two labels, {1} and {2, 3, 4, 5, 6}: one split error. Object B lies in one label: no
+          split.</li>
+        <li>To fix it, cut between 2 and 5, where the tubes touch. Then join 1 and 2.</li>
+      </ol>
+      <p>The program has the right number of labels, two, but both are wrong. Counting labels alone hides errors.</p>
+    </div>
+
+    <p>Before you use the figure, predict the counts for each choice. Then check.</p>
+
+    <figure id="fig-count">
+      <div class="fig-title">Pick a result and see its errors</div>
+      <div class="scroll-x">
+      <svg id="cnt-svg" class="err-panel" data-objs="1,2,2,2,2,2" width="495" height="255" viewBox="0 0 330 170" role="img"
+        aria-label="The two tubes, colored by the labels of the chosen result."></svg>
+      </div>
+      <div class="controls">
+        <label>Result
+          <select id="cnt-pick">
+            <option value="1,1,1,4,4,4">Correct: {1,2,3} {4,5,6}</option>
+            <option value="1,1,1,1,1,1">{1,2,3,4,5,6}</option>
+            <option value="1,1,3,4,4,4">{1,2} {3} {4,5,6}</option>
+            <option value="1,2,2,2,2,2" selected>{1} {2,3,4,5,6}</option>
+            <option value="1,2,3,4,5,6">Six labels, one per piece</option>
+          </select>
+        </label>
+      </div>
+      <div class="readout-box" id="cnt-read" aria-live="polite"></div>
+      <figcaption><b>Goal:</b> find a result with merge errors but no split errors, and one with split errors but no
+      merge errors. The truth is top {1, 2, 3} and bottom {4, 5, 6}.</figcaption>
+    </figure>
+
+    <p>The same rules in NumPy: list which (true object, label) pairs occur, then count per side.</p>
+    <p class="code-cap">seg_errors.py</p>
+<pre><code class="py">import numpy as np
+
+truth = np.array([1, 1, 1, 2, 2, 2])       # true neuron of supervoxels 1..6
+pred = np.array([10, 20, 20, 20, 20, 20])  # object the segmentation gave each
+
+pairs = np.unique(np.stack([truth, pred], axis=1), axis=0)  # which (true, given) pairs occur
+print(pairs)
+
+splits = sum([len(np.unique(pairs[pairs[:, 0] == t, 1])) - 1 for t in np.unique(truth)])
+merges = sum([len(np.unique(pairs[pairs[:, 1] == p, 0])) - 1 for p in np.unique(pred)])
+print("split errors:", splits, " merge errors:", merges)
+</code></pre>
+<pre class="out"><code>[[ 1 10]
+ [ 1 20]
+ [ 2 20]]
+split errors: 1  merge errors: 1</code></pre>
+  </section>
+
+  <section id="cost">
+    <h2>Merge errors usually cost more than split errors</h2>
+    <p>A split leaves a piece of an object missing. The rest of the object is still correct, and a join restores
+    it. A merge makes an object that does not exist, and everything measured on it, such as its size, shape and
+    contacts, is wrong. Fixing a merge also means finding the right place to cut. For these reasons, programs are
+    usually tuned to make more splits and fewer merges.</p>
+
+    <div class="callout warn">
+      <span class="callout-title">This is a simplification</span>
+      <p>The counts here treat every error alike: a tiny piece cut off counts the same as an object cut in half. Real
+      evaluations weigh errors by size, for example by the number of voxels or the length of object affected, and
+      use scores such as <em>variation of information</em>. They also assume the "truth" is right, though it was
+      made by people and has errors of its own.</p>
+    </div>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>The truth is A = {1, 2, 3} and B = {4, 5, 6}. A program gives {1, 2, 3, 4} and {5, 6}. Count the merge and split
+      errors.</p>
+      <details><summary>Answer</summary><p>Label {1, 2, 3, 4} covers A and B: one merge error. Object B is spread over
+      {1, 2, 3, 4} and {5, 6}: one split error. Object A lies in one label: no split. So one merge and one split.</p></details>
+    </li>
+    <li>
+      <p>A program gives every supervoxel its own label: {1}, {2}, … {6}. How many errors of each kind?</p>
+      <details><summary>Answer</summary><p>No label covers two objects, so there are no merge errors. Each true object is
+      spread over 3 labels, which is 2 split errors each, so 4 split errors in all.</p></details>
+    </li>
+    <li>
+      <p>Why do segmentation programs usually prefer a split error to a merge error?</p>
+      <details><summary>Answer</summary><p>A split is fixed by one join, which is easy and safe, and the rest of the
+      object is still correct. A merge creates an object that does not exist, spoils every measurement on it, and
+      needs a cut placed in the right spot.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background. This unit covers what you need here.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://arxiv.org/abs/1704.00848">Guided Proofreading of Automatic Segmentations for Connectomics</a>
+        <span class="fl-src">Haehn et al., 2018</span>
+        <span class="fl-format">Paper</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">The introduction defines merge and split errors on real brain images, and notes that finding errors takes more of a person's time than fixing them.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://eyewire.org/">EyeWire</a>
+        <span class="fl-src">EyeWire</span>
+        <span class="fl-format">Game</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">A citizen-science game where you add missing pieces to a cell, which lets you see split and merge errors for yourself.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="proofreading.html">Proofreading a segmentation</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  'use strict';
+  const NS = 'http://www.w3.org/2000/svg';
+  // The same two tubes as in the supervoxels unit. Top object: pieces 1, 2, 3. Bottom: 4, 5, 6; 5 touches 2.
+  const PIECES = {
+    1: { d: 'M30 50 L110 50', at: [70, 50] },
+    2: { d: 'M110 50 L200 50', at: [155, 50] },
+    3: { d: 'M200 50 L300 50', at: [250, 50] },
+    4: { d: 'M30 130 L110 130', at: [70, 130] },
+    5: { d: 'M110 130 L155 72 L200 130', at: [127, 107] },
+    6: { d: 'M200 130 L300 130', at: [250, 130] },
+  };
+  const CUTS = ['M110 38 L110 62', 'M200 38 L200 62', 'M110 118 L110 142', 'M200 118 L200 142'];
+  const COLOR = { 1: 'var(--s1)', 2: 'var(--s2)', 3: 'var(--s3)', 4: 'var(--s4)', 5: 'var(--pa)', 6: 'var(--pb)' };
+  const TRUTH = [1, 1, 1, 2, 2, 2];
+  const el = (tag, attrs, parent, text) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text !== undefined) e.textContent = text;
+    parent.appendChild(e); return e;
+  };
+  function paint(svg, objs) {
+    svg.replaceChildren();
+    for (const s in PIECES) {
+      el('path', { d: PIECES[s].d, fill: 'none', stroke: COLOR[objs[s - 1]], 'stroke-width': 22,
+        'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, svg);
+    }
+    CUTS.forEach(d => el('path', { d, stroke: 'var(--surface)', 'stroke-width': 2.5 }, svg));
+    for (const s in PIECES) el('text', { x: PIECES[s].at[0], y: PIECES[s].at[1], class: 'sv-num' }, svg, s);
+    el('text', { x: 312, y: 54, class: 'muted' }, svg, 'A');
+    el('text', { x: 312, y: 134, class: 'muted' }, svg, 'B');
+  }
+  const parse = v => v.split(',').map(Number);
+  document.querySelectorAll('svg.err-panel').forEach(svg => paint(svg, parse(svg.dataset.objs)));
+
+  const pick = document.getElementById('cnt-pick'), read = document.getElementById('cnt-read');
+  const cnt = document.getElementById('cnt-svg');
+  if (!pick || !read || !cnt) return;
+  function count() {
+    const objs = parse(pick.value);
+    paint(cnt, objs);
+    const labelsOf = {}, truthsOf = {};
+    objs.forEach((o, i) => {
+      (labelsOf[TRUTH[i]] = labelsOf[TRUTH[i]] || new Set()).add(o);
+      (truthsOf[o] = truthsOf[o] || new Set()).add(TRUTH[i]);
+    });
+    const merges = Object.values(truthsOf).reduce((n, s) => n + s.size - 1, 0);
+    const splits = Object.values(labelsOf).reduce((n, s) => n + s.size - 1, 0);
+    const nl = Object.keys(truthsOf).length;
+    read.textContent = nl + (nl === 1 ? ' label. ' : ' labels. ') + 'Merge errors: ' + merges + ' (cuts needed). Split errors: ' +
+      splits + ' (joins needed).' + (merges === 0 && splits === 0 ? ' This result matches the truth.' : '');
+  }
+  pick.addEventListener('change', count);
+  count();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="distance">
+<meta name="unit-level" content="hs">
+<title>Distance between two points</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Distance between two points</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-hs">High school</span> <span class="minutes">6 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="vectors.html">Vectors: arrows made of numbers</a> <span class="level-badge level-hs">High school</span> <span class="minutes">8 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>To find how far apart two points are, subtract one from the other to get the arrow between them. The arrow's
+  components are the sides of a right triangle, and the distance is the long side. Pythagoras' theorem gives it:
+  square each component, add the squares, and take the square root. The same recipe works in 3D, with one more
+  square to add.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="triangle">
+    <h2>The arrow between two points is the long side of a right triangle</h2>
+    <p>Say point <b>A</b> is at (1, 2) and point <b>B</b> is at (4, 6). The arrow from <b>A</b> to <b>B</b> is
+    <b>B</b> − <b>A</b> = (3, 4), as the <a href="vectors.html#stretch">vectors unit</a> shows. Walk 3 squares right,
+    then 4 squares up, and you reach <b>B</b>. Those two walks are the short sides of a right triangle. The straight
+    line from <b>A</b> to <b>B</b> is its long side, the <dfn>hypotenuse</dfn>.</p>
+    <p><dfn>Pythagoras' theorem</dfn> says that in a right triangle, the square of the long side equals the sum of the
+    squares of the two short sides. So the <dfn>distance</dfn> between the points is:</p>
+    <p class="math"><var>d</var> = √( (<var>x</var><sub>B</sub> − <var>x</var><sub>A</sub>)<sup>2</sup> + (<var>y</var><sub>B</sub> − <var>y</var><sub>A</sub>)<sup>2</sup> )</p>
+
+    <figure id="fig-dist">
+      <div class="fig-title">The distance is the long side of the triangle the two points make</div>
+      <div class="scroll-x">
+      <svg id="dist-svg" width="400" height="320" viewBox="0 0 400 320" role="img"
+           aria-label="Two points A and B on a grid, joined by a straight line, with the horizontal and vertical sides of a right triangle drawn between them"
+           style="touch-action:none">
+        <g id="dist-grid"></g>
+        <line id="dist-dx" style="stroke:var(--s1);stroke-width:3"/>
+        <line id="dist-dy" style="stroke:var(--s2);stroke-width:3"/>
+        <line id="dist-d" style="stroke:var(--s3);stroke-width:3.5"/>
+        <text id="dist-ldx" text-anchor="middle" style="fill:var(--s1);font-weight:700;font-size:15px"></text>
+        <text id="dist-ldy" style="fill:var(--s2);font-weight:700;font-size:15px"></text>
+        <circle id="dist-A" r="6" style="fill:var(--ink)"/>
+        <text id="dist-tA" style="font-weight:700;font-size:15px">A</text>
+        <circle id="dist-B" r="11" style="fill:var(--s3);fill-opacity:0.3;stroke:var(--s3);cursor:grab"/>
+        <text id="dist-tB" style="font-weight:700;font-size:15px">B</text>
+      </svg>
+      </div>
+      <div class="readout-box">
+        <b>A</b> = (1, 2) &nbsp; <b>B</b> = <output id="dist-oB">(4, 6)</output><br>
+        <output id="dist-calc">√(3² + 4²) = √25 = 5</output>
+      </div>
+      <figcaption><b>Try this.</b> Drag point <b>B</b>. The blue side is the change in <var>x</var>, the orange side
+      the change in <var>y</var>, and the green line the distance. <b>B</b> starts at (4, 6), exactly 5 from <b>A</b>. Goal: find the other two
+      spots on this grid that are also exactly 5 from <b>A</b>, with whole-number coordinates, not level with
+      <b>A</b> and not straight above it.</figcaption>
+    </figure>
+
+    <div class="example">
+      <span class="example-title">Worked example</span>
+      <p>How far is <b>A</b> = (1, 2) from <b>B</b> = (4, 6)?</p>
+      <ol>
+        <li>Subtract: <b>B</b> − <b>A</b> = (4 − 1, 6 − 2) = (3, 4).</li>
+        <li>Square each component: 3<sup>2</sup> = 9 and 4<sup>2</sup> = 16.</li>
+        <li>Add: 9 + 16 = 25.</li>
+        <li>Take the square root: √25 = 5.</li>
+      </ol>
+      <p><b>Your turn.</b> How far is (−1, 2) from (2, −2)?</p>
+      <details><summary>Answer</summary><p>The arrow is (3, −4). The squares are 9 and 16, which add to 25. The
+      distance is 5. A negative component gives a positive square, so the direction of the arrow does not matter.</p></details>
+    </div>
+  </section>
+
+  <section id="three-d">
+    <h2>In 3D, add one more square</h2>
+    <p>A point in a room has a height <var>z</var> as well. The distance between two such points uses Pythagoras
+    twice: once across the floor, and once from the floor up. The result is one more square under the root:</p>
+    <p class="math"><var>d</var> = √( Δ<var>x</var><sup>2</sup> + Δ<var>y</var><sup>2</sup> + Δ<var>z</var><sup>2</sup> )</p>
+    <p>Here Δ<var>x</var> (read "delta <var>x</var>") means the change in <var>x</var> between the two points. For
+    example, from (0, 0, 0) to (2, 3, 6) the changes are 2, 3 and 6. The squares are 4, 9 and 36, which add to 49, so
+    the distance is 7. The distance from a point to the origin is called the <dfn>length</dfn> of that vector.</p>
+
+    <div class="callout">
+      <span class="callout-title">A shortcut when you only compare</span>
+      <p>To find which of several points is closest, you can compare the <em>squared</em> distances and skip the square
+      root. A larger distance always has a larger square, so the order stays the same. Programs that search for the
+      nearest point use this to save work.</p>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-title">This is one kind of distance</span>
+      <p>This page measures straight-line distance, which mathematicians call <dfn>Euclidean distance</dfn>. Other
+      measures exist. "City-block" distance adds the steps along each axis, like walking a street grid: 3 + 4 = 7 in
+      the example above. When a program says "distance" without a qualifier, it usually means the Euclidean one.</p>
+    </div>
+
+    <p class="code-cap">distance.py: <code>np.linalg.norm</code> computes the length of a vector</p>
+<pre><code class="py">import numpy as np
+
+a = np.array([1, 2])
+b = np.array([4, 6])
+d = b - a                       # [3 4]
+print(np.sqrt(np.sum(d ** 2)))  # Pythagoras by hand
+print(np.linalg.norm(b - a))    # the same, in one call
+
+p = np.array([0, 0, 0])
+q = np.array([2, 3, 6])
+print(np.linalg.norm(q - p))    # works in 3D too
+</code></pre>
+<pre class="out">5.0
+5.0
+7.0</pre>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>How far is (1, 1, 1) from (3, 3, 2)?</p>
+      <details><summary>Answer</summary><p>The changes are 2, 2 and 1. The squares add to 4 + 4 + 1 = 9, so the
+      distance is 3.</p></details>
+    </li>
+    <li>
+      <p>Point P has squared distance 50 from the origin, and point Q has squared distance 41. Which one is closer,
+      without taking any square root?</p>
+      <details><summary>Answer</summary><p>Q. A smaller squared distance always means a smaller distance.</p></details>
+    </li>
+    <li>
+      <p>Is the distance from <b>A</b> to <b>B</b> ever different from the distance from <b>B</b> to <b>A</b>?</p>
+      <details><summary>Answer</summary><p>No. Swapping the points flips the sign of every component of the arrow,
+      and squaring removes the sign.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://setosa.io/pythagorean/">Pythagorean theorem</a>
+        <span class="fl-src">Setosa, Explained Visually</span>
+        <span class="fl-format">Interactive page</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">Drag a triangle and watch the squares on its sides; shows why the theorem holds.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://en.wikipedia.org/wiki/Euclidean_distance#Higher_dimensions">Euclidean distance: higher dimensions</a>
+        <span class="fl-src">Wikipedia</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">The same formula for any number of components. A later section, "Squared Euclidean distance", covers the squared form.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="normalizing-data.html">Normalizing data</a> <span class="level-badge level-hs">High school</span> <span class="minutes">6 min</span></li>
+    <li><a href="nearest-neighbor-search.html">Nearest-neighbor search</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+    <li><a href="farthest-point-sampling.html">Farthest-point sampling</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="assignment-problem.html">Matching two sets: the assignment problem</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+    <li><a href="voxels.html">3D images made of voxels</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+    <li><a href="loss-function.html">Loss: one number for how wrong</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">9 min</span></li>
+    <li><a href="dot-product.html">The dot product: how much two vectors agree</a> <span class="level-badge level-hs">High school</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const svg = document.getElementById('dist-svg');
+  if (!svg) return;
+  const U = 40, OX = 60, OY = 260, X0 = -1, X1 = 8, Y0 = -1, Y1 = 6;
+  const sx = x => OX + U * x, sy = y => OY - U * y;
+  const NS = 'http://www.w3.org/2000/svg', $ = id => document.getElementById(id);
+  const g = $('dist-grid');
+  const line = (x1, y1, x2, y2, style) => {
+    const l = document.createElementNS(NS, 'line');
+    l.setAttribute('x1', x1); l.setAttribute('y1', y1); l.setAttribute('x2', x2); l.setAttribute('y2', y2);
+    l.setAttribute('style', style); g.appendChild(l);
+  };
+  for (let x = X0; x <= X1; x++) line(sx(x), sy(Y0), sx(x), sy(Y1), x === 0 ? 'stroke:var(--ink-3)' : 'stroke:var(--rule)');
+  for (let y = Y0; y <= Y1; y++) line(sx(X0), sy(y), sx(X1), sy(y), y === 0 ? 'stroke:var(--ink-3)' : 'stroke:var(--rule)');
+
+  const A = [1, 2]; let B = [4, 6];
+  const m = n => String(n).replace('-', '−');
+  const sq = n => (n < 0 ? '(' + m(n) + ')' : m(n)) + '²';
+  const set = (el, attrs) => { for (const k in attrs) el.setAttribute(k, attrs[k]); };
+  function draw() {
+    const dx = B[0] - A[0], dy = B[1] - A[1], s = dx * dx + dy * dy, d = Math.sqrt(s);
+    set($('dist-dx'), { x1: sx(A[0]), y1: sy(A[1]), x2: sx(B[0]), y2: sy(A[1]) });
+    set($('dist-dy'), { x1: sx(B[0]), y1: sy(A[1]), x2: sx(B[0]), y2: sy(B[1]) });
+    set($('dist-d'), { x1: sx(A[0]), y1: sy(A[1]), x2: sx(B[0]), y2: sy(B[1]) });
+    set($('dist-A'), { cx: sx(A[0]), cy: sy(A[1]) });
+    set($('dist-tA'), { x: sx(A[0]) - 18, y: sy(A[1]) + 18 });
+    set($('dist-B'), { cx: sx(B[0]), cy: sy(B[1]) });
+    set($('dist-tB'), { x: sx(B[0]) + 12, y: sy(B[1]) - 10 });
+    set($('dist-ldx'), { x: sx((A[0] + B[0]) / 2), y: sy(A[1]) + (dy >= 0 ? 18 : -8) });
+    $('dist-ldx').textContent = dx ? m(dx) : '';
+    set($('dist-ldy'), { x: sx(B[0]) + (dx >= 0 ? 8 : -22), y: sy((A[1] + B[1]) / 2) + 4 });
+    $('dist-ldy').textContent = dy ? m(dy) : '';
+    $('dist-oB').textContent = '(' + m(B[0]) + ', ' + m(B[1]) + ')';
+    const root = Number.isInteger(d) ? String(d) : '≈ ' + d.toFixed(2);
+    $('dist-calc').textContent = '√(' + sq(dx) + ' + ' + sq(dy) + ') = √' + s + ' ' + (Number.isInteger(d) ? '= ' : '') + root;
+  }
+  let drag = false;
+  const hB = $('dist-B');
+  hB.addEventListener('pointerdown', e => { drag = true; hB.setPointerCapture(e.pointerId); e.preventDefault(); });
+  hB.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY;
+    const q = p.matrixTransform(svg.getScreenCTM().inverse());
+    const c = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+    B = [c(Math.round((q.x - OX) / U), X0, X1), c(Math.round((OY - q.y) / U), Y0, Y1)];
+    draw();
+  });
+  hB.addEventListener('pointerup', () => { drag = false; });
+  draw();
+})();
+</script>
+</body>
+</html>

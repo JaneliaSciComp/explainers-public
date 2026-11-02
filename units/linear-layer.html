@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="linear-layer">
+<meta name="unit-level" content="u1">
+<title>A linear layer: weighted sums</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  svg .halo { paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
+  svg .node { fill: var(--surface); stroke: var(--ink-3); stroke-width: 1.5; }
+  svg .val { font-family: var(--font-mono); font-size: 14px; }
+  svg .lbl { font-size: 15px; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>A linear layer: weighted sums</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="matrix-times-vector.html">Multiplying a matrix by a vector</a> <span class="level-badge level-hs">High school</span> <span class="minutes">8 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A linear layer takes a list of numbers in and gives a list of numbers out. Each output is a weighted sum of all
+  the inputs, plus a constant. The weights and the constants are numbers the model learns during training. Written
+  with a matrix, the whole layer is one line: <b>y</b> = <b>W</b><b>x</b> + <b>b</b>. Neural networks
+  are built mostly from layers like this one.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="weighted-sum">
+    <h2>Each output adds up the inputs, each with its own weight</h2>
+    <p>Start with three input numbers, <var>x</var><sub>1</sub>, <var>x</var><sub>2</sub> and <var>x</var><sub>3</sub>.
+    They might be the three coordinates of a point, or three measurements of anything. One output of the layer is
+    computed like this:</p>
+    <p class="math"><var>y</var><sub>1</sub> = <var>w</var><sub>11</sub><var>x</var><sub>1</sub> + <var>w</var><sub>12</sub><var>x</var><sub>2</sub> + <var>w</var><sub>13</sub><var>x</var><sub>3</sub> + <var>b</var><sub>1</sub></p>
+    <p>Each <dfn>weight</dfn> <var>w</var> says how much one input counts toward this output. A large weight makes that
+    input matter a lot. A negative weight makes the input pull the output down. A weight of zero ignores the input.
+    The <dfn>bias</dfn> <var>b</var> is a constant added at the end. It sets the output's value when every input is
+    zero.</p>
+    <p>A layer usually has several outputs. Each output has its own weights and its own bias, so each one adds up the
+    same inputs in a different way.</p>
+
+    <p><b>Try it.</b> In the figure, the inputs <var>x</var><sub>1</sub> = 1 and <var>x</var><sub>3</sub> = 2 stay
+    fixed. Predict from the weights which value of <var>x</var><sub>2</sub> makes <var>y</var><sub>1</sub> exactly 0.
+    Then move the slider to check.</p>
+    <figure id="fig-layer">
+      <div class="fig-title">A layer with three inputs and two outputs has six weights and two biases</div>
+      <div class="controls">
+        <label>input <var>x</var><sub>2</sub> <input type="range" id="ll-x2" min="-2" max="6" step="0.5" value="3"> <output id="ll-x2-out">3</output></label>
+      </div>
+      <svg id="ll-svg" width="380" height="230" viewBox="0 0 380 230" role="img"
+           aria-label="Three input circles on the left joined by six lines to two output circles on the right. Each line carries a weight; blue lines are positive weights, orange lines negative, and a dashed line is a zero weight.">
+        <g id="ll-edges"></g>
+        <g id="ll-nodes"></g>
+      </svg>
+      <div class="legend"><span><i class="sw" style="background:var(--s1)"></i>positive weight</span><span><i class="sw" style="background:var(--s2)"></i>negative weight</span><span>line width: size of the weight</span></div>
+      <figcaption><b>Each output is a weighted sum of all three inputs, plus its bias.</b> Notice that <var>y</var><sub>2</sub> rises as
+      <var>y</var><sub>1</sub> falls, because <var>x</var><sub>2</sub> has weight &minus;1 into <var>y</var><sub>1</sub>
+      and +1 into <var>y</var><sub>2</sub>.</figcaption>
+    </figure>
+    <details><summary>Answer for the goal</summary><p><var>y</var><sub>1</sub> = 2 &times; 1 &minus; <var>x</var><sub>2</sub> + 0.5 &times; 2 + 1 = 4 &minus; <var>x</var><sub>2</sub>,
+    so <var>y</var><sub>1</sub> is 0 when <var>x</var><sub>2</sub> = 4. Each step of 1 in <var>x</var><sub>2</sub> moves
+    <var>y</var><sub>1</sub> by exactly its weight, &minus;1. Outputs of a linear layer always move in such even steps.</p></details>
+
+    <div class="example">
+      <span class="example-title">Worked example: two outputs from three inputs</span>
+      <p>The layer in the figure has these weights and biases:</p>
+      <ul>
+        <li>output 1: weights 2, &minus;1, 0.5 and bias 1;</li>
+        <li>output 2: weights 0, 1, 1 and bias &minus;2.</li>
+      </ul>
+      <p>Feed in <b>x</b> = (1, 3, 2).</p>
+      <ol>
+        <li><var>y</var><sub>1</sub> = 2 &times; 1 + (&minus;1) &times; 3 + 0.5 &times; 2 + 1 = 2 &minus; 3 + 1 + 1 = <b>1</b>.</li>
+        <li><var>y</var><sub>2</sub> = 0 &times; 1 + 1 &times; 3 + 1 &times; 2 &minus; 2 = 0 + 3 + 2 &minus; 2 = <b>3</b>.</li>
+      </ol>
+      <p>So the layer turns the three numbers (1, 3, 2) into the two numbers (1, 3).</p>
+      <p><b>Your turn.</b> Feed in <b>x</b> = (0, 0, 0). What comes out, and why?</p>
+      <details><summary>Answer</summary><p>(1, &minus;2). Every weighted term is zero, so only the biases are left.</p></details>
+    </div>
+  </section>
+
+  <section id="matrix-form">
+    <h2>A matrix holds all the weights, one row per output</h2>
+    <p>Write the weights as a <dfn>weight matrix</dfn> <b>W</b>: row 1 holds output 1's weights, row 2 holds
+    output 2's. Put the biases in a vector <b>b</b>. Then the whole layer is a
+    <a href="matrix-times-vector.html">matrix times a vector</a>, plus a vector:</p>
+    <p class="math"><span class="vec">y</span> = <span class="vec">W</span><span class="vec">x</span> + <span class="vec">b</span>,&nbsp;&nbsp;
+      <span class="vec">W</span> = [[2, &minus;1, 0.5], [0, 1, 1]],&nbsp;&nbsp; <span class="vec">b</span> = (1, &minus;2)</p>
+    <p>A layer with <var>n</var> inputs and <var>m</var> outputs has an <var>m</var>&nbsp;&times;&nbsp;<var>n</var>
+    weight matrix: <var>m</var> rows, <var>n</var> columns. The input size and output size are free choices. A layer
+    can make the list longer, shorter, or keep its length.</p>
+  </section>
+
+  <section id="learned">
+    <h2>Training picks the weights, and there are many of them</h2>
+    <p>Nobody types in the weights of a real network. They start as small random numbers. Training then adjusts them,
+    step by step, so that the network's outputs get closer to the right answers. The unit on
+    <a href="gradient-descent.html">gradient descent</a> shows how. Numbers that training adjusts are called the
+    model's <dfn>parameters</dfn>.</p>
+    <p>A layer with <var>n</var> inputs and <var>m</var> outputs has <var>n</var> &times; <var>m</var> weights and
+    <var>m</var> biases. The small layer above has 3 &times; 2 + 2 = 8 parameters. A layer from 512 numbers to 2,048
+    numbers has 512 &times; 2,048 + 2,048 = 1,050,624.</p>
+
+    <div class="callout warn">
+      <span class="callout-title">"Linear" is used loosely here</span>
+      <p>Strictly, a map with a bias added is called <em>affine</em>, not linear. Machine-learning writing calls it
+      linear anyway. Either way, its outputs depend on its inputs along straight lines. So two linear layers in a row
+      can be rewritten as one linear layer, and stacking them gains nothing. The unit on
+      <a href="activation-functions.html">activation functions</a> shows what breaks that.</p>
+    </div>
+  </section>
+
+  <section id="in-code">
+    <h2>In code, a layer handles a whole batch of inputs at once</h2>
+    <p>Programs usually pass many inputs through a layer together: one input per row of an array. For a batch
+    <b>X</b> with one input per row, the layer computes <code>X @ W.T + b</code>. Each row of the result is the
+    output for that row's input. This is the same arithmetic, done for all rows at once.</p>
+    <p class="code-cap">linear_layer_numpy.py</p>
+<pre><code class="py">import numpy as np
+
+W = np.array([[2.0, -1.0, 0.5],
+              [0.0,  1.0, 1.0]])   # 2 outputs, 3 inputs
+b = np.array([1.0, -2.0])
+x = np.array([1.0, 3.0, 2.0])
+
+y = W @ x + b
+print(y)                # one input vector
+
+X = np.array([[1.0, 3.0, 2.0],
+              [0.0, 0.0, 0.0]])  # a batch: one input per row
+print(X @ W.T + b)      # one output per row
+</code></pre>
+<pre class="out"><code>[1. 3.]
+[[ 1.  3.]
+ [ 1. -2.]]</code></pre>
+    <p>PyTorch's <code>nn.Linear</code> holds <b>W</b> and <b>b</b> for you and starts them at random values.
+    It stores <b>W</b> with one row per output, as above.</p>
+    <p class="code-cap">linear_layer_torch.py</p>
+<pre><code class="py">import torch
+
+layer = torch.nn.Linear(3, 2)   # 3 inputs, 2 outputs
+print(layer.weight.shape, layer.bias.shape)
+print(sum(p.numel() for p in layer.parameters()))
+
+with torch.no_grad():            # set the weights by hand
+    layer.weight.copy_(torch.tensor([[2.0, -1.0, 0.5],
+                                     [0.0,  1.0, 1.0]]))
+    layer.bias.copy_(torch.tensor([1.0, -2.0]))
+print(layer(torch.tensor([1.0, 3.0, 2.0])).detach())
+</code></pre>
+<pre class="out"><code>torch.Size([2, 3]) torch.Size([2])
+8
+tensor([1., 3.])</code></pre>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>Use the layer from the worked example. What does it output for <b>x</b> = (2, 0, 4)?</p>
+      <details><summary>Answer</summary><p><var>y</var><sub>1</sub> = 2 &times; 2 &minus; 0 + 0.5 &times; 4 + 1 = 7 and
+      <var>y</var><sub>2</sub> = 0 + 0 + 4 &minus; 2 = 2, so (7, 2).</p></details>
+    </li>
+    <li>
+      <p>A layer takes 10 numbers in and gives 4 out. What shape is its weight matrix, and how many parameters does
+      it have?</p>
+      <details><summary>Answer</summary><p><b>W</b> is 4&nbsp;&times;&nbsp;10 (one row per output). It has 40
+      weights and 4 biases, so 44 parameters.</p></details>
+    </li>
+    <li>
+      <p>You pass a batch of 32 inputs, each 3 numbers long, through <code>nn.Linear(3, 2)</code>. What shape is the
+      result?</p>
+      <details><summary>Answer</summary><p>32&nbsp;&times;&nbsp;2: one row of 2 outputs for each of the 32 inputs.</p></details>
+    </li>
+    <li>
+      <p>A layer has all biases equal to zero. You double every input. What happens to the outputs?</p>
+      <details><summary>Answer</summary><p>Every output doubles too, since each is a sum of weight&nbsp;&times;&nbsp;input
+      terms. With nonzero biases this is no longer exactly true, because the bias does not double.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://cs231n.github.io/neural-networks-1/#modeling-one-neuron">Neural Networks Part 1: Modeling one neuron</a>
+        <span class="fl-src">Stanford CS231n notes</span>
+        <span class="fl-format">Course notes</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">One output of a linear layer, described as a single "neuron", with clear figures.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://www.3blue1brown.com/lessons/neural-networks/">But what is a neural network?</a>
+        <span class="fl-src">3Blue1Brown</span>
+        <span class="fl-format">Video</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">Animates weighted sums, biases and the matrix form, and shows where layers fit in a network.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://docs.pytorch.org/docs/stable/generated/torch.nn.Linear.html">torch.nn.Linear</a>
+        <span class="fl-src">PyTorch documentation</span>
+        <span class="fl-format">Reference</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">The exact formula, shapes and starting values that PyTorch uses.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="activation-functions.html">Activation functions: bending straight lines</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+    <li><a href="mlp.html">The multilayer perceptron (MLP)</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="embeddings.html">Embeddings: things as vectors</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="layer-normalization.html">Layer normalization</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const NS = 'http://www.w3.org/2000/svg';
+  const W = [[2, -1, 0.5], [0, 1, 1]], B = [1, -2];
+  const inY = [45, 110, 175], outY = [80, 145], X0 = 45, X1 = 285;
+  const el = (tag, attrs, parent, text) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text !== undefined) e.textContent = text;
+    parent.appendChild(e);
+    return e;
+  };
+  const fmt = v => (Math.round(v * 100) / 100).toString().replace('-', '−');
+  const edges = document.getElementById('ll-edges'), nodes = document.getElementById('ll-nodes');
+  const slider = document.getElementById('ll-x2'), sOut = document.getElementById('ll-x2-out');
+  if (!edges || !slider) return;
+  for (let j = 0; j < 2; j++) for (let i = 0; i < 3; i++) {
+    const w = W[j][i];
+    el('line', { x1: X0 + 18, y1: inY[i], x2: X1 - 18, y2: outY[j], fill: 'none',
+      stroke: w > 0 ? 'var(--s1)' : w < 0 ? 'var(--s2)' : 'var(--ink-3)',
+      'stroke-width': w === 0 ? 1 : 1 + 1.4 * Math.abs(w), 'stroke-dasharray': w === 0 ? '4 4' : 'none',
+      opacity: 0.85 }, edges);
+    const t = 0.27, lx = X0 + 18 + t * (X1 - X0 - 36), ly = inY[i] + t * (outY[j] - inY[i]);
+    el('text', { x: lx, y: ly + 4, 'text-anchor': 'middle', class: 'halo val' }, edges, fmt(w));
+  }
+  const xVals = [1, 3, 2], inText = [], outText = [];
+  for (let i = 0; i < 3; i++) {
+    el('circle', { cx: X0, cy: inY[i], r: 18, class: 'node' }, nodes);
+    inText.push(el('text', { x: X0, y: inY[i] + 5, 'text-anchor': 'middle', class: 'val' }, nodes, ''));
+    el('text', { x: X0 - 22, y: inY[i] + 5, 'text-anchor': 'end', class: 'ink2 lbl' }, nodes, 'x' + (i + 1));
+  }
+  for (let j = 0; j < 2; j++) {
+    el('circle', { cx: X1, cy: outY[j], r: 18, class: 'node' }, nodes);
+    outText.push(el('text', { x: X1, y: outY[j] + 5, 'text-anchor': 'middle', class: 'val' }, nodes, ''));
+    el('text', { x: X1 + 24, y: outY[j] - 2, class: 'ink2 lbl' }, nodes, 'y' + (j + 1));
+    el('text', { x: X1 + 24, y: outY[j] + 15, class: 'muted val' }, nodes, 'bias ' + fmt(B[j]));
+  }
+  el('text', { x: X0, y: 222, 'text-anchor': 'middle', class: 'muted lbl' }, nodes, 'inputs');
+  el('text', { x: X1, y: 222, 'text-anchor': 'middle', class: 'muted lbl' }, nodes, 'outputs');
+  function update() {
+    xVals[1] = Number(slider.value);
+    sOut.textContent = fmt(xVals[1]);
+    xVals.forEach((v, i) => { inText[i].textContent = fmt(v); });
+    for (let j = 0; j < 2; j++) {
+      const y = W[j].reduce((s, w, i) => s + w * xVals[i], B[j]);
+      outText[j].textContent = fmt(y);
+    }
+  }
+  slider.addEventListener('input', update);
+  update();
+})();
+</script>
+</body>
+</html>

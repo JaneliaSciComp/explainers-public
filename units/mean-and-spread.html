@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="mean-and-spread">
+<meta name="unit-level" content="hs">
+<title>Summarizing a list of numbers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Summarizing a list of numbers</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-hs">High school</span> <span class="minutes">7 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Before you start</h2>
+  <p>You need nothing else first. This unit starts from scratch.</p>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>Two numbers summarize a long list well. The mean, or average, says where the values sit: add them up and divide
+  by how many there are. The standard deviation says how spread out they are: roughly, how far a typical value lies
+  from the mean. Two lists can share a mean and still differ a lot in spread. Together the two numbers give the
+  center and the width of the data.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="mean">
+    <h2>The mean is the balance point</h2>
+    <p>Five friends rate a film from 0 to 10: 4, 8, 6, 5 and 7. The <dfn>mean</dfn> is the sum divided by the count:
+    30 / 5 = 6. If the ratings were weights on a ruler, the ruler would balance at 6. Each value's
+    <dfn>deviation</dfn> is its distance from the mean, with a sign: here −2, +2, 0, −1 and +1. The deviations always
+    add to zero, which is what "balance point" means.</p>
+  </section>
+
+  <section id="spread">
+    <h2>The standard deviation is a typical distance from the mean</h2>
+    <p>Five other friends rate the same film 2, 10, 6, 3 and 9. Their mean is also 30 / 5 = 6, but they disagree far
+    more. To measure that, average the squared deviations, then take the square root. Squaring makes every
+    deviation positive and counts large ones more. The average of the squares is the <dfn>variance</dfn>. Its square
+    root, the <dfn>standard deviation</dfn>, is back in the same units as the data (rating points, here).</p>
+    <p class="math"><var>σ</var> = √( average of (value − mean)<sup>2</sup> )</p>
+    <p>The Greek letter <var>σ</var> (sigma) is the usual symbol for the standard deviation, and <var>μ</var> (mu) for
+    the mean.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example</span>
+      <div class="table-wrap">
+      <table>
+        <tr><th></th><th>Ratings</th><th>Deviations from 6</th><th>Squares</th><th class="r">Mean of squares</th><th class="r"><var>σ</var></th></tr>
+        <tr><td>Group 1</td><td>4, 8, 6, 5, 7</td><td>−2, 2, 0, −1, 1</td><td>4, 4, 0, 1, 1</td><td class="r">10 / 5 = 2</td><td class="r">√2 ≈ 1.41</td></tr>
+        <tr><td>Group 2</td><td>2, 10, 6, 3, 9</td><td>−4, 4, 0, −3, 3</td><td>16, 16, 0, 9, 9</td><td class="r">50 / 5 = 10</td><td class="r">√10 ≈ 3.16</td></tr>
+      </table>
+      </div>
+      <p>Same mean, 6. Group 2's standard deviation is more than twice group 1's, which matches how much more they
+      disagree.</p>
+      <p><b>Your turn.</b> Find the mean and standard deviation of 1, 3, 5, 7.</p>
+      <details><summary>Answer</summary><p>The mean is 16 / 4 = 4. The deviations are −3, −1, 1, 3, with squares 9, 1,
+      1, 9. Their mean is 20 / 4 = 5, so <var>σ</var> = √5 ≈ 2.24.</p></details>
+    </div>
+
+    <figure id="fig-spread">
+      <div class="fig-title">The mean marks the center; the band marks one standard deviation each side</div>
+      <div class="scroll-x">
+      <svg id="ms-svg" width="400" height="150" viewBox="0 0 400 150" role="img"
+           aria-label="Five draggable dots on a number line from 0 to 10, with a line at their mean and a shaded band one standard deviation wide on each side"
+           style="touch-action:none">
+        <rect id="ms-band" y="30" height="70" style="fill:var(--s1);fill-opacity:0.15"/>
+        <g id="ms-axis"></g>
+        <line id="ms-mean" y1="22" y2="104" style="stroke:var(--s2);stroke-width:2.5"/>
+        <text id="ms-tmean" y="16" text-anchor="middle" style="fill:var(--s2);font-weight:700">mean</text>
+        <g id="ms-dots"></g>
+      </svg>
+      </div>
+      <div class="readout-box">Values <output id="ms-vals"></output><br>
+        <span style="color:var(--s2);font-weight:700">mean</span> = <output id="ms-om"></output> &nbsp;
+        <span style="color:var(--s1);font-weight:700">standard deviation</span> = <output id="ms-os"></output></div>
+      <figcaption><b>Try this.</b> Drag the dots left and right. Goal 1: keep the mean at 6 but make the standard
+      deviation 0. Goal 2: keep the mean at 6 and make the standard deviation as large as you can. Predict the answer
+      to each before you drag.</figcaption>
+    </figure>
+
+    <div class="callout warn">
+      <span class="callout-title">This is a simplification</span>
+      <p>This page divides by the number of values, <var>n</var>. When a list is a sample from a larger group and you
+      want to estimate the larger group's spread, statisticians divide by <var>n</var> − 1 instead, which gives a
+      slightly larger number. NumPy's <code>np.std</code> divides by <var>n</var> unless you pass
+      <code>ddof=1</code>. Also, one extreme value can drag the mean a long way; the <dfn>median</dfn>, the middle
+      value once the list is sorted, is less sensitive to it.</p>
+    </div>
+
+    <p class="code-cap">mean.py: the two summaries in NumPy</p>
+<pre><code class="py">import numpy as np
+
+a = np.array([4, 8, 6, 5, 7])
+b = np.array([2, 10, 6, 3, 9])
+print(a.mean(), b.mean())                    # same middle
+print(round(a.std(), 3), round(b.std(), 3))  # different spread
+</code></pre>
+<pre class="out">6.0 6.0
+1.414 3.162</pre>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>What is the mean of 2, 4 and 9?</p>
+      <details><summary>Answer</summary><p>15 / 3 = 5.</p></details>
+    </li>
+    <li>
+      <p>You add 10 to every value in a list. What happens to the mean and to the standard deviation? What if you
+      multiply every value by 3 instead?</p>
+      <details><summary>Answer</summary><p>Adding 10 raises the mean by 10 and leaves the standard deviation alone,
+      because every deviation stays the same. Multiplying by 3 triples both the mean and the standard deviation.</p></details>
+    </li>
+    <li>
+      <p>When is a list's standard deviation exactly zero?</p>
+      <details><summary>Answer</summary><p>When every value is the same. Then every deviation is zero.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://seeing-theory.brown.edu/basic-probability/index.html">Basic probability: Expectation and Variance</a>
+        <span class="fl-src">Seeing Theory, Brown University; chapter 1, second and third sections</span>
+        <span class="fl-format">Interactive page</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">Mean and spread for chance outcomes, with draws you can watch accumulate.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://www.mathsisfun.com/data/standard-deviation.html">Standard deviation and variance</a>
+        <span class="fl-src">Math Is Fun</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">A plain walk-through with dogs' heights, and the <var>n</var> versus <var>n</var> − 1 question.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="bell-curve.html">The bell curve (normal distribution)</a> <span class="level-badge level-hs">High school</span> <span class="minutes">7 min</span></li>
+    <li><a href="normalizing-data.html">Normalizing data</a> <span class="level-badge level-hs">High school</span> <span class="minutes">6 min</span></li>
+    <li><a href="loss-function.html">Loss: one number for how wrong</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">9 min</span></li>
+    <li><a href="ema-weights.html">A moving average of the weights (EMA)</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const svg = document.getElementById('ms-svg');
+  if (!svg) return;
+  const NS = 'http://www.w3.org/2000/svg', $ = id => document.getElementById(id);
+  const L = 30, R = 370, LINE = 100;
+  const sx = v => L + v / 10 * (R - L);
+  const ax = $('ms-axis');
+  const add = (p, tag, a, text) => { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); if (text !== undefined) e.textContent = text; p.appendChild(e); return e; };
+  add(ax, 'line', { x1: L, x2: R, y1: LINE, y2: LINE, style: 'stroke:var(--ink-3);stroke-width:1.5' });
+  for (let v = 0; v <= 10; v++) {
+    add(ax, 'line', { x1: sx(v), x2: sx(v), y1: LINE - 4, y2: LINE + 4, style: 'stroke:var(--ink-3)' });
+    add(ax, 'text', { x: sx(v), y: LINE + 20, 'text-anchor': 'middle', class: 'muted' }, String(v));
+  }
+  const vals = [4, 8, 6, 5, 7];
+  const rows = [40, 52, 64, 76, 88];   // stagger the dots so equal values stay visible
+  const dots = vals.map((v, i) => {
+    const c = add($('ms-dots'), 'circle', { r: 9, cy: rows[i], style: 'fill:var(--ink);fill-opacity:0.75;cursor:grab' });
+    c.addEventListener('pointerdown', e => { c.setPointerCapture(e.pointerId); c.dataset.drag = '1'; e.preventDefault(); });
+    c.addEventListener('pointermove', e => {
+      if (!c.dataset.drag) return;
+      const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY;
+      const q = p.matrixTransform(svg.getScreenCTM().inverse());
+      vals[i] = Math.max(0, Math.min(10, Math.round((q.x - L) / (R - L) * 10)));
+      draw();
+    });
+    c.addEventListener('pointerup', () => { delete c.dataset.drag; });
+    return c;
+  });
+  const fmt = v => (Math.round(v * 100) / 100).toString();
+  function draw() {
+    const m = vals.reduce((a, b) => a + b, 0) / vals.length;
+    const s = Math.sqrt(vals.reduce((a, b) => a + (b - m) ** 2, 0) / vals.length);
+    dots.forEach((c, i) => c.setAttribute('cx', sx(vals[i])));
+    $('ms-mean').setAttribute('x1', sx(m)); $('ms-mean').setAttribute('x2', sx(m));
+    $('ms-tmean').setAttribute('x', sx(m));
+    $('ms-band').setAttribute('x', sx(Math.max(0, m - s)));
+    $('ms-band').setAttribute('width', sx(Math.min(10, m + s)) - sx(Math.max(0, m - s)));
+    $('ms-vals').textContent = vals.join(', ');
+    $('ms-om').textContent = fmt(m); $('ms-os').textContent = fmt(s);
+  }
+  draw();
+})();
+</script>
+</body>
+</html>

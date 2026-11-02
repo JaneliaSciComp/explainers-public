@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="data-augmentation">
+<meta name="unit-level" content="u1">
+<title>Data augmentation: new views of an example</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  #aug-view { width: 100%; height: auto; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Data augmentation: new views of an example</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="rotation-matrices.html">Rotating points with a matrix</a> <span class="level-badge level-hs">High school</span> <span class="minutes">8 min</span></li>
+    <li><a href="random-draws.html">Random draws: chance you can repeat</a> <span class="level-badge level-hs">High school</span> <span class="minutes">7 min</span></li>
+    <li><a href="point-clouds.html">Shapes as point clouds</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="bell-curve.html">The bell curve (normal distribution)</a> <span class="level-badge level-hs">High school</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>Data augmentation makes new training examples from old ones by changing them in ways that do not change the
+  right answer. For a point cloud, the usual changes are a random rotation of the whole cloud and a small random
+  nudge, called jitter, for each point. A model trained on these copies sees the same shape facing many ways and
+  slightly blurred. It learns that direction and tiny noise do not matter for the answer. Choose only changes
+  that truly leave the answer the same.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="why">
+    <h2>A model learns whatever its examples have in common</h2>
+    <p>A machine-learning <dfn>model</dfn> is a program whose settings are learned from <dfn>training
+    examples</dfn>: inputs paired with the right answers. It picks up any pattern that helps it give those answers,
+    including patterns you did not intend.</p>
+    <p>Suppose you train a model to recognize chairs, and every chair in your examples faces the same way. The model
+    may learn "a chair has its back on the left." Shown a chair turned around, it fails. It never saw evidence that
+    the facing direction does not matter.</p>
+    <p><dfn>Data augmentation</dfn> supplies that evidence. Each time the model sees an example, you first change the
+    example at random, in a way that keeps the answer the same. A chair turned around is still a chair. Over many
+    passes, the model sees each chair facing many ways and learns to ignore the direction.</p>
+  </section>
+
+  <section id="point-clouds">
+    <h2>For point clouds: rotate the whole cloud, then jitter each point</h2>
+    <p>Two changes are common for a <a href="point-clouds.html">point cloud</a>.</p>
+    <ul>
+      <li><b>A random rotation.</b> Draw one random angle (see <a href="random-draws.html">random draws</a>) and turn
+        every point by it, using the same <a href="rotation-matrices.html">rotation matrix</a>. A rotation keeps
+        every distance between points, so the shape itself does not change.</li>
+      <li><b>Jitter.</b> Add a small random offset to each point separately. Each offset is drawn from a
+        <a href="bell-curve.html">bell curve</a> centered on zero, with a small spread such as 0.01 of the shape's
+        size. Programs often clip each offset, for example to at most 0.05, so that no point moves far.</li>
+    </ul>
+
+    <div class="example">
+      <span class="example-title">Worked example: one point, rotated and jittered</span>
+      <p>Take the point <b>p</b> = (2, 0, 1). The random angle is 90° about the <var>z</var> axis.</p>
+      <ol>
+        <li>A rotation by θ about <var>z</var> maps (<var>x</var>, <var>y</var>, <var>z</var>) to
+          (<var>x</var> cos θ − <var>y</var> sin θ, <var>x</var> sin θ + <var>y</var> cos θ, <var>z</var>).</li>
+        <li>With cos 90° = 0 and sin 90° = 1, the point becomes (2·0 − 0·1, 2·1 + 0·0, 1) = (0, 2, 1).</li>
+        <li>Its distance from the origin was √(2² + 0² + 1²) = √5 ≈ 2.236. It still is: √(0² + 2² + 1²) = √5.</li>
+        <li>The jitter draws (0.01, −0.02, 0.005). The final point is (0.01, 1.98, 1.005).</li>
+      </ol>
+      <p>Every other point of the cloud turns by the same 90°, but gets its own jitter.</p>
+    </div>
+
+    <p>Before you use the figure, predict: how large can the jitter get before you can no longer read the letter?</p>
+
+    <figure id="fig-aug">
+      <div class="fig-title">One example and a random augmented copy</div>
+      <canvas id="aug-view" width="640" height="300" role="img"
+        aria-label="Left, a letter F drawn as a point cloud. Right, the same letter rotated by a random angle, with each point nudged a little."></canvas>
+      <div class="controls">
+        <button class="btn" type="button" id="aug-new">New random copy</button>
+        <label>Jitter spread <input type="range" id="aug-s" min="0" max="0.15" step="0.005" value="0.01"> <output id="aug-s-out">0.010</output></label>
+      </div>
+      <div class="readout-box" id="aug-read" aria-live="polite"></div>
+      <figcaption><b>Goal:</b> press "New random copy" a few times; each copy is a new training input with the same
+      answer, "F". Then raise the jitter until the letter is hard to read. A useful jitter stays far below that. The
+      letter is 1 unit tall.</figcaption>
+    </figure>
+
+    <p>The strokes are 0.12 wide. Once the spread is a large share of that width, the strokes blur into each other. A spread of 0.01
+    changes almost nothing you can see, and that is the point: the model learns not to depend on exact positions.
+    The figure leaves out clipping, so that large spreads show their full effect.</p>
+  </section>
+
+  <section id="ignore">
+    <h2>Each change teaches the model to ignore one thing</h2>
+    <p>Choose each change by asking what the answer should not depend on.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Change</th><th>The model learns to ignore</th><th>Leave it out when</th></tr></thead>
+        <tbody>
+          <tr><td>Rotate about the vertical axis</td><td>which way the shape faces</td><td>facing matters, such as
+            "is this arrow pointing north?"</td></tr>
+          <tr><td>Rotate in every direction</td><td>all of the shape's orientation</td><td>up and down matter, such
+            as "is this chair standing or fallen?"</td></tr>
+          <tr><td>Jitter each point</td><td>tiny errors in position</td><td>the spread nears the size of the thinnest
+            part that matters</td></tr>
+          <tr><td>Shuffle or resample the points</td><td>which points were sampled, and in what order</td><td>rarely;
+            see <a href="permutation-invariance.html">order doesn't matter</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>One more rule matters as much as the choice of change. If the answer is itself a shape, apply the same rotation
+    to the input and to the answer. For example, if the model must predict the missing part of a shape, rotate the
+    part you give it and the part it must predict with the same matrix. Otherwise the copies no longer match.</p>
+  </section>
+
+  <section id="code">
+    <h2>In NumPy, rotation is one matrix product and jitter is one random draw</h2>
+    <p>Each row of <code>cloud</code> is a point. A rotation matrix <b>R</b> turns a column vector <b>p</b>
+    into <b>R</b><b>p</b>. For points stored as rows, the same rotation is the product
+    <code>cloud @ R.T</code>, with <b>R</b> transposed.</p>
+    <p class="code-cap">augment.py</p>
+<pre><code class="py">import numpy as np
+
+rng = np.random.default_rng(7)
+cloud = np.array([[2.0, 0.0, 1.0],
+                  [0.0, 1.0, 0.0],
+                  [1.0, 1.0, 3.0]])
+
+theta = rng.uniform(0, 2 * np.pi)          # a random angle about the z axis
+c, s = np.cos(theta), np.sin(theta)
+R = np.array([[c, -s, 0],
+              [s,  c, 0],
+              [0,  0, 1]])
+rotated = cloud @ R.T                      # each row is a point, so multiply by R transposed
+jitter = np.clip(rng.normal(0, 0.01, cloud.shape), -0.05, 0.05)
+augmented = rotated + jitter
+
+def pairwise(p):                           # every distance between two points of p
+    return np.linalg.norm(p[:, None] - p[None, :], axis=-1)
+
+print(round(np.degrees(theta), 1))
+print(np.allclose(pairwise(cloud), pairwise(rotated)))
+print(np.abs(pairwise(augmented) - pairwise(cloud)).max().round(3))
+</code></pre>
+<pre class="out"><code>225.0
+True
+0.012</code></pre>
+    <p>The random angle is 225°. The rotation keeps every distance between points exactly, and the jitter changes
+    them by at most 0.012. Inside <code>pairwise</code>, <code>p[:, None] - p[None, :]</code> subtracts every point
+    from every other point at once (see <a href="broadcasting.html">broadcasting</a>).</p>
+
+    <div class="callout warn">
+      <span class="callout-title">This is a simplification</span>
+      <p>Drawing a random rotation in every direction is harder than it looks. Three random angles, one per axis, do
+      not make all orientations equally likely. Libraries offer a function for a uniformly random 3D rotation; use
+      it. Also, augmentation only encourages a model to ignore a change. It does not guarantee it, so test the
+      trained model on rotated inputs.</p>
+    </div>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>Rotate the point (1, 2, 5) by 90° about the <var>z</var> axis. Where does it go?</p>
+      <details><summary>Answer</summary><p>(1·0 − 2·1, 1·1 + 2·0, 5) = (−2, 1, 5). Its distance from the origin stays
+      √30.</p></details>
+    </li>
+    <li>
+      <p>A model must decide whether a scanned chair is standing up or has fallen over. Should you augment with
+      rotations in every direction?</p>
+      <details><summary>Answer</summary><p>No. A rotation in every direction can turn a standing chair into a fallen one,
+      so it changes the right answer. Rotation about the vertical axis alone is safe.</p></details>
+    </li>
+    <li>
+      <p>A model gets part of a shape and must predict the rest. You rotate the input part by a random angle but leave
+      the part to predict as it was. What goes wrong?</p>
+      <details><summary>Answer</summary><p>The two parts no longer fit together, so the model is trained on wrong
+      answers. Rotate both with the same matrix.</p></details>
+    </li>
+    <li>
+      <p>The thinnest part of your shapes is 0.02 units wide. Is a jitter spread of 0.05 a good choice?</p>
+      <details><summary>Answer</summary><p>No. Points would move more than the part is wide, so the thin part would
+      blur away and the model could not learn it. Keep the spread well below 0.02.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background. This unit covers what you need here.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://d2l.ai/chapter_computer-vision/image-augmentation.html#common-image-augmentation-methods">Image Augmentation: Common Image Augmentation Methods</a>
+        <span class="fl-src">Dive into Deep Learning</span>
+        <span class="fl-format">Book chapter</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">The same idea for photos, with runnable code and pictures of flips, crops and color changes.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://docs.pytorch.org/vision/main/auto_examples/transforms/plot_transforms_illustrations.html">Illustration of transforms</a>
+        <span class="fl-src">torchvision documentation</span>
+        <span class="fl-format">Gallery</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">A before-and-after picture for every image augmentation in a widely used library.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <p>No unit or explanation builds on this one yet.</p>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  'use strict';
+  const canvas = document.getElementById('aug-view');
+  const btn = document.getElementById('aug-new');
+  const sIn = document.getElementById('aug-s'), sOut = document.getElementById('aug-s-out');
+  const read = document.getElementById('aug-read');
+  if (!canvas || !btn || !sIn) return;
+  const ctx = canvas.getContext('2d');
+  const W = 640, H = 300, dpr = window.devicePixelRatio || 1;
+  canvas.width = W * dpr; canvas.height = H * dpr; ctx.scale(dpr, dpr);
+
+  let seed = 2024;
+  const rand = () => { seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const normal = () => { let u = 0; while (u === 0) u = rand(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rand()); };
+
+  // A letter F, 1 unit tall, as points spread over its three strokes (stroke width 0.12), centered on the origin.
+  const RECTS = [[-0.30, -0.5, 0.12, 1.0], [-0.30, 0.38, 0.55, 0.12], [-0.30, -0.02, 0.40, 0.12]];
+  const shape = [];
+  RECTS.forEach(([x, y, w, h]) => {
+    const n = Math.round(260 * w * h / 0.12);
+    for (let i = 0; i < n; i++) shape.push([x + rand() * w, y + rand() * h]);
+  });
+
+  let angle = 0, noise = [];
+  function newCopy() {
+    angle = rand() * 2 * Math.PI;
+    noise = shape.map(() => [normal(), normal()]);
+    draw();
+  }
+  function plot(pts, cx, color) {
+    const S = 210;
+    ctx.fillStyle = color;
+    for (const [x, y] of pts) { ctx.beginPath(); ctx.arc(cx + S * x, H / 2 - S * y, 2.8, 0, 2 * Math.PI); ctx.fill(); }
+  }
+  function draw() {
+    const css = getComputedStyle(document.documentElement);
+    const bg = css.getPropertyValue('--surface').trim() || '#fff';
+    const c1 = css.getPropertyValue('--s1').trim() || '#2a78d6';
+    const c2 = css.getPropertyValue('--s2').trim() || '#eb6834';
+    const ink = css.getPropertyValue('--ink-2').trim() || '#4b5768';
+    const rule = css.getPropertyValue('--rule').trim() || '#dde2ea';
+    const sigma = Number(sIn.value);
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = rule; ctx.beginPath(); ctx.moveTo(W / 2, 20); ctx.lineTo(W / 2, H - 20); ctx.stroke();
+    ctx.fillStyle = ink; ctx.font = '14px "Source Sans 3", sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('Original', W / 4, 22);
+    ctx.fillText('Augmented copy', 3 * W / 4, 22);
+    plot(shape, W / 4, c1);
+    const c = Math.cos(angle), s = Math.sin(angle);
+    const out = shape.map(([x, y], i) => [c * x - s * y + sigma * noise[i][0], s * x + c * y + sigma * noise[i][1]]);
+    plot(out, 3 * W / 4, c2);
+    sOut.textContent = sigma.toFixed(3);
+    read.textContent = 'This copy: rotated by ' + Math.round(angle * 180 / Math.PI) + '°, jitter spread ' + sigma.toFixed(3) +
+      ' (the strokes are 0.12 wide). The right answer is still "F".';
+  }
+  btn.addEventListener('click', newCopy);
+  sIn.addEventListener('input', draw);
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', draw);
+  newCopy();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="connectomics">
+<meta name="unit-level" content="u1">
+<title>Connectomics: mapping neurons from images</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Connectomics: mapping neurons from images</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min read</span> <span class="tag hub">overview</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="segmentation.html">Segmentation: a label for every voxel</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="point-clouds.html">Shapes as point clouds</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>Connectomics maps every neuron in a piece of brain and every connection between them. Scientists slice the
+  tissue thinly and photograph it with an electron microscope. The photos form one huge 3D image. Programs then
+  label each neuron's voxels, people proofread the labels, and programs find the connections. The result is a
+  wiring diagram of the brain, called a connectome. This page is an overview: each step has its own unit.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="neurons">
+    <h2>Neurons are thin, branching cells joined at synapses</h2>
+    <p>A <dfn>neuron</dfn> is a nerve cell, a cell that carries signals. It has a <dfn>cell body</dfn>, which holds
+    its nucleus, and long branches. Branches called <dfn>dendrites</dfn> mostly receive signals. A branch called the
+    <dfn>axon</dfn> sends them. A <dfn>synapse</dfn> is a contact point where one neuron passes a signal to another.
+    A <dfn>connectome</dfn> is the full list of which neurons connect to which, through how many synapses.</p>
+    <p>Many branches are thinner than 200 nm, about the smallest detail an ordinary light microscope can show. That
+    is why connectomics uses an <dfn>electron microscope</dfn>, which can show details of a few nanometers.</p>
+  </section>
+
+  <section id="pipeline">
+    <h2>A connectome is built in six steps</h2>
+    <figure id="fig-pipeline">
+      <div class="fig-title">From tissue to wiring diagram</div>
+      <div class="scroll-x">
+      <svg width="640" height="150" viewBox="0 0 640 150" style="min-width: 520px" role="img"
+        aria-label="Six boxes in a row joined by arrows: image the slices, build a 3D image, segment into objects, proofread, find synapses, wiring diagram.">
+        <defs>
+          <marker id="cx-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0 0 L10 5 L0 10 z" fill="var(--ink-3)"/>
+          </marker>
+        </defs>
+        <g fill="var(--surface)" stroke="var(--ink-3)">
+          <rect x="4" y="30" width="92" height="64" rx="6"/>
+          <rect x="112" y="30" width="92" height="64" rx="6"/>
+          <rect x="220" y="30" width="92" height="64" rx="6"/>
+          <rect x="328" y="30" width="92" height="64" rx="6"/>
+          <rect x="436" y="30" width="92" height="64" rx="6"/>
+          <rect x="544" y="30" width="92" height="64" rx="6" stroke="var(--s1)"/>
+        </g>
+        <g text-anchor="middle">
+          <text x="50" y="22" class="muted">1</text><text x="158" y="22" class="muted">2</text>
+          <text x="266" y="22" class="muted">3</text><text x="374" y="22" class="muted">4</text>
+          <text x="482" y="22" class="muted">5</text><text x="590" y="22" class="muted">6</text>
+          <text x="50" y="58">Slice and</text><text x="50" y="74">image</text>
+          <text x="158" y="58">Stack into</text><text x="158" y="74">a 3D image</text>
+          <text x="266" y="58">Segment</text><text x="266" y="74">into objects</text>
+          <text x="374" y="58">Proofread</text><text x="374" y="74">the objects</text>
+          <text x="482" y="58">Find</text><text x="482" y="74">synapses</text>
+          <text x="590" y="58">Wiring</text><text x="590" y="74">diagram</text>
+        </g>
+        <g stroke="var(--ink-3)" stroke-width="1.4" marker-end="url(#cx-arrow)">
+          <path d="M96 62 L110 62"/><path d="M204 62 L218 62"/><path d="M312 62 L326 62"/>
+          <path d="M420 62 L434 62"/><path d="M528 62 L542 62"/>
+        </g>
+        <!-- a tiny wiring diagram under the last box -->
+        <g transform="translate(560,108)">
+          <line x1="8" y1="20" x2="30" y2="6" stroke="var(--ink-3)"/><line x1="30" y1="6" x2="54" y2="22" stroke="var(--ink-3)"/>
+          <line x1="8" y1="20" x2="54" y2="22" stroke="var(--ink-3)"/>
+          <circle cx="8" cy="20" r="5" class="f-s1"/><circle cx="30" cy="6" r="5" class="f-s2"/><circle cx="54" cy="22" r="5" class="f-s3"/>
+        </g>
+      </svg>
+      </div>
+      <figcaption><b>What to notice.</b> Steps 1 and 2 make the data, steps 3 to 5 turn pixels into neurons and
+      connections, and step 6 is the result: a graph whose dots are neurons and whose lines are connections.</figcaption>
+    </figure>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Step</th><th>What happens</th><th>Unit</th></tr></thead>
+        <tbody>
+          <tr><td>1. Slice and image</td><td>Preserved tissue is cut or worn away in layers from a few to about 50 nanometers thick,
+            and each layer is photographed.</td><td>—</td></tr>
+          <tr><td>2. Stack</td><td>The photos are lined up and stacked. The voxels are often deeper than wide, for
+            example 8 × 8 × 40 nm.</td><td><a href="voxels.html">3D images made of voxels</a></td></tr>
+          <tr><td>3. Segment</td><td>Programs give each voxel a label, first as small pieces and then as joined
+            objects.</td><td><a href="segmentation.html">Segmentation</a>, <a href="supervoxels.html">supervoxels</a></td></tr>
+          <tr><td>4. Proofread</td><td>People, helped by software, fix the objects that were wrongly joined or cut.</td>
+            <td><a href="segmentation-errors.html">Two kinds of error</a>, <a href="proofreading.html">proofreading</a></td></tr>
+          <tr><td>5. Find synapses</td><td>A program marks each synapse and the two neurons it joins.</td><td>—</td></tr>
+          <tr><td>6. Wiring diagram</td><td>Neurons become dots and synapses become lines.</td><td><a href="graphs.html">Graphs</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="scale">
+    <h2>The scale is what makes connectomics hard</h2>
+    <p>The whole brain of an adult fruit fly has about 140,000 neurons. The count covers the central brain and the
+    two optic lobes, which handle vision. It leaves out the nerve cord in the fly's body, which works like a spinal
+    cord. A whole adult mouse brain has about 70 million neurons, and a whole adult human brain about 86
+    billion.</p>
+    <p>Even a small piece of brain makes a huge image. One cubic millimeter of tissue, imaged at 8 × 8 × 40 nm
+    per voxel, has 125,000 × 125,000 × 25,000 ≈ 3.9 × 10<sup>14</sup> voxels. At one byte per voxel, that is about
+    390 terabytes.</p>
+    <p>No one can label that by hand, so programs do the segmenting. Programs make errors, and at this scale even a
+    small error rate means many errors. So most of the human effort in connectomics goes into proofreading, and
+    much of the research goes into software that finds errors for people to check.</p>
+  </section>
+
+  <section id="shapes">
+    <h2>Programs reason about neuron shapes as point clouds</h2>
+    <p>Once each neuron piece has a label, a program can treat the piece as a shape. A common way is to sample points
+    on its surface, giving a <a href="point-clouds.html">point cloud</a>. Another is a <dfn>skeleton</dfn>: a set of
+    connected center lines that follows each branch. Shapes let a program ask questions the raw voxels make hard,
+    such as "does this cut-off branch continue in that nearby piece?"</p>
+
+    <div class="callout warn">
+      <span class="callout-title">This is a simplification</span>
+      <p>Real projects differ in every step. Some use light microscopes on expanded tissue instead of electron
+      microscopes. Others use X-rays, which can image tissue without cutting it. Steps also overlap: synapses can be found before
+      proofreading ends, and proofreading continues for years after the first wiring diagram is released.</p>
+    </div>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>Why does connectomics use an electron microscope rather than an ordinary light microscope?</p>
+      <details><summary>Answer</summary><p>Many neuron branches are thinner than about 200 nm, the smallest detail an
+      ordinary light microscope can show. An electron microscope shows details of a few nanometers, so it can follow
+      thin branches and see synapses.</p></details>
+    </li>
+    <li>
+      <p>Put these in order: find synapses, segment, proofread, stack into a 3D image.</p>
+      <details><summary>Answer</summary><p>Stack into a 3D image, segment, proofread, find synapses. (In practice,
+      synapse finding and proofreading often overlap.)</p></details>
+    </li>
+    <li>
+      <p>A program segments a volume with 100,000 neuron pieces and makes an error on just 1% of them. How many errors
+      must people find?</p>
+      <details><summary>Answer</summary><p>1% of 100,000 is 1,000 errors. That is why software that points people to
+      likely errors saves so much time.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background. This overview covers what you need here.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://www.ted.com/talks/sebastian_seung_i_am_my_connectome">I am my connectome</a>
+        <span class="fl-src">Sebastian Seung, TED</span>
+        <span class="fl-format">Video</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">A talk for a general audience on why anyone would map every connection in a brain, and how it is done.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://en.wikipedia.org/wiki/Connectomics#Microscale_Connectomics">Connectomics: Microscale connectomics</a>
+        <span class="fl-src">Wikipedia</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">A short history of neuron-by-neuron maps, from the first whole worm to whole fly brains, The article's later "Public datasets" section links to the data.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://flywire.ai/">FlyWire</a>
+        <span class="fl-src">FlyWire Consortium</span>
+        <span class="fl-format">Project site</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">A public connectome of a whole adult fruit fly brain, proofread by many people; you can browse its neurons online.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <p>No unit or explanation builds on this one yet.</p>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="python-basics">
+<meta name="unit-level" content="hs">
+<title>Reading Python for this course</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Reading Python for this course</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-hs">High school</span> <span class="minutes">8 min read</span> <span class="tag hub">overview</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Before you start</h2>
+  <p>You need nothing else first. This unit starts from scratch.</p>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A Python program is a list of instructions that the computer runs from top to bottom. Six pieces cover
+  almost every snippet in these units: names that hold values, lists, for-loops, functions, <code>import</code>, and
+  square brackets that pick out parts of a list or array. This page teaches you to <em>read</em> those pieces, not to
+  write programs. Each section shows a few lines and what they print. Full courses are linked at the end.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+
+  <section id="names">
+    <h2>A name holds a value, and <code>=</code> puts it there</h2>
+    <p>An <dfn>assignment</dfn> such as <code>count = 3</code> stores the value 3 under the name <code>count</code>.
+    The <code>=</code> sign means "store", not "is equal to". So <code>count = count + 1</code> is not a contradiction.
+    It reads the old value, adds 1, and stores the result under the same name.</p>
+    <p>Values come in a few kinds. Whole numbers (<code>3</code>), decimal numbers (<code>2.5</code>), text in quotes
+    (<code>"cube"</code>, called a <dfn>string</dfn>), and <code>True</code> or <code>False</code>. The function
+    <code>print</code> shows values on the screen. Text after <code>#</code> is a <dfn>comment</dfn>: a note for people that
+    Python ignores.</p>
+    <p class="code-cap">names.py</p>
+<pre><code class="py">count = 3
+count = count + 1
+name = "cube"
+print(name, count)
+</code></pre>
+<pre class="out"><code>cube 4</code></pre>
+    <p>Arithmetic uses <code>+</code>, <code>-</code>, <code>*</code> (times), <code>/</code> (divide) and
+    <code>**</code> (power: <code>2 ** 3</code> is 8). The shortcut <code>total += x</code> means
+    <code>total = total + x</code>.</p>
+  </section>
+
+  <section id="lists">
+    <h2>A list keeps values in order, numbered from 0</h2>
+    <p>A <dfn>list</dfn> is several values in square brackets, separated by commas. Each value has a position, called its
+    <dfn>index</dfn>. Python counts positions from 0, so the first value is at index 0. A negative index counts from the
+    end: <code>-1</code> is the last value.</p>
+
+    <figure id="fig-index">
+      <div class="fig-title">Each value in a list has two indexes: one from the front, one from the back</div>
+      <svg width="420" height="150" viewBox="0 0 420 150" role="img" aria-label="A list of four boxes holding 4.0, 7.5, 1.0 and 3.0. Above them, indexes 0 to 3. Below them, indexes -4 to -1. A bracket marks the slice xs[1:3], which holds 7.5 and 1.0.">
+        <text x="20" y="22" class="muted">index</text>
+        <g font-family="var(--font-mono)">
+          <text x="110" y="22" text-anchor="middle">0</text>
+          <text x="190" y="22" text-anchor="middle">1</text>
+          <text x="270" y="22" text-anchor="middle">2</text>
+          <text x="350" y="22" text-anchor="middle">3</text>
+        </g>
+        <g>
+          <rect x="72" y="32" width="76" height="40" rx="4" fill="var(--surface)" stroke="var(--ink-3)"/>
+          <rect x="152" y="32" width="76" height="40" rx="4" class="f-s1" fill-opacity="0.22" stroke="var(--s1)" stroke-width="2"/>
+          <rect x="232" y="32" width="76" height="40" rx="4" class="f-s1" fill-opacity="0.22" stroke="var(--s1)" stroke-width="2"/>
+          <rect x="312" y="32" width="76" height="40" rx="4" fill="var(--surface)" stroke="var(--ink-3)"/>
+        </g>
+        <g font-family="var(--font-mono)" font-size="15">
+          <text x="110" y="57" text-anchor="middle" style="font-size:15px">4.0</text>
+          <text x="190" y="57" text-anchor="middle" style="font-size:15px">7.5</text>
+          <text x="270" y="57" text-anchor="middle" style="font-size:15px">1.0</text>
+          <text x="350" y="57" text-anchor="middle" style="font-size:15px">3.0</text>
+        </g>
+        <text x="20" y="92" class="muted">from end</text>
+        <g font-family="var(--font-mono)">
+          <text x="110" y="92" text-anchor="middle" class="ink2">-4</text>
+          <text x="190" y="92" text-anchor="middle" class="ink2">-3</text>
+          <text x="270" y="92" text-anchor="middle" class="ink2">-2</text>
+          <text x="350" y="92" text-anchor="middle" class="ink2">-1</text>
+        </g>
+        <path d="M152 108 v8 h156 v-8" fill="none" stroke="var(--s1)" stroke-width="2"/>
+        <text x="230" y="136" text-anchor="middle" font-family="var(--font-mono)" style="fill:var(--s1)">xs[1:3] → [7.5, 1.0]</text>
+      </svg>
+      <figcaption><b>Count from 0.</b> The slice <code>xs[1:3]</code> starts at index 1 and stops <em>before</em>
+      index 3, so it holds two values.</figcaption>
+    </figure>
+
+    <p>A <dfn>slice</dfn> such as <code>xs[1:3]</code> picks a run of values. It starts at the first number and stops just
+    before the second. Leave a number out to go to the edge: <code>xs[:2]</code> is the first two values, and
+    <code>xs[2:]</code> is everything from index 2 on. The function <code>len</code> gives a list's length.</p>
+    <p class="code-cap">lists.py</p>
+<pre><code class="py">xs = [4.0, 7.5, 1.0, 3.0]
+print(xs[0], xs[2], xs[-1], len(xs))
+print(xs[1:3])
+</code></pre>
+<pre class="out"><code>4.0 1.0 3.0 4
+[7.5, 1.0]</code></pre>
+  </section>
+
+  <section id="loops">
+    <h2>A for-loop repeats the indented lines once for each item</h2>
+    <p>A <dfn>for-loop</dfn> takes the items of a list one at a time. On each pass, the name after <code>for</code>
+    holds the current item, and Python runs the indented lines below. The <dfn>indentation</dfn>, the spaces at the start
+    of a line, is how Python knows which lines belong to the loop. The first line that is not indented runs once, after
+    the loop ends.</p>
+    <p>Before you read the output, predict the last two lines it prints.</p>
+    <p class="code-cap">loop.py</p>
+<pre><code class="py">total = 0
+for x in [4.0, 7.5, 1.0]:
+    total = total + x
+    print("added", x, "total is now", total)
+print("done")
+</code></pre>
+<pre class="out"><code>added 4.0 total is now 4.0
+added 7.5 total is now 11.5
+added 1.0 total is now 12.5
+done</code></pre>
+    <p><code>range(n)</code> gives the whole numbers 0, 1, …, n−1, so <code>for i in range(3):</code> runs three times
+    with <code>i</code> equal to 0, 1 and 2. An <code>if</code> line works the same way: its indented lines run only when
+    its test is true. Tests use <code>==</code> (equal), <code>!=</code> (not equal), <code>&lt;</code> and
+    <code>&gt;</code>.</p>
+  </section>
+
+  <section id="functions">
+    <h2>A function gives a few lines a name, so you can run them again</h2>
+    <p>A <dfn>function</dfn> is a named block of lines. <code>def</code> starts one. The names in parentheses are its
+    <dfn>arguments</dfn>: the values you hand it. <code>return</code> sends a value back and ends the function. You
+    <dfn>call</dfn> a function by writing its name followed by values in parentheses. In a <code>def</code>
+    line, an argument written as <code>label="value"</code> gets a <dfn>default</dfn>: the value it takes when a call
+    leaves it out. A call may also give its own value by name.</p>
+    <p class="code-cap">functions.py</p>
+<pre><code class="py">def square(x):
+    return x * x
+
+def describe(x, label="value"):
+    if x &gt; 10:
+        return label + " is big"
+    return label + " is small"
+
+print(square(3), square(2.5))
+print(describe(30), describe(4, label="score"))
+</code></pre>
+<pre class="out"><code>9 6.25
+value is big score is small</code></pre>
+    <p><code>describe(30)</code> leaves <code>label</code> out, so it uses the default, <code>"value"</code>.
+    <code>describe(4, label="score")</code> gives its own value, so the second answer starts with "score".</p>
+  </section>
+
+  <section id="imports">
+    <h2><code>import</code> brings in code that someone else wrote</h2>
+    <p>A <dfn>library</dfn> is a collection of functions that you can load into your program. <code>import math</code>
+    loads the standard <code>math</code> library, and <code>math.sqrt</code> is its square-root function. The dot means
+    "the thing inside". <code>import numpy as np</code> loads NumPy, the library for arrays of numbers, under the short
+    name <code>np</code>. Units after this one use NumPy and PyTorch, a similar library for machine learning.</p>
+    <p>A dot after a value works the same way: <code>pts.shape</code> reads a property that the value carries, and
+    <code>pts.sum()</code> calls a function that belongs to it.</p>
+  </section>
+
+  <section id="slicing">
+    <h2>Square brackets with a comma pick rows and columns of a table</h2>
+    <p>A list can hold lists. Then it works like a table: <code>grid[1]</code> is the second row, and
+    <code>grid[1][0]</code> is the first value in that row.</p>
+    <p>NumPy arrays let you write both indexes in one pair of brackets, separated by a comma: rows first, then columns.
+    A bare <code>:</code> means "every one". So <code>pts[:, 0]</code> means "every row, column 0": the first number of
+    every row. You will see this pattern often. <a href="numpy-arrays.html">Arrays in NumPy</a> explains it fully.</p>
+    <p>Before you read the output, predict what <code>pts[:, 0]</code> prints.</p>
+    <p class="code-cap">tables.py</p>
+<pre><code class="py">import math
+import numpy as np
+
+print(math.sqrt(16))
+pts = np.array([[1, 2, 3],
+                [4, 5, 6]])
+print(pts.shape)
+print(pts[1])
+print(pts[:, 0])
+</code></pre>
+<pre class="out"><code>4.0
+(2, 3)
+[4 5 6]
+[1 4]</code></pre>
+    <p>The shape <code>(2, 3)</code> means 2 rows and 3 columns.</p>
+  </section>
+
+  <section id="more">
+    <h2>A few more pieces appear in later snippets</h2>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>You see</th><th>It means</th></tr></thead>
+      <tbody>
+        <tr><td class="nw"><code>(2, 3)</code></td><td>A <dfn>tuple</dfn>: like a list, but it cannot change after it is made.</td></tr>
+        <tr><td class="nw"><code>a, b = 1, 2</code></td><td>Two assignments at once: <code>a</code> gets 1 and <code>b</code> gets 2.</td></tr>
+        <tr><td class="nw"><code>None</code></td><td>A value that means "nothing yet".</td></tr>
+        <tr><td class="nw"><code>{"axis": 0}</code></td><td>A <dfn>dictionary</dfn>: values looked up by a name. <code>d["axis"]</code> gives 0.</td></tr>
+        <tr><td class="nw"><code>[x * 2 for x in xs]</code></td><td>A new list built by a loop in one line: here, every value of <code>xs</code> doubled.</td></tr>
+        <tr><td class="nw"><code>1_000_000</code></td><td>One million. Python ignores the underscores; they only help you read.</td></tr>
+        <tr><td class="nw"><code>with ...:</code></td><td>Run the indented lines inside a setting, and undo the setting afterward.</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-title">This page leaves out most of Python</span>
+      <p>It skips classes, errors and how to handle them, files, and many other parts of the language. It also skips
+      details such as the difference between whole numbers and decimals in division. That is enough for reading short
+      snippets. To write your own programs, take one of the courses below.</p>
+    </div>
+  </section>
+
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>After <code>xs = [10, 20, 30, 40, 50]</code>, what are <code>xs[1]</code>, <code>xs[-2]</code> and
+      <code>xs[1:4]</code>?</p>
+      <details><summary>Answer</summary><p><code>20</code>, <code>40</code> and <code>[20, 30, 40]</code>. Indexes count
+      from 0, <code>-2</code> is the second from the end, and the slice stops before index 4.</p></details>
+    </li>
+    <li>
+      <p>What does this print?</p>
+<pre><code class="py">n = 0
+for x in [3, 1, 4]:
+    n = n + 1
+print(n)
+</code></pre>
+      <details><summary>Answer</summary><p><code>3</code>. The loop runs once per item and adds 1 each time. The
+      <code>print</code> line is not indented, so it runs once, after the loop.</p></details>
+    </li>
+    <li>
+      <p>An array <code>pts</code> has shape <code>(5, 3)</code>: five points, each with x, y and z. Which expression
+      gives every point's z value: <code>pts[2]</code>, <code>pts[:, 2]</code> or <code>pts[2, :]</code>?</p>
+      <details><summary>Answer</summary><p><code>pts[:, 2]</code>: every row, column 2. The other two both give row 2,
+      which is the third point.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for when you want to write Python, not only read it.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://docs.python.org/3/tutorial/introduction.html#lists">An Informal Introduction to Python: Lists</a>
+        <span class="fl-src">The Python Tutorial, python.org</span>
+        <span class="fl-format">Tutorial</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">The official tutorial. Its next chapter, <a href="https://docs.python.org/3/tutorial/controlflow.html#for-statements">More Control Flow Tools</a>, covers loops and functions.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://www.py4e.com/">Python for Everybody</a>
+        <span class="fl-src">Charles Severance</span>
+        <span class="fl-format">Course</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">A free course with videos, a book and exercises, written for people who have never programmed.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://lectures.scientific-python.org/intro/language/python_language.html">The Python language</a>
+        <span class="fl-src">Scientific Python Lectures</span>
+        <span class="fl-format">Course</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">A fast tour of Python aimed at scientists, followed by chapters on NumPy.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="numpy-arrays.html">Arrays in NumPy</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">9 min</span></li>
+    <li><a href="data-loaders.html">Data loaders: preparing examples in parallel</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="adamw">
+<meta name="unit-level" content="u1">
+<title>AdamW: steps that adapt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  svg .box { fill: var(--surface); stroke: var(--ink-3); stroke-width: 1.3; }
+  svg .box.grad { stroke: var(--s1); stroke-width: 2; }
+  svg .box.decay { stroke: var(--s3); stroke-width: 2; }
+  svg .box.out { stroke: var(--ink); stroke-width: 2; }
+  svg .arr { stroke: var(--ink-3); stroke-width: 1.6; fill: none; }
+  svg .lbl { font-size: 16px; }
+  svg .sm { font-size: 14.5px; }
+  svg .gl { stroke: var(--grid); stroke-width: 1; }
+  svg .tick { font-size: 15px; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>AdamW: steps that adapt</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="gradient-descent.html">Gradient descent</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>AdamW is the most common way to take gradient-descent steps in modern networks. For each weight, it keeps a
+  running average of recent gradients and a running average of their squares. It steps in the direction of the
+  average gradient, divided by the typical gradient size. So every weight moves at about the same rate, whether its
+  gradients are huge or tiny. Separately, AdamW shrinks every weight a little toward zero at each step. That shrinking
+  is called weight decay, and AdamW keeps it out of the averages.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="problem">
+    <h2>One learning rate cannot suit every weight</h2>
+    <p>Plain <a href="gradient-descent.html">gradient descent</a> moves each weight by the learning rate times its
+    gradient. In a network, gradients of different weights can differ by factors of thousands. Suppose one weight's
+    gradient is 100 and another's is 0.01. With a learning rate of 0.001, the first moves by 0.1 and the second by
+    0.00001. A learning rate small enough for the first weight leaves the second one almost frozen.</p>
+    <p>The same problem appears in a long, narrow valley of the loss. The steep direction needs small steps. The
+    shallow direction needs large ones.</p>
+
+    <p><b>Try it.</b> Both paths start at the same point on a long, narrow valley, whose lowest point is the cross.
+    Predict first: which path reaches the cross first? Then move the slider to watch them step.</p>
+    <figure id="fig-paths">
+      <div class="fig-title">Plain gradient descent and Adam in a long, narrow valley</div>
+      <div class="controls">
+        <label>steps taken <input type="range" id="aw-n" min="0" max="80" step="1" value="10"> <output id="aw-n-out">10</output></label>
+      </div>
+      <svg id="aw-svg" width="440" height="200" viewBox="0 0 440 200" role="img"
+           aria-label="Oval contour lines of a long narrow valley. An orange path zigzags across the narrow direction and creeps along the long one; a blue path heads more directly toward the centre."></svg>
+      <div class="legend"><span><i class="sw" style="background:var(--s2)"></i>plain gradient descent, &eta; = 0.18</span><span><i class="sw" style="background:var(--s1)"></i>Adam, &eta; = 0.2</span></div>
+      <p class="small" id="aw-read" aria-live="polite"></p>
+      <figcaption><b>Plain gradient descent zigzags across the steep direction and creeps along the shallow one.</b>
+      Its learning rate cannot be raised much: above 0.2 it diverges in the steep direction. Adam sizes each direction's
+      step separately. The loss is <var>L</var> = 0.05<var>u</var><sup>2</sup> + 5<var>v</var><sup>2</sup>, with
+      <var>u</var> across the page and <var>v</var> up the page.</figcaption>
+    </figure>
+    <details><summary>Answer</summary><p>Adam. After 60 steps it is within about 0.04 of the cross, with a loss near
+    0.006. Plain gradient descent has settled the steep direction but still has a gap of about 2.7 in the shallow
+    direction, with a loss near 0.36.</p></details>
+  </section>
+
+  <section id="adam">
+    <h2>Adam divides the average gradient by its typical size</h2>
+    <p>Adam keeps two numbers for every weight, updated at every step from the new gradient <var>g</var>:</p>
+    <ul>
+      <li><var>m</var>, a running average of the gradient: <var>m</var> &larr; 0.9<var>m</var> + 0.1<var>g</var>;</li>
+      <li><var>v</var>, a running average of the squared gradient: <var>v</var> &larr; 0.999<var>v</var> + 0.001<var>g</var><sup>2</sup>.</li>
+    </ul>
+    <p>A <dfn>running average</dfn> of this kind keeps most of its old value and mixes in a little of the new one. So
+    it remembers recent values and slowly forgets old ones. The numbers 0.9 and 0.999 are Adam's usual settings, called
+    <var>&beta;</var><sub>1</sub> and <var>&beta;</var><sub>2</sub>.</p>
+    <p>Both averages start at 0, which makes them too small for the first steps. Adam corrects this by dividing by
+    1 &minus; 0.9<sup><var>t</var></sup> and 1 &minus; 0.999<sup><var>t</var></sup> at step <var>t</var>. The
+    corrected values are written <var>m&#770;</var> and <var>v&#770;</var>. The step is then:</p>
+    <p class="math">step = <var>&eta;</var> &times; <var>m&#770;</var> / (&radic;<var>v&#770;</var> + <var>&epsilon;</var>)</p>
+    <p>&radic;<var>v&#770;</var> is the typical size of this weight's gradient. Dividing by it cancels the gradient's
+    scale. <var>&epsilon;</var> is a tiny number, usually 10<sup>&minus;8</sup>, that prevents dividing by zero.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: the first step for a huge and a tiny gradient</span>
+      <p>Take <var>&eta;</var> = 0.001. One weight has gradient 100; another has gradient 0.01.</p>
+      <ol>
+        <li>Gradient 100: <var>m</var> = 0.1 &times; 100 = 10 and <var>v</var> = 0.001 &times; 100<sup>2</sup> = 10.
+        Corrected: <var>m&#770;</var> = 10 / 0.1 = 100 and <var>v&#770;</var> = 10 / 0.001 = 10,000, so
+        &radic;<var>v&#770;</var> = 100. Step = 0.001 &times; 100 / 100 = <b>0.001</b>.</li>
+        <li>Gradient 0.01: <var>m&#770;</var> = 0.01 and &radic;<var>v&#770;</var> = 0.01. Step = 0.001 &times; 0.01 / 0.01 = <b>0.001</b>.</li>
+      </ol>
+      <p>Both weights move by 0.001, although their gradients differ by a factor of 10,000. Plain gradient descent would
+      have moved them by 0.1 and 0.00001.</p>
+    </div>
+
+    <p>The averaging also damps noise. If a weight's gradient keeps flipping sign, <var>m</var> stays near zero and
+    the steps stay small. If the gradient keeps the same sign, the steps stay at about <var>&eta;</var>:</p>
+    <p class="code-cap">adam_by_hand.py</p>
+<pre><code class="py">import numpy as np
+
+def adam_steps(grads, lr=0.001, b1=0.9, b2=0.999, eps=1e-8):
+    m = v = 0.0
+    for t, g in enumerate(grads, start=1):
+        m = b1 * m + (1 - b1) * g          # average gradient
+        v = b2 * v + (1 - b2) * g * g      # average squared gradient
+        m_hat = m / (1 - b1 ** t)          # correct the start-at-zero bias
+        v_hat = v / (1 - b2 ** t)
+        print(f"g = {g:6.2f}   step = {lr * m_hat / (np.sqrt(v_hat) + eps):.6f}")
+
+adam_steps([5.0, 5.0, 5.0, 5.0])      # steady gradient
+print()
+adam_steps([5.0, -5.0, 5.0, -5.0])    # gradient that keeps flipping
+</code></pre>
+<pre class="out"><code>g =   5.00   step = 0.001000
+g =   5.00   step = 0.001000
+g =   5.00   step = 0.001000
+g =   5.00   step = 0.001000
+
+g =   5.00   step = 0.001000
+g =  -5.00   step = -0.000053
+g =   5.00   step = 0.000336
+g =  -5.00   step = -0.000053</code></pre>
+    <p>The printed step is the amount subtracted from the weight. PyTorch's <code>Adam</code> gives the same first step
+    for the worked example:</p>
+    <p class="code-cap">adam_torch.py</p>
+<pre><code class="py">import torch
+
+# Two weights whose gradients differ in size by a factor of 10,000.
+w = torch.tensor([1.0, 1.0], requires_grad=True)
+opt = torch.optim.Adam([w], lr=0.001)
+
+w.grad = torch.tensor([100.0, 0.01])
+opt.step()
+print(1.0 - w.detach())   # how far each weight moved
+</code></pre>
+<pre class="out"><code>tensor([0.0010, 0.0010])</code></pre>
+  </section>
+
+  <section id="weight-decay">
+    <h2>Weight decay shrinks every weight a little at every step</h2>
+    <p><dfn>Weight decay</dfn> multiplies every weight by a number just below 1 at each step. A weight that the loss
+    does not need drifts toward zero. This keeps weights small, which tends to help a model work on new examples, not
+    only on the ones it trained on. The strength is a number <var>&lambda;</var> (lambda), often between 0.01 and
+    0.1.</p>
+    <p>AdamW applies the decay <em>beside</em> the Adam step, not through it. The W in the name stands for this
+    "decoupled" weight decay. One AdamW step is:</p>
+    <p class="math"><var>w</var><sub>new</sub> = <var>w</var> &times; (1 &minus; <var>&eta;</var><var>&lambda;</var>) &minus; <var>&eta;</var> &times; <var>m&#770;</var> / (&radic;<var>v&#770;</var> + <var>&epsilon;</var>)</p>
+
+    <figure id="fig-decoupled">
+      <div class="fig-title">AdamW keeps the shrinking out of the gradient averages</div>
+      <svg width="440" height="210" viewBox="0 0 440 210" role="img"
+           aria-label="Two paths into a final box. Top path: gradient, then running averages m and v, then the Adam step. Bottom path: current weight, then shrink by one minus eta lambda. Both meet at the new weight.">
+        <defs><marker id="aw-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--ink-3)"/></marker></defs>
+        <rect x="8" y="22" width="110" height="46" rx="6" class="box grad"/>
+        <text x="63" y="50" text-anchor="middle" class="lbl">gradient <tspan font-style="italic">g</tspan></text>
+        <rect x="150" y="14" width="124" height="62" rx="6" class="box grad"/>
+        <text x="212" y="40" text-anchor="middle" class="lbl">averages</text>
+        <text x="212" y="60" text-anchor="middle" class="sm ink2">m and v</text>
+        <rect x="306" y="14" width="126" height="62" rx="6" class="box grad"/>
+        <text x="369" y="40" text-anchor="middle" class="lbl">Adam step</text>
+        <text x="369" y="60" text-anchor="middle" class="sm ink2">&#951;&#183;m&#770; / &#8730;v&#770;</text>
+        <rect x="8" y="128" width="110" height="46" rx="6" class="box"/>
+        <text x="63" y="156" text-anchor="middle" class="lbl">weight <tspan font-style="italic">w</tspan></text>
+        <rect x="150" y="120" width="124" height="62" rx="6" class="box decay"/>
+        <text x="212" y="146" text-anchor="middle" class="lbl">shrink</text>
+        <text x="212" y="166" text-anchor="middle" class="sm ink2">w &#183; (1 &#8722; &#951;&#955;)</text>
+        <rect x="306" y="120" width="126" height="62" rx="6" class="box out"/>
+        <text x="369" y="146" text-anchor="middle" class="lbl">new weight</text>
+        <text x="369" y="166" text-anchor="middle" class="sm ink2">shrunk &#8722; step</text>
+        <path d="M118 45H148" class="arr" marker-end="url(#aw-ah)"/>
+        <path d="M274 45H304" class="arr" marker-end="url(#aw-ah)"/>
+        <path d="M118 151H148" class="arr" marker-end="url(#aw-ah)"/>
+        <path d="M274 151H304" class="arr" marker-end="url(#aw-ah)"/>
+        <path d="M369 76V118" class="arr" marker-end="url(#aw-ah)"/>
+        <text x="8" y="202" class="sm muted">blue: from the loss&#8195;green: weight decay</text>
+      </svg>
+      <figcaption><b>The weight never enters the averages <var>m</var> and <var>v</var>.</b> So every weight shrinks by
+      the same fraction, <var>&eta;</var><var>&lambda;</var>, whatever its gradients look like.</figcaption>
+    </figure>
+
+    <p>The older way added <var>&lambda;</var><var>w</var> to the gradient instead, before the averages. For plain
+    gradient descent the two ways are the same. For Adam they are not. The added term would also be divided by
+    &radic;<var>v&#770;</var>, so weights with large gradients would hardly shrink, and weights with small gradients
+    would shrink a lot. Loshchilov and Hutter proposed decoupling the decay in a paper published in 2019. In their tests it gave better
+    results than Adam with the older decay, and AdamW has since become the usual choice.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: decay alone</span>
+      <p>Take <var>&eta;</var> = 0.01, <var>&lambda;</var> = 0.1 and a weight <var>w</var> = 2 whose gradient is
+      zero. The Adam step is zero, so only the decay acts:
+      <var>w</var><sub>new</sub> = 2 &times; (1 &minus; 0.01 &times; 0.1) = 2 &times; 0.999 = <b>1.998</b>.</p>
+      <p><b>Your turn.</b> With <var>&eta;</var> = 0.001 and <var>&lambda;</var> = 0.01, a weight with zero gradient is
+      multiplied by what each step? About how many steps halve it?</p>
+      <details><summary>Answer</summary><p>By 1 &minus; 0.00001 = 0.99999. Halving takes about ln 2 / 0.00001 &asymp;
+      69,000 steps. Weight decay is gentle; it matters over a long run.</p></details>
+    </div>
+    <p class="code-cap">adamw_decay.py</p>
+<pre><code class="py">import torch
+
+w = torch.tensor([2.0], requires_grad=True)
+opt = torch.optim.AdamW([w], lr=0.01, weight_decay=0.1)
+
+w.grad = torch.zeros(1)   # no pull from the loss at all
+opt.step()
+print(w.item())           # 2 * (1 - 0.01 * 0.1) = 1.998
+</code></pre>
+<pre class="out"><code>1.9980000257492065</code></pre>
+    <p>The printed value is 1.998 up to the rounding of 32-bit numbers. PyTorch's AdamW defaults are
+    <code>lr=0.001</code>, <code>betas=(0.9, 0.999)</code>, <code>eps=1e-08</code> and
+    <code>weight_decay=0.01</code>.</p>
+
+    <div class="callout warn">
+      <span class="callout-title">Details this page skips</span>
+      <p>"About <var>&eta;</var> per step" holds only while a weight's gradients are steady; noisy gradients give smaller
+      steps. Many programs turn weight decay off for biases and for the weights of normalization layers, by giving
+      those parameters their own settings. PyTorch multiplies <var>&lambda;</var> by the current learning rate, so a
+      <a href="learning-rate-schedule.html">learning-rate schedule</a> that lowers <var>&eta;</var> also weakens the
+      decay. Other libraries may scale the decay differently, so check before comparing settings.</p>
+    </div>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>With <var>&eta;</var> = 0.01, a weight's gradient is 0.5 on Adam's first step. How far does Adam move it? How
+      far would plain gradient descent move it?</p>
+      <details><summary>Answer</summary><p>Adam: about 0.01, because the first step is <var>&eta;</var> times
+      <var>g</var> / |<var>g</var>|. Plain gradient descent: 0.01 &times; 0.5 = 0.005.</p></details>
+    </li>
+    <li>
+      <p>A weight's gradient alternates +3, &minus;3, +3, &minus;3 for many steps. Does Adam move it a lot or a little?
+      Why?</p>
+      <details><summary>Answer</summary><p>A little. The running average <var>m</var> of the gradient stays near zero,
+      while &radic;<var>v&#770;</var> stays near 3, so each step is small. The weight is not being pushed consistently
+      one way.</p></details>
+    </li>
+    <li>
+      <p>Using AdamW with <var>&eta;</var> = 0.002 and <var>&lambda;</var> = 0.05, a weight is 4 and its Adam step this
+      time is +0.002 (subtracted). What is the new weight?</p>
+      <details><summary>Answer</summary><p>Shrink: 4 &times; (1 &minus; 0.002 &times; 0.05) = 4 &times; 0.9999 = 3.9996.
+      Then subtract the step: 3.9996 &minus; 0.002 = 3.9976.</p></details>
+    </li>
+    <li>
+      <p>Why would adding <var>&lambda;</var><var>w</var> to the gradient decay unevenly under Adam?</p>
+      <details><summary>Answer</summary><p>Adam divides everything in the gradient by &radic;<var>v&#770;</var>. A weight
+      with large gradients has a large &radic;<var>v&#770;</var>, so its decay term is divided by a large number and
+      nearly vanishes. AdamW avoids this by applying the decay outside the division.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://www.ruder.io/optimizing-gradient-descent/#adam">An overview of gradient descent optimization algorithms: Adam</a>
+        <span class="fl-src">Sebastian Ruder</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">Places Adam among its relatives (momentum, RMSprop) with their formulas side by side.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://d2l.ai/chapter_optimization/adam.html#the-algorithm">Dive into Deep Learning, 12.10.1 The Algorithm</a>
+        <span class="fl-src">Zhang, Lipton, Li and Smola</span>
+        <span class="fl-format">Book</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Adam's update derived step by step, with the bias correction explained and code to run.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://arxiv.org/abs/1711.05101">Decoupled Weight Decay Regularization</a>
+        <span class="fl-src">Loshchilov and Hutter, ICLR 2019</span>
+        <span class="fl-format">Paper</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">The paper that introduced AdamW; its first two sections explain why the two kinds of decay
+      differ.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://docs.pytorch.org/docs/stable/generated/torch.optim.AdamW.html">torch.optim.AdamW</a>
+        <span class="fl-src">PyTorch documentation</span>
+        <span class="fl-format">Reference</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">The exact update PyTorch runs, written as an algorithm, and its default settings.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="training-loop.html">The training loop</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (tag, attrs, parent, text) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text !== undefined) e.textContent = text;
+    parent.appendChild(e);
+    return e;
+  };
+  const svg = document.getElementById('aw-svg'), slider = document.getElementById('aw-n');
+  const nOut = document.getElementById('aw-n-out'), read = document.getElementById('aw-read');
+  if (!svg || !slider) return;
+  const A = [0.1, 10], N = 80, START = [-8, 1];          // L = 0.5*(0.1 u^2 + 10 v^2)
+  const loss = p => 0.5 * (A[0] * p[0] * p[0] + A[1] * p[1] * p[1]);
+  const gd = [START.slice()], ad = [START.slice()];
+  { let p = START.slice(); for (let i = 0; i < N; i++) { p = p.map((x, k) => x - 0.18 * A[k] * x); gd.push(p); } }
+  { let p = START.slice(), m = [0, 0], v = [0, 0];
+    for (let t = 1; t <= N; t++) {
+      p = p.map((x, k) => {
+        const g = A[k] * x;
+        m[k] = 0.9 * m[k] + 0.1 * g; v[k] = 0.999 * v[k] + 0.001 * g * g;
+        return x - 0.2 * (m[k] / (1 - 0.9 ** t)) / (Math.sqrt(v[k] / (1 - 0.999 ** t)) + 1e-8);
+      });
+      ad.push(p);
+    } }
+  const UL = -9, UH = 2, VL = -1.4, VH = 1.4, L = 10, R = 430, T = 8, B = 192;
+  const px = u => L + (u - UL) / (UH - UL) * (R - L), py = v => B - (v - VL) / (VH - VL) * (B - T);
+  const base = el('g', {}, svg), layer = el('g', {}, svg);
+  for (const c of [0.02, 0.1, 0.4, 1, 2, 3.2]) {
+    el('ellipse', { cx: px(0), cy: py(0), rx: Math.sqrt(2 * c / A[0]) * (R - L) / (UH - UL), ry: Math.sqrt(2 * c / A[1]) * (B - T) / (VH - VL),
+      fill: 'none', stroke: 'var(--rule)', 'stroke-width': 1.2 }, base);
+  }
+  el('path', { d: `M${px(0) - 7} ${py(0)}h14M${px(0)} ${py(0) - 7}v14`, stroke: 'var(--ink)', 'stroke-width': 2 }, base);
+  el('circle', { cx: px(START[0]), cy: py(START[1]), r: 5, fill: 'var(--ink)' }, base);
+  el('text', { x: px(START[0]) + 8, y: py(START[1]) - 8, class: 'tick ink2' }, base, 'start');
+  const poly = (pts, cls) => el('polyline', { points: pts.map(p => px(p[0]).toFixed(1) + ',' + py(p[1]).toFixed(1)).join(' '),
+    fill: 'none', class: cls, 'stroke-width': 2, 'stroke-linejoin': 'round' }, layer);
+  function update() {
+    const n = Number(slider.value);
+    while (layer.firstChild) layer.removeChild(layer.firstChild);
+    poly(gd.slice(0, n + 1), 'st-s2');
+    poly(ad.slice(0, n + 1), 'st-s1');
+    el('circle', { cx: px(gd[n][0]), cy: py(gd[n][1]), r: 5, class: 'f-s2' }, layer);
+    el('circle', { cx: px(ad[n][0]), cy: py(ad[n][1]), r: 5, class: 'f-s1' }, layer);
+    nOut.textContent = n;
+    read.textContent = 'After ' + n + ' steps, loss: plain gradient descent ' + loss(gd[n]).toFixed(3) + ', Adam ' + loss(ad[n]).toFixed(3) + '.';
+  }
+  slider.addEventListener('input', update);
+  update();
+})();
+</script>
+</body>
+</html>

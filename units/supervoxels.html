@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="supervoxels">
+<meta name="unit-level" content="u1">
+<title>Supervoxels: small pieces to merge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  .sv-num { font-size: 15px; font-weight: 700; text-anchor: middle; dominant-baseline: central; fill: #fff; }
+  #sv-table td, #sv-table th { text-align: center; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Supervoxels: small pieces to merge</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="segmentation.html">Segmentation: a label for every voxel</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>Many segmentation programs work in two steps. First they cut the image into many small pieces, called
+  supervoxels, each very likely to lie inside one object. Then they join pieces that seem to belong together. The
+  result is kept as a table that says which object each supervoxel belongs to. Joining two pieces, or undoing a
+  join, changes only that table. The voxels inside each supervoxel never change.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="pieces">
+    <h2>Cutting too finely is safer than cutting too coarsely</h2>
+    <p>A program that makes a <a href="segmentation.html">segmentation</a> must decide, at every membrane between cells,
+    whether the membrane is real. Some membranes are faint, so it will sometimes be wrong. There are two ways to be wrong.</p>
+    <ul>
+      <li>It can leave one cell in several pieces. Fixing that means joining pieces: an easy change.</li>
+      <li>It can put parts of two cells in one piece. Fixing that means deciding, voxel by voxel, where the cut
+        should go: a hard change.</li>
+    </ul>
+    <p>So the first step cuts generously. It produces a <dfn>supervoxel</dfn>: a small group of neighboring voxels
+    that the program is confident lies inside a single object. An image cut this way is
+    <dfn>over-segmented</dfn>: it has many more pieces than objects, but almost no piece spans two objects.</p>
+  </section>
+
+  <section id="joining">
+    <h2>A second step joins the pieces into objects</h2>
+    <p>The second step, called <dfn>agglomeration</dfn>, joins supervoxels. For each pair of touching supervoxels,
+    the program computes a <dfn>score</dfn> from 0 to 1 for how likely they belong to the same object. It joins the
+    pair with the highest score first and continues down the list. It stops when the next score falls below a
+    chosen threshold, here 0.5.</p>
+
+    <p>The figure shows two thin, neuron-like objects cut into six supervoxels. They touch at one spot. Before you
+    press anything, predict: how many objects will remain when the program stops?</p>
+
+    <figure id="fig-join">
+      <div class="fig-title">Six supervoxels joined in order of score</div>
+      <div class="scroll-x">
+      <svg id="sv-svg" width="495" height="255" viewBox="0 0 330 170" role="img"
+        aria-label="Two tube-shaped objects. The top one is a straight tube in pieces 1, 2 and 3. The bottom one is in pieces 4, 5 and 6, with piece 5 bent up to touch piece 2. Pieces in the same object share a color."></svg>
+      </div>
+      <div class="controls">
+        <button class="btn" type="button" id="sv-next">Join the next pair</button>
+        <button class="btn" type="button" id="sv-reset">Start again</button>
+      </div>
+      <div class="table-wrap">
+        <table id="sv-table">
+          <thead><tr><th>Supervoxel</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr></thead>
+          <tbody><tr><th>Object</th><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td></tr></tbody>
+        </table>
+      </div>
+      <div class="readout-box" id="sv-read" aria-live="polite"></div>
+      <figcaption><b>Goal:</b> press "Join the next pair" until the program stops. Pieces with the same color belong to
+      the same object. An object takes the number of its lowest supervoxel. The two objects touch where 2 meets 5.
+      That pair scores only 0.35, so the program leaves it apart.</figcaption>
+    </figure>
+
+    <p>Two objects remain: {1, 2, 3} and {4, 5, 6}. The touching spot was a trap. Pieces 2 and 5 touch, but the
+    membrane between them is clear, so their score is low.</p>
+    <p>You can draw the same process as a <a href="graphs.html">graph</a>: each supervoxel is a dot, and each join is
+    a line between two dots. The objects are then the <a href="connected-components.html">connected pieces</a> of
+    that graph.</p>
+  </section>
+
+  <section id="table">
+    <h2>A lookup table turns supervoxels into objects</h2>
+    <p>The image of supervoxel numbers is computed once and stored. The joins live in a small separate table that
+    maps each supervoxel to its object. To get the segmentation, replace every supervoxel number by its entry in
+    the table.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: build the table, then undo one join</span>
+      <ol>
+        <li>Start with six supervoxels, each its own object: 1→1, 2→2, 3→3, 4→4, 5→5, 6→6.</li>
+        <li>Join (1, 2), (2, 3), (4, 5) and (5, 6). The objects are {1, 2, 3} and {4, 5, 6}.</li>
+        <li>Name each object after its lowest supervoxel. The table becomes 1→1, 2→1, 3→1, 4→4, 5→4, 6→4.</li>
+        <li>Now undo the join (2, 3). Supervoxel 3 becomes an object of its own, so only one entry changes: 3→3.</li>
+      </ol>
+      <p>Undoing the join changed one number in the table and no voxels at all.</p>
+    </div>
+
+    <p>In NumPy the table is an array, and indexing with the supervoxel image applies it to every voxel at once.</p>
+    <p class="code-cap">supervoxels.py</p>
+<pre><code class="py">import numpy as np
+
+sv = np.array([               # supervoxel ids in a tiny 2 x 6 slice
+    [1, 1, 2, 2, 3, 3],
+    [4, 4, 5, 5, 6, 6],
+])
+lut = np.array([0, 1, 1, 1, 4, 4, 4])   # lut[s] is the object of supervoxel s
+print(lut[sv])
+
+lut[3] = 3                    # undo one join: supervoxel 3 becomes its own object
+print(lut[sv])
+</code></pre>
+<pre class="out"><code>[[1 1 1 1 1 1]
+ [4 4 4 4 4 4]]
+[[1 1 1 1 3 3]
+ [4 4 4 4 4 4]]</code></pre>
+
+    <div class="callout warn">
+      <span class="callout-title">This is a simplification</span>
+      <p>Real programs compute each score from the membranes the network predicts along the whole surface two
+      supervoxels share. After each join they recompute the scores between the new, larger object and its
+      neighbors, which is why the order of joins matters. They often join in several rounds at growing scales. Supervoxels are also not always
+      right: now and then one spans two objects, and then someone must edit its voxels. In general computer vision,
+      "supervoxel" can also mean any small region of similar voxels, the 3D form of a 2D <em>superpixel</em>.</p>
+    </div>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>Why does the first step aim for too many pieces rather than too few?</p>
+      <details><summary>Answer</summary><p>Extra pieces are fixed by joining, which changes only the table. A piece that
+      covers two objects must be cut, which means deciding where the boundary runs through its voxels. Joining is
+      much cheaper and easier to undo.</p></details>
+    </li>
+    <li>
+      <p>Six supervoxels are joined by (1, 4), (4, 6) and (2, 3). Write the table, naming each object after its lowest
+      supervoxel.</p>
+      <details><summary>Answer</summary><p>The objects are {1, 4, 6}, {2, 3} and {5}. The table is 1→1, 2→2, 3→2, 4→1,
+      5→5, 6→1.</p></details>
+    </li>
+    <li>
+      <p>An object made of 1,000 supervoxels and 50 million voxels is split back into two parts of 400 and 600
+      supervoxels. What is the smallest number of table entries that must change? How many voxels of the supervoxel
+      image change?</p>
+      <details><summary>Answer</summary><p>400 table entries. One part can keep the old object number, so only the
+      other part's supervoxels need a new entry; giving the new number to the smaller part changes 400. No voxels of
+      the supervoxel image change.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background. This unit covers what you need here.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://scikit-image.org/docs/stable/auto_examples/segmentation/plot_segmentations.html#slic-k-means-based-image-segmentation">Comparison of segmentation and superpixel algorithms: SLIC</a>
+        <span class="fl-src">scikit-image gallery</span>
+        <span class="fl-format">Tutorial</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Shows four ways to cut a 2D photo into many small pieces, so you can see over-segmentation on a real image.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="segmentation-errors.html">Two kinds of segmentation error</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="proofreading.html">Proofreading a segmentation</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  'use strict';
+  const svg = document.getElementById('sv-svg');
+  const next = document.getElementById('sv-next'), reset = document.getElementById('sv-reset');
+  const read = document.getElementById('sv-read');
+  const cells = document.querySelectorAll('#sv-table tbody td');
+  if (!svg || !next) return;
+  const NS = 'http://www.w3.org/2000/svg';
+  // Six supervoxels drawn as thick strokes. Top object: 1, 2, 3. Bottom object: 4, 5, 6; 5 bends up to touch 2.
+  const PIECES = {
+    1: { d: 'M30 50 L110 50', at: [70, 50] },
+    2: { d: 'M110 50 L200 50', at: [155, 50] },
+    3: { d: 'M200 50 L300 50', at: [250, 50] },
+    4: { d: 'M30 130 L110 130', at: [70, 130] },
+    5: { d: 'M110 130 L155 72 L200 130', at: [127, 107] },
+    6: { d: 'M200 130 L300 130', at: [250, 130] },
+  };
+  const CUTS = ['M110 38 L110 62', 'M200 38 L200 62', 'M110 118 L110 142', 'M200 118 L200 142'];
+  const COLOR = { 1: 'var(--s1)', 2: 'var(--s2)', 3: 'var(--s3)', 4: 'var(--s4)', 5: 'var(--pa)', 6: 'var(--pb)' };
+  const ORDER = [[1, 2, 0.97], [5, 6, 0.94], [2, 3, 0.91], [4, 5, 0.88], [2, 5, 0.35]];
+  const THRESH = 0.5;
+  const el = (tag, attrs, parent, text) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text !== undefined) e.textContent = text;
+    parent.appendChild(e); return e;
+  };
+  const paths = {};
+  for (const s in PIECES) {
+    paths[s] = el('path', { d: PIECES[s].d, fill: 'none', 'stroke-width': 22, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, svg);
+  }
+  CUTS.forEach(d => el('path', { d, stroke: 'var(--surface)', 'stroke-width': 2.5 }, svg));
+  for (const s in PIECES) el('text', { x: PIECES[s].at[0], y: PIECES[s].at[1], class: 'sv-num' }, svg, s);
+  el('text', { x: 178, y: 92, class: 'muted' }, svg, '← 2 and 5 touch');
+
+  let lut, step;
+  const find = s => lut[s];
+  function render() {
+    for (const s in PIECES) paths[s].setAttribute('stroke', COLOR[lut[s]]);
+    cells.forEach((td, i) => { td.textContent = lut[i + 1]; });
+    const objs = new Set(Object.values(lut)).size;
+    if (step === 0) {
+      read.textContent = 'Six supervoxels, six objects. Highest score first: (1, 2) at ' + ORDER[0][2] + '.';
+    } else if (step < ORDER.length && ORDER[step][2] >= THRESH) {
+      const [a, b] = ORDER[step - 1];
+      read.textContent = 'Joined ' + a + ' and ' + b + '. ' + objs + ' objects now. Next pair: (' + ORDER[step][0] + ', ' + ORDER[step][1] + ') at ' + ORDER[step][2] + '.';
+    } else {
+      read.textContent = 'Stopped: the next pair, (2, 5), scores 0.35, below the threshold of 0.5. ' + objs + ' objects remain.';
+    }
+    next.disabled = !(step < ORDER.length && ORDER[step][2] >= THRESH);
+  }
+  function start() { lut = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6 }; step = 0; render(); }
+  next.addEventListener('click', () => {
+    const [a, b] = ORDER[step];
+    const ka = find(a), kb = find(b), keep = Math.min(ka, kb), drop = Math.max(ka, kb);
+    for (const s in lut) if (lut[s] === drop) lut[s] = keep;
+    step += 1; render();
+  });
+  reset.addEventListener('click', start);
+  start();
+})();
+</script>
+</body>
+</html>

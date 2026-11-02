@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="top-k-accuracy">
+<meta name="unit-level" content="hs">
+<title>Top-K accuracy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Top-K accuracy</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-hs">High school</span> <span class="minutes">5 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Before you start</h2>
+  <p>You need nothing else first. This unit starts from scratch.</p>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>Some systems do not give one answer. They give a <dfn>ranked list</dfn> of candidates, best first. For each
+  case, find the right answer's position in the list, its <dfn>rank</dfn>. <dfn>Top-K accuracy</dfn> is the share of
+  cases where that rank is K or better, that is, where the right answer appears among the first K entries. Top-1
+  accuracy is ordinary accuracy. A larger K is easier to meet, so top-K accuracy can only stay the same or rise as K
+  grows.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="shortlist">
+    <h2>A case counts as a hit when the right answer is in the first K</h2>
+    <p>Picture an app that names a bird from a photo. It shows its six best guesses, most likely first. If the right
+    bird is first, the app was right outright. If the right bird is third, a birdwatcher who reads the top three
+    still finds it. Top-K accuracy measures how often a reader who checks the first K guesses finds the right
+    one.</p>
+    <p>To compute it, take a set of test cases where you know the right answer. For each case:</p>
+    <ol>
+      <li>Find the rank of the right answer in the list: 1 if it is first, 2 if it is second, and so on.</li>
+      <li>Call the case a <dfn>hit</dfn> if the rank is K or less.</li>
+    </ol>
+    <p>Top-K accuracy is the number of hits divided by the number of cases.</p>
+
+    <p><b>Predict first.</b> In the five cases below, the right answer has ranks 1, 3, 2, 1 and 6. Guess the top-1
+    and top-3 accuracy before you read on.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: five photos, six guesses each</span>
+      <p>The ranks of the right bird are 1, 3, 2, 1 and 6.</p>
+      <ul>
+        <li>Top-1: ranks 1 and 1 are hits. 2 of 5 = 40%.</li>
+        <li>Top-3: ranks 1, 3, 2 and 1 are hits. 4 of 5 = 80%.</li>
+        <li>Top-6: every rank is 6 or less. 5 of 5 = 100%.</li>
+      </ul>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>K</th><th class="r">1</th><th class="r">2</th><th class="r">3</th><th class="r">4</th><th class="r">5</th><th class="r">6</th></tr></thead>
+          <tbody><tr><td>Top-K accuracy</td><td class="r">40%</td><td class="r">60%</td><td class="r">80%</td><td class="r">80%</td><td class="r">80%</td><td class="r">100%</td></tr></tbody>
+        </table>
+      </div>
+      <p>Going from K = 3 to K = 5 gains nothing here, because no right answer sits at rank 4 or 5.</p>
+    </div>
+
+    <figure id="fig-lists">
+      <div class="fig-title">Each column is one case; the line marks the first K guesses</div>
+      <svg width="540" height="375" viewBox="0 0 360 250" role="img"
+           aria-label="Five columns, one per case, each a stack of six guesses with rank 1 at the top. The right answer sits at rank 1, 3, 2, 1 and 6. A line below rank K separates the guesses that count.">
+        <text x="6" y="16" class="muted">rank</text>
+        <g id="tk-cols"></g>
+        <line id="tk-line" x1="34" y1="113" x2="350" y2="113" class="st-s2" stroke-width="2.5"/>
+        <text id="tk-line-label" x="350" y="108" text-anchor="end" class="ink2"></text>
+      </svg>
+      <noscript><p class="small">The drawing needs JavaScript. The right answers sit at ranks 1, 3, 2, 1 and 6.</p></noscript>
+      <div class="controls">
+        <label>K <input id="tk-k" type="range" min="1" max="6" step="1" value="3"></label>
+        <output id="tk-out" for="tk-k">Top-3 accuracy: 4 of 5 = 80%</output>
+      </div>
+      <p class="small"><b>Try it.</b> Find the smallest K that gives 100%. Then find two values of K that give the same
+      accuracy, and say why.</p>
+      <figcaption><b>What to notice.</b> A case is a hit when its green box sits above the line. Moving the line down
+      can turn misses into hits, but it can never turn a hit into a miss.</figcaption>
+    </figure>
+  </section>
+
+  <section id="choose-k">
+    <h2>Pick K to match how many guesses someone will check</h2>
+    <p>Top-K accuracy is useful when a person, or a later step in a program, looks at a short list rather than one
+    answer. Then the honest question is "how often is the right answer on the list they will see?" A bigger K
+    finds more right answers, but someone must check more candidates per case.</p>
+    <p>Compare against chance. If a system put N candidates in random order, the right answer would land in the
+    first K with probability K / N. With 100 candidates, random order gives a top-10 accuracy of about 10%. A useful
+    system beats that by a wide margin.</p>
+
+    <div class="callout warn">
+      <span class="callout-title">Three details the simple rule hides</span>
+      <p><b>Ties.</b> If two candidates have the same score, their order is a matter of choice, and the right
+      answer's rank depends on it. The code below breaks ties in the right answer's favor; other code may not.</p>
+      <p><b>A missing answer.</b> If the right answer is not among the candidates at all, the case is a miss for
+      every K. Then top-K accuracy stays below 100% even when K is the whole list.</p>
+      <p><b>Several right answers.</b> Some tasks have more than one right answer per case. Then you must say what
+      counts as a hit, such as "at least one right answer in the first K".</p>
+    </div>
+
+    <p>Readers who know a little Python (see <a href="python-basics.html">Reading Python</a>) can compute ranks from
+    a system's scores. The rank of the right answer is 1 plus the number of candidates that score higher.</p>
+    <p class="code-cap">topk.py</p>
+<pre><code class="py">import numpy as np
+
+# Each row holds one case's scores for 6 candidates.
+scores = np.array([[0.9, 0.1, 0.3, 0.2, 0.0, 0.4],
+                   [0.2, 0.8, 0.1, 0.7, 0.3, 0.6],
+                   [0.1, 0.3, 0.2, 0.9, 0.4, 0.0]])
+right = np.array([0, 5, 4])   # the index of the right candidate
+
+# Rank = 1 + how many candidates score higher than the right one.
+right_score = scores[np.arange(len(right)), right]
+rank = 1 + (scores > right_score[:, None]).sum(axis=1)
+print(rank)
+for k in (1, 2, 3):
+    print(k, round((rank <= k).mean(), 2))
+</code></pre>
+<pre class="out">[1 3 2]
+1 0.33
+2 0.67
+3 1.0</pre>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>Four cases have the right answer at ranks 2, 1, 4 and 1. What are the top-1, top-2 and top-4 accuracy?</p>
+      <details><summary>Answer</summary><p>Top-1: 2 of 4 = 50%. Top-2: 3 of 4 = 75%. Top-4: 4 of 4 = 100%.</p></details>
+    </li>
+    <li>
+      <p>A report says a system has 70% top-1 accuracy and 60% top-3 accuracy on the same cases. What is wrong?</p>
+      <details><summary>Answer</summary><p>It cannot happen. Every top-1 hit is also a top-3 hit, so top-3 accuracy is at
+      least the top-1 accuracy.</p></details>
+    </li>
+    <li>
+      <p>A system ranks 50 candidates per case. Its top-5 accuracy is 12%. Is it doing better than random order?</p>
+      <details><summary>Answer</summary><p>Only a little. Random order gives about 5 / 50 = 10%.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://scikit-learn.org/stable/modules/model_evaluation.html#top-k-accuracy-score">Top-k accuracy score</a>
+        <span class="fl-src">scikit-learn user guide</span>
+        <span class="fl-format">Docs</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">The formula and a ready-made function, with a short example; useful when you compute it in Python.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <p>No unit or explanation builds on this one yet.</p>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const slider = document.getElementById('tk-k');
+  if (!slider) return;
+  const NS = 'http://www.w3.org/2000/svg';
+  const ranks = [1, 3, 2, 1, 6];
+  const cols = document.getElementById('tk-cols');
+  const line = document.getElementById('tk-line'), lineLabel = document.getElementById('tk-line-label');
+  const out = document.getElementById('tk-out');
+  const X0 = 46, COLW = 52, BOXW = 44, Y0 = 26, ROWH = 28, BOXH = 22;
+  const el = (tag, attrs, text) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text !== undefined) e.textContent = text;
+    return e;
+  };
+  for (let r = 1; r <= 6; r++) {
+    cols.appendChild(el('text', { x: 20, y: Y0 + (r - 1) * ROWH + 15, 'text-anchor': 'middle', class: 'muted' }, String(r)));
+  }
+  const verdicts = [];
+  ranks.forEach((rank, c) => {
+    const x = X0 + c * COLW;
+    cols.appendChild(el('text', { x: x + BOXW / 2, y: 16, 'text-anchor': 'middle', class: 'muted' }, 'case ' + (c + 1)));
+    for (let r = 1; r <= 6; r++) {
+      const y = Y0 + (r - 1) * ROWH;
+      const right = r === rank;
+      cols.appendChild(el('rect', { x, y, width: BOXW, height: BOXH, rx: 3,
+        style: right ? 'fill:var(--s3)' : 'fill:var(--grid);stroke:var(--rule)' }));
+      if (right) cols.appendChild(el('text', { x: x + BOXW / 2, y: y + 15, 'text-anchor': 'middle',
+        style: 'fill:#fff;font-weight:700' }, 'right'));
+    }
+    const v = el('text', { x: x + BOXW / 2, y: Y0 + 6 * ROWH + 18, 'text-anchor': 'middle', style: 'font-weight:700' }, '');
+    cols.appendChild(v);
+    verdicts.push(v);
+  });
+  function draw() {
+    const k = Number(slider.value);
+    const y = Y0 + k * ROWH - 3;
+    line.setAttribute('y1', y); line.setAttribute('y2', y);
+    lineLabel.setAttribute('y', y - 6);
+    lineLabel.textContent = 'K = ' + k;
+    let hits = 0;
+    ranks.forEach((rank, c) => {
+      const hit = rank <= k;
+      hits += hit;
+      verdicts[c].textContent = hit ? 'hit' : 'miss';
+      verdicts[c].style.fill = hit ? 'var(--s3)' : 'var(--s2)';
+    });
+    out.textContent = 'Top-' + k + ' accuracy: ' + hits + ' of ' + ranks.length + ' = ' + Math.round(100 * hits / ranks.length) + '%';
+  }
+  slider.addEventListener('input', draw);
+  draw();
+})();
+</script>
+</body>
+</html>

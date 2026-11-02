@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="mixed-precision">
+<meta name="unit-level" content="u1">
+<title>Mixed precision: 16-bit numbers (bf16)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+svg.wide-text text { font-size: 14px; }
+.controls input[type=text] { font: inherit; font-family: var(--font-mono); width: 9rem; padding: 0.15rem 0.4rem; background: var(--surface); color: var(--ink); border: 1px solid var(--rule); border-radius: 4px; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Mixed precision: 16-bit numbers (bf16)</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="tensors-on-gpu.html">PyTorch tensors on the GPU</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+    <li><a href="gradient-descent.html">Gradient descent</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+    <li><a href="backpropagation.html">Backpropagation: gradients by the chain rule</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>By default, PyTorch stores each number in 32 bits. A 16-bit format called bf16 keeps the same range of
+  sizes but fewer digits: about 2 to 3 significant decimal digits instead of about 7. Neural networks
+  tolerate that rounding in most of their arithmetic. Mixed precision runs the big matrix multiplications in
+  bf16, which needs half the memory and runs much faster on GPUs built for it. It keeps the few sensitive
+  steps, such as updating the weights, in 32 bits.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="layout">
+    <h2>A float stores a sign, a power of two and a fraction</h2>
+    <p>A computer stores a number such as 6.5 in base-2 scientific notation: 6.5 = 1.625 × 2². The stored
+    pieces are a <dfn>sign</dfn> bit (plus or minus), an <dfn>exponent</dfn> (the power of two, here 2) and a
+    <dfn>fraction</dfn> (the digits after the point of 1.625, written in binary). A number stored this way
+    is a <dfn>floating-point number</dfn>, or float. The number of exponent bits sets how large and how small
+    a number can be. The number of fraction bits sets how many significant digits it keeps.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Format</th><th class="r">Sign</th><th class="r">Exponent</th><th class="r">Fraction</th><th class="r">Largest value</th><th class="r">Significant decimal digits</th></tr></thead>
+        <tbody>
+          <tr><td>float32</td><td class="r">1</td><td class="r">8</td><td class="r">23</td><td class="r nw">3.4 × 10<sup>38</sup></td><td class="r">about 7</td></tr>
+          <tr><td>bf16 (bfloat16)</td><td class="r">1</td><td class="r">8</td><td class="r">7</td><td class="r nw">3.4 × 10<sup>38</sup></td><td class="r">2 to 3</td></tr>
+          <tr><td>float16</td><td class="r">1</td><td class="r">5</td><td class="r">10</td><td class="r nw">65,504</td><td class="r">3 to 4</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>bf16 is the first 16 bits of a float32, rounded. It keeps all 8 exponent bits, so it covers the same
+    range of sizes, and drops 16 of the 23 fraction bits. The older 16-bit format, float16, splits its bits
+    the other way: more fraction, much less range.</p>
+
+    <p><b>Try it.</b> Type a number or pick one from the list, and compare the bits and the stored values.
+    Goal: find the smallest whole number that bf16 cannot store exactly. Then find a number that float16
+    cannot store at all.</p>
+    <figure id="fig-bits">
+      <div class="fig-title">The same number in three formats</div>
+      <div class="controls">
+        <label>Number <input type="text" id="mp-x" value="0.1" inputmode="decimal" aria-label="A number to store"></label>
+        <label>or pick
+          <select id="mp-pick">
+            <option value="">…</option>
+            <option value="0.1">0.1</option>
+            <option value="0.3333333333">1/3</option>
+            <option value="1.001">1.001</option>
+            <option value="256">256</option>
+            <option value="70000">70000</option>
+            <option value="1e-30">1e-30</option>
+          </select>
+        </label>
+      </div>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--s4)"></i>sign</span>
+        <span><i class="sw" style="background:var(--s1)"></i>exponent</span>
+        <span><i class="sw" style="background:var(--s3)"></i>fraction</span>
+      </div>
+      <svg id="mp-svg" class="wide-text" style="width:100%" width="420" height="200" viewBox="0 0 420 200" role="img"
+           aria-label="Bit layouts of float32, bf16 and float16 for the chosen number; bf16 lines up with the first 16 bits of float32"></svg>
+      <div class="readout-box" id="mp-out" aria-live="polite"></div>
+      <figcaption><b>What to notice.</b> The bf16 row is the left half of the float32 row, give or take
+      rounding in its last bit. Its exponent matches float32's, so very large and very small numbers survive.
+      float16 has more fraction bits but only 5 exponent bits, so 70000 becomes infinity and 1e-30 becomes
+      zero.</figcaption>
+    </figure>
+  </section>
+
+  <section id="spacing">
+    <h2>Rounding can swallow a small weight update</h2>
+    <p>Floats are not evenly spread. Between 1 and 2, bf16 has 7 fraction bits, so it can store only
+    2<sup>7</sup> = 128 values, spaced 1/128 = 0.0078125 apart. float32 has 2<sup>23</sup> values there,
+    spaced about 0.00000012 apart.</p>
+    <div class="example">
+      <span class="example-title">Worked example: a weight that will not move</span>
+      <ol>
+        <li>A weight stored in bf16 equals 1.0. A training step wants to add 0.001.</li>
+        <li>The exact result, 1.001, is not a bf16 value. The nearest bf16 values are 1.0 and 1.0078125.</li>
+        <li>1.001 is much closer to 1.0, so the sum rounds to 1.0. The update is lost.</li>
+        <li>Each later step that adds 0.001 is lost the same way, so this weight never changes.</li>
+        <li>In float32, the sum is 1.00100004673, within 0.00000005 of 1.001. The update is kept.</li>
+      </ol>
+      <p>That is why mixed precision keeps a float32 copy of the weights and applies each update to it.</p>
+      <p><b>Your turn.</b> Between 256 and 512, bf16 values are spaced 256/128 = 2 apart. What does
+      257 round to? <span class="small">(Answer: 256. 257 lies halfway between 256 and 258, and the rule for
+      a tie picks the value whose last bit is 0, which is 256.)</span></p>
+    </div>
+  </section>
+
+  <section id="mixed">
+    <h2>Mixed precision picks the format operation by operation</h2>
+    <p>Most of the time and memory in training goes into large matrix multiplications and the
+    <dfn>activations</dfn>, the intermediate results kept for the backward pass. These tolerate bf16. A few
+    operations do not: long sums, such as the loss over a batch, and the update of the weights. Mixed
+    precision keeps those in float32.</p>
+    <p>PyTorch does the sorting for you. Inside a <code>torch.autocast</code> block, each operation runs in
+    the format that PyTorch has listed as safe for it. The weights themselves stay float32. The snippet
+    shows the rounding from the worked example and one multiplication under autocast. It runs on the CPU;
+    on a GPU you write <code>device_type="cuda"</code> (see <a href="tensors-on-gpu.html">tensors on the
+    GPU</a>).</p>
+    <p class="code-cap">bf16.py</p>
+<pre><code class="py">import torch
+
+third = torch.tensor(1 / 3)                       # float32 by default
+print(third.item())                               # float32's closest value
+print(third.to(torch.bfloat16).item())            # bf16's closest value
+
+w = torch.tensor(1.0, dtype=torch.bfloat16)
+print((w + 0.001).item())                         # a small update to a bf16 weight
+
+big = torch.tensor(70000.0)
+print(big.to(torch.float16).item(), big.to(torch.bfloat16).item())
+
+a, b = torch.randn(64, 64), torch.randn(64, 64)
+with torch.autocast(device_type="cpu", dtype=torch.bfloat16):
+    c = a @ b                                     # runs in bf16 inside autocast
+print(a.dtype, c.dtype)
+</code></pre>
+<pre class="out"><code>0.3333333432674408
+0.333984375
+1.0
+inf 70144.0
+torch.float32 torch.bfloat16</code></pre>
+    <p>The inputs <code>a</code> and <code>b</code> are float32, but autocast ran the multiplication in bf16,
+    so the result <code>c</code> is bf16.</p>
+
+    <h3>Why bf16 rather than float16</h3>
+    <p>Gradients are often tiny numbers. In float16, numbers below about 6 × 10<sup>−5</sup> start to lose
+    digits, and numbers below about 3 × 10<sup>−8</sup> become zero, so small gradients vanish. Training in float16 therefore multiplies the loss by a large factor first and
+    divides the gradients by it afterwards, a trick called <dfn>loss scaling</dfn>. bf16 has float32's range,
+    so it needs no loss scaling. That is why bf16 is the usual choice on GPUs that support it.</p>
+
+    <div class="callout warn">
+      <span class="callout-title">This is a simplification</span>
+      <p>"Much faster" depends on the GPU: older GPUs have no fast bf16 arithmetic at all, and the gain is
+      large only when matrix multiplications take most of the time. Autocast's lists of which operations run
+      in 16 bits differ between devices and PyTorch versions. Inside a 16-bit matrix multiplication, the
+      hardware usually adds up the products in 32 bits, which is why the rounding hurts less than the bit
+      counts suggest.</p>
+    </div>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>Why can bf16 store 1 × 10<sup>30</sup> while float16 cannot?</p>
+      <details><summary>Answer</summary><p>bf16 has 8 exponent bits, like float32, so its largest value is
+      about 3.4 × 10<sup>38</sup>. float16 has 5 exponent bits, and its largest value is 65,504. Anything
+      bigger becomes infinity.</p></details>
+    </li>
+    <li>
+      <p>Near 1, bf16 values are 0.0078125 apart. A bf16 weight equals 1.0 and the update is +0.005. What is
+      the result?</p>
+      <details><summary>Answer</summary><p>1.0078125. The exact sum, 1.005, is closer to 1.0078125 (0.0028
+      away) than to 1.0 (0.005 away). The weight moves, but by 0.0078125, not 0.005.</p></details>
+    </li>
+    <li>
+      <p>A model has 50 million weights. How much memory do the weights take in float32, and in bf16?</p>
+      <details><summary>Answer</summary><p>float32 uses 4 bytes per number: 200 MB. bf16 uses 2 bytes: 100 MB.
+      With mixed precision the weights stay in float32; the saving comes from the activations and the
+      arithmetic.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more depth.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://en.wikipedia.org/wiki/Bfloat16_floating-point_format#bfloat16_floating-point_format">bfloat16 floating-point format</a>
+        <span class="fl-src">Wikipedia</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">The bit layout with worked encodings, and how bf16 relates to float32.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://docs.pytorch.org/tutorials/recipes/recipes/amp_recipe.html#adding-torch-autocast">Automatic Mixed Precision: adding torch.autocast</a>
+        <span class="fl-src">PyTorch recipes</span>
+        <span class="fl-format">Tutorial</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">A short recipe that times a network with and without autocast. It uses float16, so it
+      also shows loss scaling.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="training-loop.html">The training loop</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  'use strict';
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.getElementById('mp-svg');
+  const input = document.getElementById('mp-x'), pick = document.getElementById('mp-pick');
+  const out = document.getElementById('mp-out');
+  if (!svg || !input) return;
+  const el = (tag, attrs, parent) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  };
+  // Conversions, with round-to-nearest-even as PyTorch does.
+  const dv = new DataView(new ArrayBuffer(4));
+  const f32bits = x => { dv.setFloat32(0, x); return dv.getUint32(0); };
+  const fromBits32 = u => { dv.setUint32(0, u >>> 0); return dv.getFloat32(0); };
+  function bf16bits(x) {
+    const u = f32bits(x);
+    if ((u & 0x7f800000) === 0x7f800000 && (u & 0x7fffff)) return (u >>> 16) | 0x40;
+    return ((u + 0x7fff + ((u >>> 16) & 1)) >>> 16) & 0xffff;
+  }
+  const bf16val = h => fromBits32(h << 16);
+  function f16bits(x) {
+    const u = f32bits(x), sign = (u >>> 16) & 0x8000, exp = (u >>> 23) & 0xff;
+    let mant = u & 0x7fffff;
+    if (exp === 0xff) return sign | 0x7c00 | (mant ? 0x200 : 0);
+    const e = exp - 127 + 15;
+    if (e >= 0x1f) return sign | 0x7c00;
+    if (e <= 0) {
+      if (e < -10) return sign;
+      mant |= 0x800000;
+      const shift = 14 - e, half = 1 << (shift - 1), rem = mant & ((1 << shift) - 1);
+      let h = mant >>> shift;
+      if (rem > half || (rem === half && (h & 1))) h++;
+      return sign | h;
+    }
+    let h = (e << 10) | (mant >>> 13);
+    const rem = mant & 0x1fff;
+    if (rem > 0x1000 || (rem === 0x1000 && (h & 1))) h++;
+    return sign | h;
+  }
+  function f16val(h) {
+    const s = h & 0x8000 ? -1 : 1, e = (h >>> 10) & 0x1f, m = h & 0x3ff;
+    if (e === 0) return s * m * Math.pow(2, -24);
+    if (e === 31) return m ? NaN : s * Infinity;
+    return s * (1 + m / 1024) * Math.pow(2, e - 15);
+  }
+  const FORMATS = [
+    { name: 'float32', n: 32, exp: 8, bits: x => f32bits(x), val: x => Math.fround(x) },
+    { name: 'bf16', n: 16, exp: 8, bits: x => bf16bits(x), val: x => bf16val(bf16bits(x)) },
+    { name: 'float16', n: 16, exp: 5, bits: x => f16bits(x), val: x => f16val(f16bits(x)) },
+  ];
+  const show = v => {
+    if (!isFinite(v)) return v > 0 ? 'infinity' : v < 0 ? '−infinity' : 'not a number';
+    if (v === 0) return '0';
+    const a = Math.abs(v);
+    return (a >= 1e6 || a < 1e-4) ? v.toPrecision(8).replace(/\.?0+e/, 'e') : String(Number(v.toPrecision(12)));
+  };
+  function draw() {
+    const x = Number(input.value.trim().replace(/,/g, '').replace(/−/g, '-'));
+    const W = Math.max(300, Math.min(700, Math.round(svg.getBoundingClientRect().width) || 420));
+    const cw = (W - 4) / 32, rowH = Math.max(16, Math.min(24, cw + 4)), gap = 34;
+    const H = 3 * (rowH + gap);
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.setAttribute('width', W);
+    svg.textContent = '';
+    if (input.value.trim() === '' || Number.isNaN(x)) {
+      out.textContent = 'Type a number, such as 0.1 or 70000.';
+      return;
+    }
+    const rows = [];
+    FORMATS.forEach((f, r) => {
+      const y = r * (rowH + gap) + 22, u = f.bits(x) >>> 0;
+      el('text', { x: 2, y: y - 7, class: 'ink2' }, svg).textContent =
+        `${f.name}: 1 sign + ${f.exp} exponent + ${f.n - 1 - f.exp} fraction bits`;
+      for (let i = 0; i < f.n; i++) {
+        const bit = (u >>> (f.n - 1 - i)) & 1;
+        const color = i === 0 ? 'var(--s4)' : i <= f.exp ? 'var(--s1)' : 'var(--s3)';
+        el('rect', { x: 2 + i * cw + 0.5, y, width: cw - 1, height: rowH, rx: 2, fill: color, opacity: bit ? 1 : 0.22 }, svg);
+        if (cw >= 13) {
+          el('text', { x: 2 + i * cw + cw / 2, y: y + rowH / 2 + 5, 'text-anchor': 'middle', style: `font-size:12px;fill:${bit ? '#fff' : 'var(--ink-2)'}` }, svg).textContent = bit;
+        }
+      }
+      const v = f.val(x);
+      rows.push([f.name, v, isFinite(v) && x !== 0 ? Math.abs(v - x) / Math.abs(x) * 100 : null]);
+    });
+    out.innerHTML = '';
+    const tbl = document.createElement('table');
+    tbl.innerHTML = '<thead><tr><th>Format</th><th class="r">Stored value</th><th class="r">Rounding error</th></tr></thead>';
+    const tb = document.createElement('tbody');
+    rows.forEach(([n, v, e]) => {
+      const tr = document.createElement('tr');
+      [n, show(v), e === null ? (isFinite(v) ? '0%' : 'overflow') : (e === 0 ? '0%' : e < 1e-4 ? e.toExponential(1) + '%' : (e >= 99.99 && v === 0 ? '100% (became 0)' : e.toPrecision(2) + '%'))]
+        .forEach((t, k) => { const td = document.createElement('td'); td.textContent = t; if (k) td.className = 'r'; tr.appendChild(td); });
+      tb.appendChild(tr);
+    });
+    tbl.appendChild(tb);
+    const wrap = document.createElement('div');
+    wrap.className = 'table-wrap';
+    wrap.style.margin = '0';
+    wrap.appendChild(tbl);
+    out.appendChild(wrap);
+  }
+  input.addEventListener('input', () => { pick.value = ''; draw(); });
+  pick.addEventListener('change', () => { if (pick.value) { input.value = pick.value; draw(); } });
+  let lastW = 0;
+  window.addEventListener('resize', () => {
+    const wNow = Math.round(svg.getBoundingClientRect().width);
+    if (Math.abs(wNow - lastW) > 4) { lastW = wNow; draw(); }
+  });
+  draw();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="numpy-arrays">
+<meta name="unit-level" content="u1">
+<title>Arrays in NumPy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  .grid-pick { border-collapse: separate; border-spacing: 4px; width: auto; font-family: var(--font-mono); margin: 0.4rem auto; }
+  .grid-pick td, .grid-pick th { border: 0; text-align: center; padding: 0.3rem 0.6rem; }
+  .grid-pick th { color: var(--ink-3); font-weight: 400; font-size: 0.8rem; }
+  .grid-pick td { background: var(--bg); border: 1px solid var(--rule); border-radius: 4px; min-width: 3.2rem; transition: background 0.15s; }
+  .grid-pick td.on { background: color-mix(in srgb, var(--s1) 28%, var(--surface)); border-color: var(--s1); font-weight: 600; }
+  .expr-btns { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .expr-btns .btn { font-family: var(--font-mono); }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Arrays in NumPy</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">9 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="python-basics.html">Reading Python for this course</a> <span class="level-badge level-hs">High school</span> <span class="minutes">8 min</span></li>
+    <li><a href="vectors.html">Vectors: arrows made of numbers</a> <span class="level-badge level-hs">High school</span> <span class="minutes">8 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A NumPy array is a grid of numbers that all have the same type. Its <em>shape</em> says how many numbers lie along
+  each direction: four points in 3D make an array of shape (4, 3), one row per point. Square brackets pick rows,
+  columns or blocks. Arithmetic on an array acts on every number at once, and functions such as <code>sum</code> and
+  <code>mean</code> can collapse one direction. One line of array code replaces a loop, and it runs much faster.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+
+  <section id="shape">
+    <h2>A table of points is an array with two axes</h2>
+    <p>Take four corners of a box, each a <a href="vectors.html">vector</a> with x, y and z. Write them as a table: one
+    row per point, one column per coordinate. NumPy stores that table as an <dfn>array</dfn>, a block of numbers of one
+    type laid out in a grid.</p>
+    <p>Each direction of the grid is an <dfn>axis</dfn>. Axis 0 runs down the rows, and axis 1 runs across the columns.
+    The <dfn>shape</dfn> lists the length along each axis, so this table has shape <code>(4, 3)</code>. The number of
+    axes is <code>ndim</code>. The <dfn>dtype</dfn> is the type of every number: <code>float64</code> means decimal
+    numbers stored in 64 bits.</p>
+    <p class="code-cap">shape.py</p>
+<pre><code class="py">import numpy as np
+
+pts = np.array([[0.0, 0.0, 0.0],
+                [2.0, 0.0, 0.0],
+                [2.0, 4.0, 0.0],
+                [0.0, 4.0, 2.0]])
+print(pts.shape, pts.ndim, pts.dtype)
+print(pts[2])        # one row: the third point
+print(pts[:, 1])     # one column: every y
+print(pts[1:3, :2])  # rows 1 and 2, columns 0 and 1
+</code></pre>
+<pre class="out"><code>(4, 3) 2 float64
+[2. 4. 0.]
+[0. 0. 4. 4.]
+[[2. 0.]
+ [2. 4.]]</code></pre>
+  </section>
+
+  <section id="indexing">
+    <h2>Brackets pick rows first, then columns</h2>
+    <p>Inside the brackets, a comma separates the axes: <code>pts[row, column]</code>. Each part can be one index, a
+    slice such as <code>1:3</code> (from 1 up to, but not including, 3), or a bare <code>:</code> for "all of them". If
+    you give only one part, NumPy takes all the columns. <a href="python-basics.html#slicing">Reading Python</a> covers
+    indexes and slices for plain lists.</p>
+
+    <figure id="fig-pick">
+      <div class="fig-title">Which numbers does each expression pick?</div>
+      <p class="small" style="margin-top:0">Predict the highlighted cells before you press a button. Then find the
+      expression that picks the x and y of every point, and only those.</p>
+      <div class="expr-btns" role="group" aria-label="Indexing expressions">
+        <button class="btn" type="button" data-e="2|all">pts[2]</button>
+        <button class="btn" type="button" data-e="all|1">pts[:, 1]</button>
+        <button class="btn" type="button" data-e="1:3|0:2">pts[1:3, :2]</button>
+        <button class="btn" type="button" data-e="3|2">pts[-1, 2]</button>
+        <button class="btn" type="button" data-e="all|0:2">pts[:, :2]</button>
+        <button class="btn" type="button" data-e="0:2|all">pts[:2]</button>
+      </div>
+      <div class="scroll-x">
+        <table class="grid-pick" id="pick-grid" aria-live="polite">
+          <thead><tr><th></th><th>col 0 (x)</th><th>col 1 (y)</th><th>col 2 (z)</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="readout-box">Result shape: <output id="pick-shape">press a button</output><br>
+        <span id="pick-note" class="small"></span></div>
+      <figcaption><b>Rows, then columns.</b> One index keeps fewer axes: <code>pts[2]</code> is a single row of shape
+      <code>(3,)</code>, and <code>pts[-1, 2]</code> is one number. A slice keeps its axis, even if it holds one
+      item.</figcaption>
+    </figure>
+  </section>
+
+  <section id="elementwise">
+    <h2>Arithmetic on an array acts on every number</h2>
+    <p><code>pts * 10</code> multiplies each of the 12 numbers by 10. <code>pts + pts</code> adds the two arrays number by
+    number, in matching positions. These are <dfn>elementwise</dfn> operations. No loop appears in your code, but NumPy
+    runs one inside, in fast compiled code.</p>
+    <p>That inner loop is why arrays matter. On the computer that ran these snippets, a Python loop that found the length
+    of a million 3D points took about 0.3 seconds. The one-line array version, shown below, took about 0.015 seconds:
+    about 20 times faster.</p>
+    <div class="callout">
+      <span class="callout-title">Different shapes can combine too</span>
+      <p><code>pts * 10</code> combines an array with a single number. NumPy can also combine some arrays of different
+      shapes, such as a table of points and one point. That rule is <a href="broadcasting.html">broadcasting</a>.</p>
+    </div>
+  </section>
+
+  <section id="axis">
+    <h2><code>axis=0</code> collapses the rows; <code>axis=1</code> collapses the columns</h2>
+    <p>Functions such as <code>sum</code>, <code>mean</code> and <code>max</code> can combine numbers along one axis. The
+    axis you name is the one that disappears. <code>pts.sum(axis=0)</code> adds down each column and leaves one number per
+    column. <code>pts.sum(axis=1)</code> adds across each row and leaves one number per point.</p>
+
+    <figure id="fig-axis">
+      <div class="fig-title">The named axis is the one that disappears</div>
+      <div class="scroll-x"><svg width="560" height="210" viewBox="0 0 560 210" style="min-width:440px" role="img" aria-label="Left: a 4 by 3 grid with an arrow pointing down, collapsing to one row of 3 column sums, 4, 8 and 2. Right: the same grid with an arrow pointing right, collapsing to one column of 4 row sums, 0, 2, 6 and 6.">
+        <g font-family="var(--font-mono)" text-anchor="middle">
+          <text x="100" y="18" class="ink2">pts.sum(axis=0)</text>
+          <g id="gridL"></g>
+          <text x="400" y="18" class="ink2">pts.sum(axis=1)</text>
+        </g>
+      </svg></div>
+      <figcaption><b>Shape (4, 3) becomes (3,) or (4,).</b> Summing along axis 0 adds the four rows into one row: the
+      column totals. Summing along axis 1 adds each row's three numbers: one total per point.</figcaption>
+    </figure>
+
+    <div class="example">
+      <span class="example-title">Worked example: the center of four points</span>
+      <p>The <dfn>centroid</dfn> of some points is their average position: the mean of the x values, of the y values and
+      of the z values. For the four points above:</p>
+      <ol>
+        <li>Add down each column: x gives 0 + 2 + 2 + 0 = 4, y gives 0 + 0 + 4 + 4 = 8, z gives 0 + 0 + 0 + 2 = 2.</li>
+        <li>Divide by the 4 points: the centroid is (1, 2, 0.5).</li>
+        <li>In NumPy that is one call, <code>pts.mean(axis=0)</code>, because it averages down the rows.</li>
+      </ol>
+      <p>Each point's distance from the origin uses the other axis. Square every number, add across each row with
+      <code>axis=1</code>, then take the square root. For the third point that is √(2² + 4² + 0²) = √20 ≈ 4.47.</p>
+    </div>
+    <p class="code-cap">axis.py</p>
+<pre><code class="py">import numpy as np
+
+pts = np.array([[0.0, 0.0, 0.0],
+                [2.0, 0.0, 0.0],
+                [2.0, 4.0, 0.0],
+                [0.0, 4.0, 2.0]])
+print(pts * 10)               # every number times 10
+print(pts.sum(axis=0))        # add down each column
+print(pts.mean(axis=0))       # the center of the points
+print(np.sqrt((pts ** 2).sum(axis=1)))  # each point's distance from the origin
+</code></pre>
+<pre class="out"><code>[[ 0.  0.  0.]
+ [20.  0.  0.]
+ [20. 40.  0.]
+ [ 0. 40. 20.]]
+[4. 8. 2.]
+[1.  2.  0.5]
+[0.         2.         4.47213595 4.47213595]</code></pre>
+
+    <div class="callout warn">
+      <span class="callout-title">Two details this page skips</span>
+      <p>A slice such as <code>pts[:, 1]</code> is usually a <em>view</em>: it shares memory with <code>pts</code>, so
+      changing it changes <code>pts</code> too. Call <code>.copy()</code> when you need a separate array. Also, arrays can
+      have more than two axes. A batch of 8 clouds of 2048 points has shape <code>(8, 2048, 3)</code>, and
+      <code>axis=-1</code> names the last axis.</p>
+    </div>
+  </section>
+
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>An array <code>cloud</code> has shape <code>(1000, 3)</code>. What are the shapes of <code>cloud[:, 2]</code>,
+      <code>cloud[:10]</code> and <code>cloud.max(axis=0)</code>?</p>
+      <details><summary>Answer</summary><p><code>(1000,)</code>: every z value. <code>(10, 3)</code>: the first ten
+      points. <code>(3,)</code>: the largest x, the largest y and the largest z, because axis 0 disappears.</p></details>
+    </li>
+    <li>
+      <p>Now try a worked example of your own. For the points (1, 1, 0), (3, 1, 0) and (2, 4, 3), find the centroid by hand.
+      Which NumPy call gives it?</p>
+      <details><summary>Answer</summary><p>Add down the columns: (6, 6, 3). Divide by 3: (2, 2, 1). The call is
+      <code>pts.mean(axis=0)</code>.</p></details>
+    </li>
+    <li>
+      <p>You want the height of every point above the floor, which is its z value. Someone writes <code>pts[2]</code>.
+      What does that give instead, and what is the fix?</p>
+      <details><summary>Answer</summary><p><code>pts[2]</code> is the third point, all three coordinates. The z values
+      are column 2 of every row: <code>pts[:, 2]</code>.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, with more pictures and more functions.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://jalammar.github.io/visual-numpy/#matrix-indexing">A Visual Intro to NumPy: Matrix Indexing</a>
+        <span class="fl-src">Jay Alammar</span>
+        <span class="fl-format">Illustrated article</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Colored drawings of picking rows and columns. The next part, "Matrix Aggregation", draws sums along an axis.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://numpy.org/doc/stable/user/absolute_beginners.html#indexing-and-slicing">NumPy: the absolute basics for beginners, Indexing and slicing</a>
+        <span class="fl-src">NumPy documentation</span>
+        <span class="fl-format">Tutorial</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">The official beginner guide. Read on to its sections on array operations and broadcasting.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="tensors-on-gpu.html">PyTorch tensors on the GPU</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+    <li><a href="nearest-neighbor-search.html">Nearest-neighbor search</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+    <li><a href="farthest-point-sampling.html">Farthest-point sampling</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="assignment-problem.html">Matching two sets: the assignment problem</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+    <li><a href="point-clouds.html">Shapes as point clouds</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="voxels.html">3D images made of voxels</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+    <li><a href="broadcasting.html">Broadcasting: arrays of different shapes</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  'use strict';
+  const PTS = [[0, 0, 0], [2, 0, 0], [2, 4, 0], [0, 4, 2]];
+  const fmt = v => v.toFixed(1);
+
+  // ---- indexing widget
+  const body = document.querySelector('#pick-grid tbody');
+  const cells = PTS.map((row, i) => {
+    const tr = document.createElement('tr');
+    const th = document.createElement('th');
+    th.textContent = 'row ' + i;
+    tr.appendChild(th);
+    const tds = row.map(v => { const td = document.createElement('td'); td.textContent = fmt(v); tr.appendChild(td); return td; });
+    body.appendChild(tr);
+    return tds;
+  });
+  // a part is "all", a single index "k", or a slice "a:b"
+  function sel(part, n) {
+    if (part === 'all') return { idx: [...Array(n).keys()], keep: true };
+    if (part.includes(':')) { const [a, b] = part.split(':').map(Number); return { idx: [...Array(b - a).keys()].map(k => k + a), keep: true }; }
+    return { idx: [Number(part)], keep: false };
+  }
+  const notes = {
+    '2|all': 'One row index and no column part: the whole third row. One axis is left.',
+    'all|1': 'Every row, column 1: the y of every point. The row axis is kept, the column axis is gone.',
+    '1:3|0:2': 'Two slices: rows 1 and 2, columns 0 and 1. Both axes are kept.',
+    '3|2': 'Row -1 is the last row. One index on each axis leaves a single number.',
+    'all|0:2': 'Every row, columns 0 and 1: the x and y of every point. That is the goal.',
+    '0:2|all': 'A slice of rows with no column part: the first two points, every column.'
+  };
+  const btns = document.querySelectorAll('.expr-btns .btn');
+  btns.forEach(b => b.addEventListener('click', () => {
+    btns.forEach(o => o.setAttribute('aria-pressed', String(o === b)));
+    const [r, c] = b.dataset.e.split('|');
+    const R = sel(r, 4), C = sel(c, 3);
+    cells.forEach((row, i) => row.forEach((td, j) => td.classList.toggle('on', R.idx.includes(i) && C.idx.includes(j))));
+    const shape = [];
+    if (R.keep) shape.push(R.idx.length);
+    if (C.keep) shape.push(C.idx.length);
+    document.getElementById('pick-shape').textContent = shape.length === 0 ? '() : a single number' : shape.length === 1 ? '(' + shape[0] + ',)' : '(' + shape.join(', ') + ')';
+    document.getElementById('pick-note').textContent = notes[b.dataset.e];
+  }));
+
+  // ---- axis figure
+  const NS = 'http://www.w3.org/2000/svg';
+  const g = document.getElementById('gridL');
+  const el = (tag, attrs, text) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; g.appendChild(e); return e; };
+  const W = 44, H = 26;
+  function grid(x0, y0) {
+    PTS.forEach((row, i) => row.forEach((v, j) => {
+      el('rect', { x: x0 + j * W, y: y0 + i * H, width: W - 4, height: H - 4, rx: 3, fill: 'var(--bg)', stroke: 'var(--rule)' });
+      el('text', { x: x0 + j * W + (W - 4) / 2, y: y0 + i * H + 16 }, String(v));
+    }));
+  }
+  // left: axis 0
+  grid(36, 30);
+  el('path', { d: 'M100 140 v16', stroke: 'var(--s1)', 'stroke-width': 2 });
+  el('path', { d: 'M94 150 l6 7 l6 -7', stroke: 'var(--s1)', 'stroke-width': 2, fill: 'none' });
+  [4, 8, 2].forEach((v, j) => {
+    el('rect', { x: 36 + j * W, y: 164, width: W - 4, height: H - 4, rx: 3, fill: 'var(--s1)', 'fill-opacity': 0.22, stroke: 'var(--s1)' });
+    el('text', { x: 36 + j * W + (W - 4) / 2, y: 180 }, String(v));
+  });
+  el('text', { x: 100, y: 204, class: 'muted' }, 'shape (3,)');
+  // right: axis 1
+  grid(316, 30);
+  el('path', { d: 'M450 80 h16', stroke: 'var(--s2)', 'stroke-width': 2 });
+  el('path', { d: 'M460 74 l7 6 l-7 6', stroke: 'var(--s2)', 'stroke-width': 2, fill: 'none' });
+  [0, 2, 6, 6].forEach((v, i) => {
+    el('rect', { x: 476, y: 30 + i * H, width: W - 4, height: H - 4, rx: 3, fill: 'var(--s2)', 'fill-opacity': 0.22, stroke: 'var(--s2)' });
+    el('text', { x: 476 + (W - 4) / 2, y: 30 + i * H + 16 }, String(v));
+  });
+  el('text', { x: 496, y: 150, class: 'muted' }, 'shape (4,)');
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="chain-rule">
+<meta name="unit-level" content="hs">
+<title>The chain rule: slopes of chained steps</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>The chain rule: slopes of chained steps</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-hs">High school</span> <span class="minutes">7 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="derivative.html">The derivative: slope at a point</a> <span class="level-badge level-hs">High school</span> <span class="minutes">8 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>Many calculations are a chain of steps: the output of one step is the input of the next. The chain rule says
+  how fast the final output changes when you nudge the first input. You find each step's slope at the point where
+  the chain passes through it, and multiply the slopes together. If step one triples a small change and step two
+  doubles it, the whole chain multiplies it by six.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="gears">
+    <h2>Rates of change multiply along a chain</h2>
+    <p>Think of three gears in a row. Gear B turns 2 times for each turn of gear A. Gear C turns 3 times for each turn
+    of gear B. So gear C turns 2 × 3 = 6 times for each turn of gear A. The rates multiply.</p>
+    <p>A calculation works the same way. Take <var>y</var> = (3<var>x</var> + 1)<sup>2</sup>. It is two steps. First
+    <var>u</var> = 3<var>x</var> + 1, then <var>y</var> = <var>u</var><sup>2</sup>. Nudge <var>x</var> a little and
+    <var>u</var> moves 3 times as much. Nudge <var>u</var> a little and <var>y</var> moves 2<var>u</var> times as
+    much, because the slope of <var>u</var><sup>2</sup> is 2<var>u</var>, as the
+    <a href="derivative.html#slope">derivative unit</a> shows. So <var>y</var> moves 3 × 2<var>u</var> times as much as
+    <var>x</var>.</p>
+    <p>This is the <dfn>chain rule</dfn>. In symbols, with each fraction meaning "a tiny change on top per tiny change
+    below":</p>
+    <p class="math">d<var>y</var>/d<var>x</var> = (d<var>y</var>/d<var>u</var>) × (d<var>u</var>/d<var>x</var>)</p>
+
+    <figure id="fig-chain">
+      <div class="fig-title">A small step in <var>x</var> is stretched by each step of the chain in turn</div>
+      <div class="controls">
+        <label>Input <var>x</var> <input id="ch-x" type="range" min="-2" max="2" step="0.1" value="1"> <output id="ch-ox">1</output></label>
+      </div>
+      <div class="scroll-x">
+      <svg id="ch-svg" width="400" height="250" viewBox="0 0 400 250" role="img"
+           aria-label="Three number lines for x, u and y; a short highlighted step on the x line maps to a step three times longer on the u line, and to a longer step again on the y line">
+        <g id="ch-lines"></g>
+        <rect id="ch-sx" height="14" rx="2" style="fill:var(--s1)"/>
+        <rect id="ch-su" height="14" rx="2" style="fill:var(--s2)"/>
+        <rect id="ch-sy" height="14" rx="2" style="fill:var(--s3)"/>
+        <polygon id="ch-f1" style="fill:var(--s2);fill-opacity:0.15"/>
+        <polygon id="ch-f2" style="fill:var(--s3);fill-opacity:0.15"/>
+      </svg>
+      </div>
+      <div class="readout-box">
+        A step of 0.1 in <var>x</var> becomes <output id="ch-du">0.3</output> in <var>u</var> (× 3), then
+        <output id="ch-dy">2.49</output> in <var>y</var> (× <output id="ch-r2">8.3</output>).<br>
+        Chain rule: 2<var>u</var> × 3 = <output id="ch-cr">2 × 4 × 3 = 24</output>
+      </div>
+      <figcaption><b>Try this.</b> The blue bar is a step of 0.1 in <var>x</var>. The orange bar is where that step
+      lands on the <var>u</var> line, and the green bar where it lands on the <var>y</var> line. At <var>x</var> = 1,
+      the measured stretch of 2.49 / 0.1 ≈ 25 is close to the chain rule's 24, and it gets closer for smaller steps.
+      Goal: predict the <var>x</var> at which the green bar is shortest, then slide to check.</figcaption>
+    </figure>
+
+    <div class="example">
+      <span class="example-title">Worked example</span>
+      <p>Find the slope of <var>y</var> = (3<var>x</var> + 1)<sup>2</sup> at <var>x</var> = 1.</p>
+      <ol>
+        <li>Run the chain forward: <var>u</var> = 3 × 1 + 1 = 4, and <var>y</var> = 4<sup>2</sup> = 16.</li>
+        <li>Slope of the first step: d<var>u</var>/d<var>x</var> = 3, the same everywhere.</li>
+        <li>Slope of the second step at <var>u</var> = 4: d<var>y</var>/d<var>u</var> = 2 × 4 = 8.</li>
+        <li>Multiply: d<var>y</var>/d<var>x</var> = 8 × 3 = 24.</li>
+        <li>Check with a small step: at <var>x</var> = 1.001, <var>y</var> = 4.003<sup>2</sup> = 16.024009. The change
+        0.024009 divided by 0.001 is about 24.</li>
+      </ol>
+      <p><b>Your turn.</b> Find the slope of <var>y</var> = (2<var>x</var> − 5)<sup>2</sup> at <var>x</var> = 4.</p>
+      <details><summary>Answer</summary><p><var>u</var> = 2 × 4 − 5 = 3. The slopes are d<var>u</var>/d<var>x</var> = 2
+      and d<var>y</var>/d<var>u</var> = 2 × 3 = 6. Multiply: 12.</p></details>
+    </div>
+  </section>
+
+  <section id="long-chains">
+    <h2>Longer chains multiply more slopes</h2>
+    <p>A chain of four steps has four slopes, and the chain rule multiplies all four. The work has two passes. A
+    forward pass runs the chain and records the value at each step. A backward pass starts at the output and
+    multiplies the slopes back toward the input, using those recorded values. Training a neural network does this for
+    millions of adjustable numbers, called weights, at once. The
+    <a href="automatic-gradients.html">automatic-gradients unit</a> shows how a program keeps track.</p>
+
+    <div class="callout warn">
+      <span class="callout-title">This is a simplification</span>
+      <p>Every step here has one input and one output. When a step has several inputs, or one value feeds several
+      later steps, the chain rule adds up the products along every path from input to output. The
+      <a href="gradient.html">gradient unit</a> covers functions with several inputs. The rule also needs each step to
+      have a slope at the point the chain passes through.</p>
+    </div>
+
+    <p class="code-cap">chain.py: the chain rule against a direct small-step estimate</p>
+<pre><code class="py">def inner(x):
+    return 3 * x + 1      # slope 3 everywhere
+
+def outer(u):
+    return u ** 2         # slope 2u
+
+x = 1.0
+u = inner(x)
+print(u, 2 * u * 3)       # chain rule: outer slope times inner slope
+
+h = 0.001
+print(round((outer(inner(x + h)) - outer(inner(x))) / h, 3))   # check with a small step
+</code></pre>
+<pre class="out">4.0 24.0
+24.009</pre>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>A recipe step doubles a quantity, the next step adds 7, and the last step multiplies by 5. If the input grows
+      by 1, how much does the output grow?</p>
+      <details><summary>Answer</summary><p>By 10. The slopes are 2, 1 and 5, and 2 × 1 × 5 = 10. Adding a constant
+      has slope 1, so it does not change the rate.</p></details>
+    </li>
+    <li>
+      <p>For <var>y</var> = (3<var>x</var> + 1)<sup>2</sup>, at which <var>x</var> is the slope zero? Why?</p>
+      <details><summary>Answer</summary><p>At <var>x</var> = −1/3, where <var>u</var> = 0. The second step's slope
+      2<var>u</var> is zero there, and anything times zero is zero.</p></details>
+    </li>
+    <li>
+      <p>In a chain of three steps, the slopes at the current point are 0.5, 4 and −2. What is the slope of the whole
+      chain?</p>
+      <details><summary>Answer</summary><p>0.5 × 4 × (−2) = −4.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://www.3blue1brown.com/lessons/chain-rule-and-product-rule/">Visualizing the chain rule and product rule</a>
+        <span class="fl-src">3Blue1Brown, Essence of calculus, chapter 4</span>
+        <span class="fl-format">Video</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">The three-number-lines picture used on this page, animated; the chain rule is the second half.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://www.mathsisfun.com/calculus/chain-rule.html">Chain rule</a>
+        <span class="fl-src">Math Is Fun</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">More worked examples, with the usual textbook notation.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="automatic-gradients.html">Automatic gradients in PyTorch</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+    <li><a href="residual-connections.html">Residual connections</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">5 min</span></li>
+    <li><a href="backpropagation.html">Backpropagation: gradients by the chain rule</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const svg = document.getElementById('ch-svg');
+  if (!svg) return;
+  const NS = 'http://www.w3.org/2000/svg', $ = id => document.getElementById(id);
+  const L = 40, R = 380, H = 0.1;
+  const rows = [
+    { y: 40, name: 'x', lo: -2, hi: 2.2, ticks: [-2, -1, 0, 1, 2] },
+    { y: 125, name: 'u', lo: -5.5, hi: 7.5, ticks: [-5, 0, 5] },
+    { y: 210, name: 'y', lo: 0, hi: 56, ticks: [0, 10, 20, 30, 40, 50] },
+  ];
+  const pos = (r, v) => L + (v - r.lo) / (r.hi - r.lo) * (R - L);
+  const g = $('ch-lines');
+  const add = (tag, attrs, text) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text !== undefined) e.textContent = text; g.appendChild(e); };
+  for (const r of rows) {
+    add('line', { x1: L, x2: R, y1: r.y, y2: r.y, style: 'stroke:var(--ink-3);stroke-width:1.5' });
+    add('text', { x: 12, y: r.y + 5, style: 'font-style:italic;font-size:16px;font-family:var(--font-display)' }, r.name);
+    for (const t of r.ticks) {
+      add('line', { x1: pos(r, t), x2: pos(r, t), y1: r.y - 4, y2: r.y + 4, style: 'stroke:var(--ink-3)' });
+      add('text', { x: pos(r, t), y: r.y + 30, 'text-anchor': 'middle', class: 'muted' }, String(t).replace('-', '−'));
+    }
+  }
+  add('text', { x: 200, y: 84, 'text-anchor': 'middle', class: 'muted' }, 'u = 3x + 1');
+  add('text', { x: 200, y: 169, 'text-anchor': 'middle', class: 'muted' }, 'y = u²');
+  const bar = (el, r, a, b) => {
+    const p = pos(r, Math.min(a, b)), q = pos(r, Math.max(a, b));
+    el.setAttribute('x', p); el.setAttribute('width', Math.max(2, q - p)); el.setAttribute('y', r.y - 7);
+    return [p, Math.max(p + 2, q)];
+  };
+  const fan = (el, top, bot, rt, rb) => el.setAttribute('points', [top[0], rt.y + 7, top[1], rt.y + 7, bot[1], rb.y - 7, bot[0], rb.y - 7].join(' '));
+  const fmt = (v, n) => (Math.round(v * 10 ** n) / 10 ** n).toString().replace('-', '−');
+  function draw() {
+    const x = Number($('ch-x').value), x2 = x + H;
+    const u = 3 * x + 1, u2 = 3 * x2 + 1, y = u * u, y2 = u2 * u2;
+    const bx = bar($('ch-sx'), rows[0], x, x2), bu = bar($('ch-su'), rows[1], u, u2), by = bar($('ch-sy'), rows[2], y, y2);
+    fan($('ch-f1'), bx, bu, rows[0], rows[1]);
+    fan($('ch-f2'), bu, by, rows[1], rows[2]);
+    $('ch-ox').textContent = fmt(x, 1);
+    $('ch-du').textContent = fmt(u2 - u, 2);
+    $('ch-dy').textContent = fmt(y2 - y, 2);
+    $('ch-r2').textContent = fmt((y2 - y) / (u2 - u), 1);
+    $('ch-cr').textContent = '2 × ' + fmt(u, 1) + ' × 3 = ' + fmt(6 * u, 1);
+  }
+  $('ch-x').addEventListener('input', draw);
+  draw();
+})();
+</script>
+</body>
+</html>

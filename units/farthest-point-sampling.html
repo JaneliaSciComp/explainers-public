@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="farthest-point-sampling">
+<meta name="unit-level" content="u1">
+<title>Farthest-point sampling</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  #fps-svg { max-width: min(100%, 520px); margin: 0 auto; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Farthest-point sampling</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="distance.html">Distance between two points</a> <span class="level-badge level-hs">High school</span> <span class="minutes">6 min</span></li>
+    <li><a href="point-clouds.html">Shapes as point clouds</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="numpy-arrays.html">Arrays in NumPy</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">9 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>Farthest-point sampling picks a few points from a <a href="point-clouds.html">point cloud</a> so that they cover the
+  whole shape evenly. It starts from one point. Then it repeats one step: find the point whose nearest picked point is
+  farthest away, and pick it. Each pick fills the biggest remaining gap. A random sample, by contrast, picks
+  mostly where points are crowded and can leave sparse parts of the shape empty.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+
+  <section id="why">
+    <h2>Random picks follow the crowd; farthest picks follow the shape</h2>
+    <p>Many methods need a smaller set of points from a large cloud: a model that accepts a fixed number of points, or a
+    set of centers to group nearby points around. A random sample keeps the cloud's density. If one part of a scan holds
+    ten times as many points, it gets about ten times as many picks, and a thin part may get none.</p>
+    <p><dfn>Farthest-point sampling</dfn> (FPS) spreads its picks over the space the shape fills, regardless of how
+    crowded each part is. The quantity it watches is each point's <dfn>gap</dfn>: its <a href="distance.html">distance</a>
+    to the nearest point picked so far. A point with a large gap is poorly covered.</p>
+
+    <figure id="fig-fps">
+      <div class="fig-title">Pick points one at a time, and watch the largest gap</div>
+      <p class="small" style="margin-top:0">The cloud has a crowded blob on the left and a sparse arc on the right. Pick
+      12 points with each method. Before you start, predict which method leaves the larger empty circle.</p>
+      <div class="controls">
+        <label>Method
+          <select id="fps-method">
+            <option value="fps">farthest point</option>
+            <option value="rand">random</option>
+          </select>
+        </label>
+        <button class="btn" type="button" id="fps-next">Pick a point</button>
+      </div>
+      <svg id="fps-svg" width="520" height="320" viewBox="0 0 520 320" role="img" aria-label="A cloud of small dots: a dense blob on the left and a sparse arc on the right. Picked points are drawn large and numbered. A dashed circle surrounds the worst-covered point; its radius is the largest gap."></svg>
+      <div class="readout-box"><output id="fps-out"></output></div>
+      <figcaption><b>The dashed circle is the largest gap.</b> It is centered on the worst-covered point, and its radius
+      is that point's distance to the nearest pick. Farthest-point sampling always picks that center next, so the circle
+      never grows. Dots fade as they become well covered.</figcaption>
+    </figure>
+  </section>
+
+  <section id="steps">
+    <h2>Keep one gap per point, and pick the largest each round</h2>
+    <ol>
+      <li>Pick a starting point. Set every point's gap to its distance from that start.</li>
+      <li>Pick the point with the largest gap.</li>
+      <li>Measure every point's distance to the new pick. Where it is smaller than the point's gap, it becomes the new gap.</li>
+      <li>Repeat steps 2 and 3 until you have as many points as you need.</li>
+    </ol>
+    <p>Step 3 is cheap: the nearest pick of each point either stays the same or becomes the new pick, so one comparison
+    per point updates every gap.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: four picks from five points</span>
+      <p>The points are A (0, 0), B (1, 0), C (2, 0), D (6, 0) and E (6, 3). Start at A.</p>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>After picking</th><th class="r">A</th><th class="r">B</th><th class="r">C</th><th class="r">D</th><th class="r">E</th><th>Next pick</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td class="r">0</td><td class="r">1</td><td class="r">2</td><td class="r">6</td><td class="r"><b>6.71</b></td><td>E</td></tr>
+          <tr><td>A, E</td><td class="r">0</td><td class="r">1</td><td class="r">2</td><td class="r"><b>3</b></td><td class="r">0</td><td>D</td></tr>
+          <tr><td>A, E, D</td><td class="r">0</td><td class="r">1</td><td class="r"><b>2</b></td><td class="r">0</td><td class="r">0</td><td>C</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <ol>
+        <li>From A, E is farthest: √(6² + 3²) = √45 ≈ 6.71. Pick E.</li>
+        <li>New distances to E: B is √(25 + 9) ≈ 5.83, C is √(16 + 9) = 5, D is 3. Keep the smaller of old and new gap:
+        B stays 1, C stays 2, and D drops from 6 to 3. The largest gap is D's 3. Pick D.</li>
+        <li>D is 5 from B and 4 from C, so their gaps stay 1 and 2. The largest is C's 2. Pick C.</li>
+      </ol>
+      <p>The order is A, E, D, C. B, crowded next to A and C, is picked last.</p>
+    </div>
+    <p class="code-cap">fps.py</p>
+<pre><code class="py">import numpy as np
+
+def farthest_point_sampling(pts, k, start=0):
+    chosen = [start]
+    gap = np.sqrt(((pts - pts[start]) ** 2).sum(axis=1))   # distance to the chosen set
+    for _ in range(k - 1):
+        i = int(gap.argmax())                               # the worst-covered point
+        chosen.append(i)
+        d = np.sqrt(((pts - pts[i]) ** 2).sum(axis=1))
+        gap = np.minimum(gap, d)                            # the new point may be closer
+    return chosen
+
+pts = np.array([[0, 0], [1, 0], [2, 0], [6, 0], [6, 3]], dtype=float)
+print(farthest_point_sampling(pts, 4))
+</code></pre>
+<pre class="out"><code>[0, 4, 3, 2]</code></pre>
+    <p>Indexes 0, 4, 3, 2 are A, E, D, C. <code>pts - pts[i]</code> subtracts one point from every row at once, and
+    <a href="broadcasting.html">broadcasting</a> explains how. <code>np.minimum</code> takes the smaller of two numbers at
+    each position, which is step 3 for every point at once. The name <code>_</code> is a loop variable that the loop never uses.</p>
+    <p>Each pick measures one distance per point, so <var>K</var> picks from <var>N</var> points cost <var>K</var> ×
+    <var>N</var> distances. Picking 1,024 points from 100,000 takes about 10<sup>8</sup> distances: work that a GPU does
+    quickly, since every point's update is the same simple step.</p>
+
+    <div class="callout warn">
+      <span class="callout-title">What "evenly" means here, and its limits</span>
+      <p>FPS is greedy: each pick is the best next step, not part of a best overall plan. Its largest gap is still at
+      most twice the smallest largest gap that any choice of the same number of points could reach. The result depends on
+      the start point, which code often picks at random. And because FPS chases far-away points, a single stray point
+      from noise in a scan gets picked early.</p>
+    </div>
+  </section>
+
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>Your turn: the points are (0, 0), (2, 0), (3, 0), (10, 0) and (10, 1). Start at (0, 0) and pick three points
+      in all. Which are they, in order?</p>
+      <details><summary>Answer</summary><p>(0, 0), then (10, 1) at √101 ≈ 10.05. The gaps are then 2 for (2, 0), 3 for
+      (3, 0) and 1 for (10, 0), because (10, 0) is 1 from (10, 1). So the third pick is (3, 0).</p></details>
+    </li>
+    <li>
+      <p>A scan of a room has 90% of its points on one wall that the scanner faced. You need 500 points that show the
+      whole room. Why is FPS a better choice than a random sample here?</p>
+      <details><summary>Answer</summary><p>A random sample would put about 450 of the 500 points on that one wall. FPS
+      spreads its picks over the whole room, because it always fills the largest uncovered region.</p></details>
+    </li>
+    <li>
+      <p>In the widget with farthest-point picks, what happens to the dashed circle after each pick, and why can it
+      never grow?</p>
+      <details><summary>Answer</summary><p>It shrinks or stays the same. Each new pick can only make a point's nearest
+      pick closer, so no gap ever grows, and so neither can the largest gap.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://en.wikipedia.org/wiki/Farthest-first_traversal#Greedy_exact_algorithm">Farthest-first traversal: Greedy exact algorithm</a>
+        <span class="fl-src">Wikipedia</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">The same method under its name in computer science, with its cost and its "at most twice" guarantee.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://arxiv.org/abs/1706.02413">PointNet++: Deep Hierarchical Feature Learning on Point Sets in a Metric Space</a>
+        <span class="fl-src">Qi, Yi, Su and Guibas, 2017</span>
+        <span class="fl-format">Paper</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">The paper that made FPS a standard step in neural networks for point clouds. Section 3.2 uses it
+      to choose centers.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <p>No unit or explanation builds on this one yet.</p>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  'use strict';
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.getElementById('fps-svg'), out = document.getElementById('fps-out');
+  const methodSel = document.getElementById('fps-method'), nextBtn = document.getElementById('fps-next');
+  let seed = 5;
+  const rand = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+  const gauss = () => { let u = 0; for (let i = 0; i < 6; i++) u += rand(); return (u - 3) / Math.sqrt(0.5); };
+  // the cloud: a crowded blob and a sparse arc
+  const P = [];
+  for (let i = 0; i < 240; i++) P.push([120 + gauss() * 26, 170 + gauss() * 26]);
+  for (let i = 0; i < 60; i++) { const a = -1.2 + 2.4 * (i / 59) + (rand() - 0.5) * 0.04; P.push([300 + 170 * Math.cos(a), 160 + 130 * Math.sin(a) + (rand() - 0.5) * 8]); }
+  const N = P.length, MAXK = 20;
+  const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+  let chosen, gap, randOrder;
+  function reset() {
+    chosen = []; gap = new Array(N).fill(Infinity);
+    // a fixed random order for the random method
+    seed = 99; randOrder = [...Array(N).keys()];
+    for (let i = N - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [randOrder[i], randOrder[j]] = [randOrder[j], randOrder[i]]; }
+  }
+  function pick() {
+    if (chosen.length >= MAXK) return;
+    let i;
+    if (chosen.length === 0) i = 0;                         // both methods start at the same point
+    else if (methodSel.value === 'fps') { i = 0; for (let j = 1; j < N; j++) if (gap[j] > gap[i]) i = j; }
+    else i = randOrder.find(j => !chosen.includes(j) && j !== 0);
+    chosen.push(i);
+    for (let j = 0; j < N; j++) gap[j] = Math.min(gap[j], dist(P[j], P[i]));
+  }
+  function mk(tag, attrs, text) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    svg.appendChild(e); return e;
+  }
+  function draw() {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    let worst = 0, gmax = 0;
+    if (chosen.length) for (let j = 0; j < N; j++) if (gap[j] > gmax) { gmax = gap[j]; worst = j; }
+    const big = chosen.length ? gmax : 1;
+    P.forEach((p, j) => {
+      const op = chosen.length ? 0.25 + 0.75 * Math.min(1, gap[j] / big) : 0.9;
+      mk('circle', { cx: p[0], cy: p[1], r: 2.6, fill: 'var(--s1)', 'fill-opacity': op.toFixed(2) });
+    });
+    if (chosen.length) {
+      mk('circle', { cx: P[worst][0], cy: P[worst][1], r: gmax, fill: 'var(--s4)', 'fill-opacity': 0.08, stroke: 'var(--s4)', 'stroke-dasharray': '5 4', 'stroke-width': 1.6 });
+      mk('circle', { cx: P[worst][0], cy: P[worst][1], r: 4, fill: 'none', stroke: 'var(--s4)', 'stroke-width': 2 });
+    }
+    chosen.forEach((i, k) => {
+      mk('circle', { cx: P[i][0], cy: P[i][1], r: 7, fill: 'var(--s2)', stroke: 'var(--surface)', 'stroke-width': 1.5 });
+      mk('text', { x: P[i][0] + 9, y: P[i][1] - 7, style: 'font-size:11px;font-weight:600' }, k + 1);
+    });
+    const name = methodSel.value === 'fps' ? 'Farthest point' : 'Random';
+    if (!chosen.length) out.textContent = name + ': no points picked yet. Press "Pick a point".';
+    else out.textContent = name + ': ' + chosen.length + ' picked. Largest gap: ' + gmax.toFixed(0) + ' px.' +
+      (chosen.length >= MAXK ? ' That is the limit; change the method to start again.' : '');
+    nextBtn.disabled = chosen.length >= MAXK;
+  }
+  nextBtn.addEventListener('click', () => { pick(); draw(); });
+  methodSel.addEventListener('change', () => { reset(); draw(); });
+  reset(); draw();
+})();
+</script>
+</body>
+</html>

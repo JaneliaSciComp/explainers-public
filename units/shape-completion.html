@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="shape-completion">
+<meta name="unit-level" content="u1">
+<title>Shape completion: generating the missing part</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  .wcanvas { width: 100%; max-width: 520px; height: auto; aspect-ratio: 4 / 3; margin: 0 auto; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Shape completion: generating the missing part</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="conditional-generation.html">Conditional generation: generating from a hint</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+    <li><a href="point-clouds.html">Shapes as point clouds</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>Shape completion takes part of a shape and generates the rest. The known part is the condition, and the output is
+  the missing part. For a shape stored as a point cloud, the model generates new points where the shape is missing.
+  Often several completions fit the same known part, so a generative model proposes several, each different. Training
+  needs no labels: cut a complete shape in two, show the model one part, and ask it to generate the other.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="continue">
+    <h2>A completion continues a partial shape</h2>
+    <p>A 3D scanner sees a mug from one side, so the scan has no points on the back. A branch runs off the edge of an
+    image, so its end is cut off. In both cases we have a partial shape, stored as a <a href="point-clouds.html">point
+    cloud</a>, and we want a plausible rest. Shape completion is <a href="conditional-generation.html">conditional
+    generation</a> where the condition is the known part.</p>
+    <figure id="fig-complete">
+      <div class="fig-title">One known part (grey), several generated completions (colored)</div>
+      <canvas id="sc-canvas" class="wcanvas" role="img" aria-label="Grey points of a partial branch end at a dashed cut line; colored completions continue it, bending up or down"></canvas>
+      <div class="controls">
+        <button class="btn" type="button" id="sc-gen">Generate a completion</button>
+        <button class="btn" type="button" id="sc-avg" aria-pressed="false">Show the average of 50</button>
+      </div>
+      <p class="readout-box" id="sc-read">…</p>
+      <figcaption><b>Try this.</b> Press <i>Generate a completion</i> four times. Near the cut, do the completions agree?
+      Where do they disagree most? Then predict what the point-by-point average of 50 completions looks like, and turn
+      it on. The completions come from a hand-written random rule that stands in for a trained model.</figcaption>
+    </figure>
+    <details><summary>What you should find</summary><p>Near the cut, every completion continues in the direction of
+    the known part. Farther on, they split: some bend up, some bend down. The average of 50 runs nearly straight, between
+    the two groups, and stops short. Hardly any completion goes there.</p></details>
+  </section>
+
+  <section id="pairs">
+    <h2>Training pairs come from cutting complete shapes</h2>
+    <p>To train a completion model, you need pairs: a known part and its true missing part. Complete shapes supply
+    them. Cut a complete shape in two, give the model one part as the condition, and train it to generate the other.
+    Each shape gives many pairs, because each cut can fall in a different place. No person has to label anything,
+    because the data supply their own answers. This is called <dfn>self-supervised</dfn> learning.</p>
+    <div class="example">
+      <span class="example-title">Worked example: one shape, one cut</span>
+      <p>A complete shape is 12 points spaced evenly along a quarter circle of radius 4, from (4, 0) to (0, 4).</p>
+      <ol>
+        <li>Cut at <var>x</var> = 1.5. The points with <var>x</var> &gt; 1.5 are known: the first 9, from (4, 0) to (1.66, 3.64).</li>
+        <li>The other 3 points are missing: (1.13, 3.84), (0.57, 3.96) and (0, 4).</li>
+        <li>The pair is (known: 9 points, missing: 3 points). A cut at <var>x</var> = 2.7 makes a different pair, with 6 known
+        and 6 missing points.</li>
+      </ol>
+    </div>
+    <figure id="fig-cut" class="plain">
+      <svg width="240" height="220" viewBox="0 0 240 220" role="img" aria-label="Twelve points on a quarter circle; nine on the right of a dashed cut line are filled, three on the left are hollow">
+        <line x1="96" y1="8" x2="96" y2="212" stroke="var(--ink-3)" stroke-dasharray="5 4"/>
+        <text x="100" y="212" class="muted">cut, x = 1.5</text>
+        <g class="f-s1">
+          <circle cx="206" cy="200" r="5"/><circle cx="204.2" cy="175" r="5"/><circle cx="198.9" cy="150.4" r="5"/>
+          <circle cx="190.1" cy="126.9" r="5"/><circle cx="178.1" cy="104.8" r="5"/><circle cx="163" cy="84.7" r="5"/>
+          <circle cx="145.3" cy="67" r="5"/><circle cx="125.2" cy="51.9" r="5"/><circle cx="103.1" cy="39.9" r="5"/>
+        </g>
+        <g fill="none" class="st-s2" stroke-width="2.2">
+          <circle cx="79.6" cy="31.1" r="5"/><circle cx="55" cy="25.8" r="5"/><circle cx="30" cy="24" r="5"/>
+        </g>
+        <text x="200" y="40" text-anchor="end">known: 9</text>
+        <text x="16" y="56">missing: 3</text>
+      </svg>
+      <figcaption><b>One training pair.</b> Filled points are the condition. Hollow points are what the model learns to
+      generate.</figcaption>
+    </figure>
+    <p>The known part and the missing part stay in the same coordinates, so the generated points land in the right
+    place. Many pipelines also shift and scale each pair so that the known part is centered (see
+    <a href="normalizing-data.html">normalizing data</a>).</p>
+
+    <p class="code-cap">make_pairs.py</p>
+<pre><code class="py">import numpy as np
+
+rng = np.random.default_rng(2)
+
+# A full shape: 12 points along a quarter circle of radius 4.
+a = np.linspace(0, np.pi / 2, 12)
+shape = np.stack([4 * np.cos(a), 4 * np.sin(a)], axis=1)
+
+def make_pair(shape):
+    """Cut a full shape at a random x: the right part is known, the left part is missing."""
+    cut = rng.uniform(1.0, 3.0)
+    known = shape[shape[:, 0] > cut]
+    missing = shape[shape[:, 0] <= cut]
+    return cut, known, missing
+
+for _ in range(3):                    # one shape gives many training pairs
+    cut, known, missing = make_pair(shape)
+    print(f"cut at x = {cut:.2f}: {len(known)} known, {len(missing)} missing")
+</code></pre>
+<pre class="out">cut at x = 1.52: 9 known, 3 missing
+cut at x = 1.60: 9 known, 3 missing
+cut at x = 2.63: 6 known, 6 missing</pre>
+  </section>
+
+  <section id="keep-apart">
+    <h2>A generative model keeps the possibilities apart</h2>
+    <p>If a shape may continue upward or downward, a predictor trained with squared error returns the average of the two
+    (see <a href="loss-function.html#best-guess">loss</a>): a short stub between them, or points smeared over both. A
+    generative model picks one possibility per sample. Ask for several samples, and you see the range of plausible
+    completions.</p>
+    <p>The spread of the samples is useful in itself. If many completions agree, the known part settles the answer. If
+    they spread out, the known part leaves the answer open there. Completions can also test a candidate: if a piece of
+    shape lies where many completions go, it plausibly continues the known part.</p>
+  </section>
+
+  <section id="sets">
+    <h2>The output is a set of points, not a list</h2>
+    <p>A point cloud has no order. The same points listed in another order are the same shape (see
+    <a href="permutation-invariance.html">permutation invariance</a>). So a completion model must produce the missing
+    points as a set. A score for how well a completion matches the true missing part must compare sets, not lists: for
+    example, it can match each generated point to the nearest true point.</p>
+    <p>Models such as the
+    <a href="diffusion-transformer.html">diffusion transformer</a> treat every point alike, which suits sets. With
+    <a href="flow-matching.html">flow matching</a>, each output point starts as a noise point and moves into place.
+    Its training pairs each noise point with one true point and compares velocities point by point, so its loss needs
+    no comparison of sets.</p>
+    <div class="callout warn">
+      <span class="callout-title">Real cuts are messier</span>
+      <p>This page cuts shapes with one straight line. Real partial shapes can miss patches in the middle, have noisy known
+      parts, or come from several views. The idea stays the same: generate what is missing, conditioned on what is
+      known.</p>
+    </div>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>Why does a shape-completion model need no human labels?</p>
+      <details><summary>Answer</summary><p>Cutting a complete shape makes both halves of a training pair: the known part
+      is the input, and the cut-off part is the answer. The data supply their own answers.</p></details>
+    </li>
+    <li>
+      <p>Ten completions of shape A all agree closely. Ten completions of shape B point in three directions. What does
+      each tell you?</p>
+      <details><summary>Answer</summary><p>For A, the known part settles how the shape continues. For B, the known part
+      leaves several continuations plausible, so the model is unsure there.</p></details>
+    </li>
+    <li>
+      <p>A shape may continue upward or downward, equally often. A predictor trained with squared error completes it.
+      What does it output, and why is that a problem?</p>
+      <details><summary>Answer</summary><p>Roughly the average of the two: a short straight stub between them, or a smear
+      over both. Neither is a shape that occurs in the data.</p></details>
+    </li>
+    <li>
+      <p>A model returns 3 missing points. You list them in a different order. Is that a different completion?</p>
+      <details><summary>Answer</summary><p>No. A point cloud is a set, so its order carries no meaning.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers with more time.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://alexzhou907.github.io/pvd">3D Shape Generation and Completion through Point-Voxel Diffusion</a>
+        <span class="fl-src">Zhou, Du and Wu</span>
+        <span class="fl-format">Project page</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">A diffusion model that generates several different completions of one partial 3D scan, with
+      figures of the spread.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://arxiv.org/abs/1808.00671">PCN: Point Completion Network</a>
+        <span class="fl-src">Yuan, Khot, Held, Mertz and Hebert</span>
+        <span class="fl-format">Paper</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">An early, widely cited network that completes point clouds with one answer per input: the
+      predictor approach, for contrast.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <p>No unit or explanation builds on this one yet.</p>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  'use strict';
+  const root = document.documentElement;
+  const css = n => getComputedStyle(root).getPropertyValue(n).trim();
+  const fit = cv => {
+    const dpr = window.devicePixelRatio || 1;
+    const w = Math.max(1, Math.round(cv.clientWidth)), h = Math.max(1, Math.round(cv.clientHeight));
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
+      cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    }
+    const ctx = cv.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    return { ctx, w, h };
+  };
+  const rand = seed => () => {
+    seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const gauss = r => { let u = 0; while (u === 0) u = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * r()); };
+
+  const cv = document.getElementById('sc-canvas');
+  if (!cv) return;
+  const read = document.getElementById('sc-read'), bAvg = document.getElementById('sc-avg');
+  const VX0 = -0.3, VX1 = 4.1, VY0 = -1.65, VY1 = 1.65, STEP = 0.13, NPTS = 16, CUT = 1.95;
+  const r0 = rand(21);
+  const known = [];
+  for (let i = 0; i < 15; i++) { const x = i * 0.13; known.push([x + 0.012 * gauss(r0), 0.05 * x + 0.02 * gauss(r0)]); }
+  const start = [15 * 0.13, 0.05 * 15 * 0.13], head0 = Math.atan(0.05);
+  // the stand-in model: continue from the cut, bending up or down by a random amount
+  const complete = r => {
+    const k = (r() < 0.5 ? -1 : 1) * (0.5 + 0.2 * Math.abs(gauss(r)));
+    const pts = [];
+    let p = start.slice(), th = head0;
+    for (let i = 0; i < NPTS; i++) {
+      p = [p[0] + STEP * Math.cos(th), p[1] + STEP * Math.sin(th)];
+      th += k * STEP;
+      pts.push([p[0] + 0.015 * gauss(r), p[1] + 0.015 * gauss(r)]);
+    }
+    return pts;
+  };
+  let seed = 100, shown = [], showAvg = false;
+  const rAvg = rand(77), avg = [];
+  { const many = Array.from({ length: 50 }, () => complete(rAvg));
+    for (let i = 0; i < NPTS; i++) avg.push([many.reduce((s, c) => s + c[i][0], 0) / 50, many.reduce((s, c) => s + c[i][1], 0) / 50]); }
+  const addOne = () => { shown.push(complete(rand(seed++))); if (shown.length > 4) shown.shift(); paint(); };
+
+  function paint() {
+    const { ctx, w, h } = fit(cv);
+    const S = Math.min(w / (VX1 - VX0), h / (VY1 - VY0)), X = x => (x - VX0) * S, Y = y => h - (y - VY0) * S;
+    ctx.strokeStyle = css('--ink-3'); ctx.setLineDash([5, 4]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(X(CUT), Y(VY0)); ctx.lineTo(X(CUT), Y(VY1)); ctx.stroke(); ctx.setLineDash([]);
+    ctx.font = '13px ' + css('--font-body'); ctx.fillStyle = css('--ink-2');
+    ctx.textAlign = 'right'; ctx.fillText('known', X(CUT) - 8, Y(VY1) + 16);
+    ctx.textAlign = 'left'; ctx.fillText('missing', X(CUT) + 8, Y(VY1) + 16);
+    ctx.fillStyle = css('--ink-3');
+    for (const p of known) { ctx.beginPath(); ctx.arc(X(p[0]), Y(p[1]), 4, 0, 2 * Math.PI); ctx.fill(); }
+    const cols = ['--s1', '--s2', '--s3', '--s4'];
+    shown.forEach((c, j) => {
+      ctx.fillStyle = css(cols[(seed - shown.length + j) % 4]);
+      for (const p of c) { ctx.beginPath(); ctx.arc(X(p[0]), Y(p[1]), 3.6, 0, 2 * Math.PI); ctx.fill(); }
+    });
+    if (showAvg) {
+      ctx.strokeStyle = css('--ink'); ctx.lineWidth = 2.2; ctx.setLineDash([6, 4]);
+      ctx.beginPath(); ctx.moveTo(X(start[0]), Y(start[1]));
+      for (const p of avg) ctx.lineTo(X(p[0]), Y(p[1]));
+      ctx.stroke(); ctx.setLineDash([]);
+      const e = avg[NPTS - 1];
+      ctx.fillStyle = css('--ink'); ctx.fillText('average of 50', X(e[0]) + 8, Y(e[1]) + 4);
+    }
+    read.textContent = `${shown.length} completion${shown.length === 1 ? '' : 's'} shown (the last four are kept).` +
+      (showAvg ? ' Dashed: the point-by-point average of 50 completions.' : '');
+  }
+  document.getElementById('sc-gen').addEventListener('click', addOne);
+  bAvg.addEventListener('click', () => { showAvg = !showAvg; bAvg.setAttribute('aria-pressed', String(showAvg)); paint(); });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', paint);
+  new MutationObserver(paint).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+  window.addEventListener('resize', paint);
+  for (let i = 0; i < 3; i++) shown.push(complete(rand(seed++)));
+  paint();
+})();
+</script>
+</body>
+</html>

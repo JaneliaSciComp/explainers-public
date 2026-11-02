@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="learning-rate-schedule">
+<meta name="unit-level" content="u1">
+<title>Learning-rate schedules: warm-up, decay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  svg .gl { stroke: var(--grid); stroke-width: 1; }
+  svg .ax { stroke: var(--ink-3); stroke-width: 1; }
+  svg .tick { font-size: 15px; }
+  svg .band { fill: var(--s4); fill-opacity: 0.14; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Learning-rate schedules: warm-up, decay</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="gradient-descent.html">Gradient descent</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A learning-rate schedule changes the learning rate as training goes on, by a plan fixed before training starts.
+  The most common plan has two parts. During warm-up, the rate rises in a straight line from near zero to its peak
+  over the first few thousand steps. During decay, it falls back toward zero by the last step, often along a cosine
+  curve. Small early steps keep the random starting weights from being thrown off; small late steps let the weights
+  settle.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="why">
+    <h2>No single learning rate suits the whole run</h2>
+    <p>In <a href="gradient-descent.html">gradient descent</a>, the learning rate <var>&eta;</var> scales every
+    step. A large rate makes fast progress but overshoots and bounces around a low point. A small rate is precise but
+    slow. A <dfn>learning-rate schedule</dfn> uses different rates at different times: a function that gives
+    <var>&eta;</var> for each step number <var>t</var>.</p>
+    <ul>
+      <li><dfn>Warm-up</dfn> starts small. At the start the weights are random, so gradients are large and point in
+      changing directions. Optimizers such as <a href="adamw.html">AdamW</a> also have only a few gradients in their
+      running averages. Large steps now can throw the weights into a region where training fails.</li>
+      <li><dfn>Decay</dfn> ends small. Late in training, each step's gradient comes from a small random batch of
+      examples, so it is noisy. With a large rate the weights keep jumping around near a low point. Shrinking the rate
+      lets them settle into it.</li>
+    </ul>
+  </section>
+
+  <section id="formula">
+    <h2>Warm-up is a straight rise; cosine decay is half a wave down</h2>
+    <p>Write <var>W</var> for the number of warm-up steps, <var>T</var> for the total number of steps, and
+    <var>&eta;</var><sub>peak</sub> for the highest rate. During warm-up (<var>t</var> &lt; <var>W</var>):</p>
+    <p class="math"><var>&eta;</var><sub><var>t</var></sub> = <var>&eta;</var><sub>peak</sub> &times; <var>t</var> / <var>W</var></p>
+    <p>After warm-up, let <var>p</var> = (<var>t</var> &minus; <var>W</var>) / (<var>T</var> &minus; <var>W</var>) be the
+    fraction of the decay that is done, from 0 to 1. Cosine decay to zero is:</p>
+    <p class="math"><var>&eta;</var><sub><var>t</var></sub> = <var>&eta;</var><sub>peak</sub> &times; &frac12;(1 + cos(&pi;<var>p</var>))</p>
+    <p>The factor &frac12;(1 + cos(&pi;<var>p</var>)) falls smoothly from 1 at <var>p</var> = 0 to 0 at
+    <var>p</var> = 1. It falls slowly at first, fastest in the middle, and slowly again at the end. (A
+    <a href="sine-waves.html">cosine</a> is a sine wave shifted by a quarter turn.) Some schedules stop at a small
+    floor <var>&eta;</var><sub>min</sub> instead of 0.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: four points on one schedule</span>
+      <p>Take <var>&eta;</var><sub>peak</sub> = 0.001, <var>W</var> = 1,000 and <var>T</var> = 10,000.</p>
+      <ol>
+        <li>Step 500 is in warm-up: 0.001 &times; 500 / 1,000 = <b>0.0005</b>.</li>
+        <li>Step 1,000 ends warm-up: 0.001 &times; 1,000 / 1,000 = <b>0.001</b>, the peak.</li>
+        <li>Step 5,500: <var>p</var> = 4,500 / 9,000 = 0.5. Factor &frac12;(1 + cos(&pi;/2)) = &frac12;(1 + 0) = 0.5.
+        Rate <b>0.0005</b>.</li>
+        <li>Step 10,000: <var>p</var> = 1. Factor &frac12;(1 + cos &pi;) = &frac12;(1 &minus; 1) = 0. Rate <b>0</b>.</li>
+      </ol>
+      <p><b>Your turn.</b> What is the rate at step 7,750? Use cos(3&pi;/4) &asymp; &minus;0.707.</p>
+      <details><summary>Answer</summary><p><var>p</var> = 6,750 / 9,000 = 0.75. Factor &frac12;(1 &minus; 0.707)
+      &asymp; 0.146. Rate &asymp; 0.000146.</p></details>
+    </div>
+  </section>
+
+  <section id="shapes">
+    <h2>The warm-up length and the decay shape are settings to choose</h2>
+    <p><b>Try it.</b> The figure draws the schedule over 10,000 steps with a peak of 0.001. Predict first: with no
+    warm-up at all, what rate does the very first step use? Then find the warm-up length at which step 500 uses half
+    the peak rate.</p>
+    <figure id="fig-sched">
+      <div class="fig-title">The learning rate at every step of a 10,000-step run</div>
+      <div class="controls">
+        <label>warm-up steps <input type="range" id="ls-w" min="0" max="4000" step="100" value="1000"> <output id="ls-w-out">1000</output></label>
+        <label>decay
+          <select id="ls-shape">
+            <option value="cos" selected>cosine</option>
+            <option value="lin">straight line</option>
+            <option value="none">none (constant)</option>
+          </select>
+        </label>
+      </div>
+      <svg id="ls-svg" width="440" height="240" viewBox="0 0 440 240" role="img"
+           aria-label="The learning rate against the step number: a straight rise during warm-up, shaded, then a fall to zero."></svg>
+      <p class="small" id="ls-read" aria-live="polite"></p>
+      <figcaption><b>The shaded band is warm-up; the rest is decay.</b> A longer warm-up leaves fewer steps at high
+      rates. The dot marks step 500.</figcaption>
+    </figure>
+    <details><summary>Answer</summary><p>With no warm-up, the first step uses the full peak, 0.001. Step 500 uses half
+    the peak when warm-up lasts 1,000 steps.</p></details>
+    <p>Other schedules exist. <dfn>Step decay</dfn> multiplies the rate by a fixed factor, such as 0.1, at chosen
+    steps. The original Transformer paper used warm-up followed by a fall in proportion to
+    1&nbsp;/&nbsp;&radic;<var>t</var>. All of them share the same two aims: careful at the start, settled at the
+    end.</p>
+
+    <div class="callout warn">
+      <span class="callout-title">What is known and what is folklore</span>
+      <p>That warm-up and decay help is well established in practice. Why warm-up helps is still studied, and the
+      reasons given above are the common explanations, not proofs. The warm-up length, the peak and the shape are
+      tuned for each problem. In PyTorch, AdamW's weight decay is multiplied by the current rate, so the schedule
+      changes it too.</p>
+    </div>
+  </section>
+
+  <section id="in-code">
+    <h2>In PyTorch, a scheduler sets the rate before each step</h2>
+    <p><code>LambdaLR</code> multiplies the optimizer's rate by a function of the step count. Call
+    <code>sched.step()</code> once after each <code>opt.step()</code>. If you call it once per pass over the data
+    instead, the function's <var>t</var> counts passes, not steps.</p>
+    <p class="code-cap">schedule_torch.py</p>
+<pre><code class="py">import math
+import torch
+
+peak, warmup, total = 0.001, 1000, 10_000
+
+def factor(step):                        # multiplies the peak rate
+    if step &lt; warmup:
+        return step / warmup             # straight rise from 0
+    p = (step - warmup) / (total - warmup)
+    return 0.5 * (1 + math.cos(math.pi * p))  # cosine fall to 0
+
+w = torch.zeros(1, requires_grad=True)
+opt = torch.optim.AdamW([w], lr=peak)
+sched = torch.optim.lr_scheduler.LambdaLR(opt, factor)
+
+for step in range(total):
+    if step in (0, 500, 1000, 5500, 7750):
+        print(step, f"{opt.param_groups[0]['lr']:.6f}")
+    w.grad = torch.zeros(1)
+    opt.step()
+    sched.step()                         # after each optimizer step
+</code></pre>
+<pre class="out"><code>0 0.000000
+500 0.000500
+1000 0.001000
+5500 0.000500
+7750 0.000146</code></pre>
+    <p>With this function, step 0 has a rate of exactly 0, so the first step changes nothing. Some code uses
+    (<var>t</var> + 1) / <var>W</var> instead to avoid that wasted step.</p>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>A run has <var>&eta;</var><sub>peak</sub> = 0.002 and 1,000 warm-up steps. What is the rate at step 250?</p>
+      <details><summary>Answer</summary><p>0.002 &times; 250 / 1,000 = 0.0005.</p></details>
+    </li>
+    <li>
+      <p>With cosine decay, what fraction of the peak is left a quarter of the way through the decay
+      (<var>p</var> = 0.25)? Use cos(&pi;/4) &asymp; 0.707.</p>
+      <details><summary>Answer</summary><p>&frac12;(1 + 0.707) &asymp; 0.854, so about 85% of the peak. Cosine decay
+      stays high for a while, then falls faster.</p></details>
+    </li>
+    <li>
+      <p>Someone writes the schedule above but calls <code>sched.step()</code> once per pass over a data set that takes
+      200 steps per pass. What happens to warm-up?</p>
+      <details><summary>Answer</summary><p>Warm-up now lasts 1,000 passes, which is 200,000 steps. The run will likely
+      end long before the rate reaches its peak.</p></details>
+    </li>
+    <li>
+      <p>Why end training with a small learning rate instead of the peak?</p>
+      <details><summary>Answer</summary><p>Each step's gradient is noisy, so at a high rate the weights keep jumping
+      around a low point of the loss. A small rate lets them settle into it, which usually lowers the final loss.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://d2l.ai/chapter_optimization/lr-scheduler.html#warmup">Dive into Deep Learning, 12.11.3.4 Warmup</a>
+        <span class="fl-src">Zhang, Lipton, Li and Smola</span>
+        <span class="fl-format">Book</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Plots a cosine schedule with a straight-line warm-up and trains a network with it. Compare its
+      first epochs with the run without warm-up in the section just before, which covers cosine decay.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://docs.pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.LambdaLR.html">torch.optim.lr_scheduler.LambdaLR</a>
+        <span class="fl-src">PyTorch documentation</span>
+        <span class="fl-format">Reference</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">The scheduler used above; the sidebar lists PyTorch's ready-made schedules.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://arxiv.org/abs/1706.02677">Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour</a>
+        <span class="fl-src">Goyal and others, 2017</span>
+        <span class="fl-format">Paper</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">The paper that made gradual warm-up standard; its warm-up section explains the problem it
+      solves.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="training-loop.html">The training loop</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (tag, attrs, parent, text) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text !== undefined) e.textContent = text;
+    parent.appendChild(e);
+    return e;
+  };
+  const svg = document.getElementById('ls-svg'), wS = document.getElementById('ls-w'), shape = document.getElementById('ls-shape');
+  const wOut = document.getElementById('ls-w-out'), read = document.getElementById('ls-read');
+  if (!svg || !wS || !shape) return;
+  const T = 10000, PEAK = 0.001, L = 62, R = 405, TOP = 12, B = 196;
+  const px = t => L + t / T * (R - L), py = v => B - v / (PEAK * 1.08) * (B - TOP);
+  function rate(t, W, s) {
+    if (t < W) return PEAK * t / W;
+    const p = (t - W) / Math.max(1, T - W);
+    if (s === 'cos') return PEAK * 0.5 * (1 + Math.cos(Math.PI * p));
+    if (s === 'lin') return PEAK * (1 - p);
+    return PEAK;
+  }
+  const base = el('g', {}, svg), layer = el('g', {}, svg);
+  for (const v of [0, 0.0005, 0.001]) {
+    el('line', { x1: L, y1: py(v), x2: R, y2: py(v), class: 'gl' }, base);
+    el('text', { x: L - 6, y: py(v) + 4, 'text-anchor': 'end', class: 'muted tick' }, base, String(v));
+  }
+  for (const t of [0, 2500, 5000, 7500, 10000]) el('text', { x: px(t), y: B + 17, 'text-anchor': 'middle', class: 'muted tick' }, base, t.toLocaleString('en-US'));
+  el('text', { x: (L + R) / 2, y: B + 35, 'text-anchor': 'middle', class: 'ink2 tick' }, base, 'step');
+  function update() {
+    const W = Number(wS.value), s = shape.value;
+    while (layer.firstChild) layer.removeChild(layer.firstChild);
+    if (W > 0) el('rect', { x: px(0), y: TOP, width: px(W) - px(0), height: B - TOP, class: 'band' }, layer);
+    let d = '';
+    for (let i = 0; i <= 500; i++) { const t = T * i / 500; d += (i ? 'L' : 'M') + px(t).toFixed(1) + ' ' + py(rate(t, W, s)).toFixed(1); }
+    if (W > 0) d = 'M' + px(0) + ' ' + py(0) + d.replace(/^M/, 'L');
+    el('path', { d, fill: 'none', class: 'st-s1', 'stroke-width': 2.5, 'stroke-linejoin': 'round' }, layer);
+    const r500 = rate(500, W, s);
+    el('circle', { cx: px(500), cy: py(r500), r: 5.5, class: 'f-s2' }, layer);
+    wOut.textContent = W.toLocaleString('en-US');
+    read.textContent = 'Step 0: ' + rate(0, W, s).toFixed(6) + '.  Step 500: ' + r500.toFixed(6) + '.  Step 5,500: ' + rate(5500, W, s).toFixed(6) + '.';
+  }
+  wS.addEventListener('input', update);
+  shape.addEventListener('change', update);
+  update();
+})();
+</script>
+</body>
+</html>

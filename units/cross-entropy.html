@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="cross-entropy">
+<meta name="unit-level" content="u1">
+<title>Cross-entropy: scoring a choice among many</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Cross-entropy: scoring a choice among many</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="softmax.html">Softmax: probabilities over many choices</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+    <li><a href="loss-function.html">Loss: one number for how wrong</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">9 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A model that picks one class out of several gives each class a probability, usually with a
+  <a href="softmax.html">softmax</a>. <dfn>Cross-entropy</dfn> is the <a href="loss-function.html">loss</a> that
+  grades those probabilities once the right class is known. The charge is minus the natural logarithm of the
+  probability given to the right class. Probability 1 costs nothing; each halving of that probability adds the same
+  amount, ln 2 ≈ 0.693. A model that spreads its probability evenly over <var>K</var> classes pays ln <var>K</var>.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="right-class">
+    <h2>Only the probability given to the right class enters the charge</h2>
+    <p>Picture a model that labels photos as cat, dog or bird. For one photo it says cat 0.659, dog 0.242 and bird
+    0.099. The photo shows a dog. The model gave the truth a probability of 0.242, so it pays</p>
+    <p class="math"><var>L</var> = −ln <var>p</var><sub>right</sub> = −ln 0.2424 ≈ 1.417</p>
+    <p>Had the photo shown a cat, it would pay −ln 0.659 ≈ 0.417. Here ln is the natural logarithm, from the
+    <a href="exponentials.html">exponentials</a> unit. With two classes this is exactly
+    <a href="binary-cross-entropy.html">binary cross-entropy</a>.</p>
+
+    <p><b>Predict first.</b> The photo shows a dog, and the model gives the dog 0.242. Would the charge change if the
+    other 0.758 went all to the bird instead of mostly to the cat?</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: three photos</span>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Photo</th><th class="r">cat</th><th class="r">dog</th><th class="r">bird</th><th>Right class</th><th class="r">Charge</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td class="r">0.659</td><td class="r"><b>0.242</b></td><td class="r">0.099</td><td>dog</td><td class="r">1.417</td></tr>
+            <tr><td>2</td><td class="r">0.111</td><td class="r"><b>0.821</b></td><td class="r">0.067</td><td>dog</td><td class="r">0.197</td></tr>
+            <tr><td>3</td><td class="r"><b>0.107</b></td><td class="r">0.107</td><td class="r">0.787</td><td>cat</td><td class="r">2.240</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Each charge is −ln of the bold probability, computed before rounding. The loss for the set is the average: (1.417 + 0.197 + 2.240) / 3 ≈ 1.284. The other probabilities in each row
+      do not enter the sum. So the answer to the prediction is no: the charge depends only on the 0.242.</p>
+    </div>
+
+    <figure id="fig-curve">
+      <div class="fig-title">Each halving of the right class's probability adds the same charge</div>
+      <svg width="540" height="348" viewBox="0 0 360 232" role="img"
+           aria-label="A curve of charge against the probability given to the right class. The charge is 0 at probability 1 and rises ever more steeply toward probability 0. A dashed line at 1.099 marks the charge for an even guess among three classes.">
+        <line x1="40" y1="54" x2="340" y2="54" class="grid"/>
+        <line x1="40" y1="122" x2="340" y2="122" class="grid"/>
+        <line x1="190" y1="20" x2="190" y2="190" class="grid"/>
+        <line x1="40" y1="190" x2="340" y2="190" style="stroke:var(--ink-3)"/>
+        <line x1="40" y1="20" x2="40" y2="190" style="stroke:var(--ink-3)"/>
+        <text x="34" y="58" text-anchor="end" class="muted">4</text>
+        <text x="34" y="126" text-anchor="end" class="muted">2</text>
+        <text x="34" y="194" text-anchor="end" class="muted">0</text>
+        <text x="40" y="206" text-anchor="middle" class="muted">0</text>
+        <text x="190" y="206" text-anchor="middle" class="muted">0.5</text>
+        <text x="340" y="206" text-anchor="middle" class="muted">1</text>
+        <text x="190" y="224" text-anchor="middle" class="ink2">probability given to the right class</text>
+        <text x="40" y="11" class="ink2">charge</text>
+        <line x1="40" y1="152.6" x2="340" y2="152.6" class="st-s4" stroke-width="1.5" stroke-dasharray="6 4"/>
+        <text x="336" y="146" text-anchor="end" class="ink2">even guess, 3 classes: ln 3 = 1.099</text>
+        <path d="M42.0,20.0 L43.0,33.4 L44.5,47.2 L46.0,57.0 L49.0,70.8 L52.0,80.6 L55.0,88.1 L58.0,94.3 L64.0,104.1 L70.0,111.7 L82.0,123.2 L94.0,131.7 L106.0,138.5 L118.0,144.2 L130.0,149.1 L142.0,153.3 L154.0,157.1 L166.0,160.5 L178.0,163.6 L190.0,166.4 L202.0,169.0 L214.0,171.5 L226.0,173.7 L238.0,175.9 L250.0,177.9 L262.0,179.8 L274.0,181.6 L286.0,183.3 L298.0,184.9 L310.0,186.4 L322.0,187.9 L334.0,189.3 L340.0,190.0"
+              fill="none" class="st-s1" stroke-width="2.5"/>
+        <line id="ce-v" x1="112" y1="190" x2="112" y2="141.5" style="stroke:var(--ink-3)" stroke-dasharray="4 3"/>
+        <circle id="ce-dot" cx="112" cy="141.5" r="6" class="f-s2"/>
+      </svg>
+      <div class="controls">
+        <label>Probability of the right class <input id="ce-q" type="range" min="0.01" max="1" step="0.01" value="0.24"></label>
+      </div>
+      <p class="readout-box"><output id="ce-out">−ln(0.24) = 1.427  (worse than an even guess among 3)</output></p>
+      <p class="small"><b>Try it.</b> Read the charge at 1.00, 0.50 and 0.25. Predict the charge at 0.12, then drag
+      there to check. Where does the curve cross the dashed line?</p>
+      <figcaption><b>What to notice.</b> Going from 1 to 0.5 adds 0.693, and so does going from 0.5 to 0.25, and from
+      0.25 to 0.125. Below the dashed line, the model does better than an even guess among three classes; above it,
+      worse.</figcaption>
+    </figure>
+  </section>
+
+  <section id="name">
+    <h2>The full formula compares two lists of probabilities</h2>
+    <p>The textbook formula looks larger than the rule above. Write the truth as a list too: 1 for the right class
+    and 0 for every other class. For a dog this list is (0, 1, 0), which is called a <dfn>one-hot</dfn> list. Call it
+    <b>y</b>, and call the model's probabilities <b>p</b>. Then</p>
+    <p class="math"><var>H</var>(<span class="vec">y</span>, <span class="vec">p</span>) = −( <var>y</var><sub>1</sub> ln <var>p</var><sub>1</sub>
+      + … + <var>y</var><sub><var>K</var></sub> ln <var>p</var><sub><var>K</var></sub> )</p>
+    <p>Every term with <var>y</var><sub><var>i</var></sub> = 0 vanishes, which leaves −ln <var>p</var><sub>right</sub>.
+    The name comes from information theory, where cross-entropy measures how well one probability list describes
+    another. The full sum matters only when the truth is itself spread over several classes, for example 0.9 on dog
+    and 0.05 on each of the others.</p>
+  </section>
+
+  <section id="training">
+    <h2>Lowering the charge raises the right score and lowers the others</h2>
+    <p>In practice the loss is computed straight from the scores <var>z</var> that went into the softmax. Taking
+    the logarithm of the softmax formula gives</p>
+    <p class="math"><var>L</var> = −<var>z</var><sub>right</sub> + ln( <var>e</var><sup><var>z</var><sub>1</sub></sup>
+      + … + <var>e</var><sup><var>z</var><sub><var>K</var></sub></sup> )</p>
+    <p>The loss falls when the right class's score rises. It also falls when any other score drops, because that
+    shrinks the sum. For readers who know <a href="derivative.html">derivatives</a>: the derivative of <var>L</var>
+    with respect to score <var>i</var> is <var>p</var><sub><var>i</var></sub> − <var>y</var><sub><var>i</var></sub>.
+    In the dog photo that is +0.659 for cat, −0.758 for dog and +0.099 for bird.
+    <a href="gradient-descent.html">Gradient descent</a> moves each score against its derivative. So the dog's score
+    goes up, and each wrong score goes down in proportion to the probability it took.</p>
+
+    <p class="code-cap">ce.py</p>
+<pre><code class="py">import numpy as np
+
+scores = np.array([[2.0, 1.0, 0.1],    # one row of scores per example
+                   [0.5, 2.5, 0.0],
+                   [1.0, 1.0, 3.0]])
+right = np.array([1, 1, 0])            # the index of the right class
+
+# -log softmax, computed straight from the scores
+m = scores.max(axis=1, keepdims=True)
+log_p = scores - m - np.log(np.exp(scores - m).sum(axis=1, keepdims=True))
+loss = -log_p[np.arange(len(right)), right]
+print(np.round(loss, 3))
+print(round(loss.mean(), 3))
+</code></pre>
+<pre class="out">[1.417 0.197 2.24 ]
+1.284</pre>
+    <p>The three rows of scores are the ones behind the worked example's table. The code subtracts each row's
+    largest score first, as the <a href="softmax.html">softmax</a> unit explains, so large scores do not overflow.</p>
+
+    <div class="callout warn">
+      <span class="callout-title">Library loss functions usually expect scores, not probabilities</span>
+      <p>PyTorch's <code>cross_entropy</code>, for example, takes the raw scores and applies the softmax itself.
+      Passing it probabilities that have already been through a softmax applies the softmax twice. The code still
+      runs, but the loss is wrong and training slows. Check which input your library expects.</p>
+      <p>This page also uses the natural logarithm. Information theory often uses log base 2 and measures in bits.
+      The two differ only by a constant factor, ln 2.</p>
+    </div>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>A model says cat 0.7, dog 0.2, bird 0.1. What is the charge if the photo shows a bird? A cat?</p>
+      <details><summary>Answer</summary><p>Bird: −ln 0.1 ≈ 2.303. Cat: −ln 0.7 ≈ 0.357.</p></details>
+    </li>
+    <li>
+      <p>A new model sorts images into 10 classes. Before training it gives every class 0.1. What loss should you
+      expect at the first step?</p>
+      <details><summary>Answer</summary><p>−ln 0.1 = ln 10 ≈ 2.303 on every example, so the average is 2.303. A first
+      loss far above that often points to a bug, such as scores that start out very large.</p></details>
+    </li>
+    <li>
+      <p>Over a set of examples, the average charge is 0.105. If every example got the same probability on its right
+      class, what was that probability?</p>
+      <details><summary>Answer</summary><p><var>e</var><sup>−0.105</sup> ≈ 0.90. Undo the minus sign and the
+      logarithm.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://colah.github.io/posts/2015-09-Visual-Information/#cross-entropy">Visual Information Theory: Cross-Entropy</a>
+        <span class="fl-src">Chris Olah</span>
+        <span class="fl-format">Illustrated article</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Explains where the name comes from, with pictures of codes; start at "Calculating Entropy" if entropy is new.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://d2l.ai/chapter_linear-classification/softmax-regression.html#log-likelihood">Dive into Deep Learning: Log-Likelihood</a>
+        <span class="fl-src">Zhang, Lipton, Li and Smola</span>
+        <span class="fl-format">Book</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">Derives cross-entropy from likelihood and works out the derivative p − y in the section after it.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://cs231n.github.io/linear-classify/#softmax-classifier">CS231n notes: Softmax classifier</a>
+        <span class="fl-src">Stanford CS231n</span>
+        <span class="fl-format">Course notes</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Softmax and cross-entropy together, read from both the information and the probability side.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <p>No unit or explanation builds on this one yet.</p>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const slider = document.getElementById('ce-q');
+  if (!slider) return;
+  const dot = document.getElementById('ce-dot'), vline = document.getElementById('ce-v');
+  const out = document.getElementById('ce-out');
+  function draw() {
+    const q = Number(slider.value), c = -Math.log(q);
+    const x = 40 + 300 * q, y = 190 - 34 * Math.min(5, c);
+    dot.setAttribute('cx', x); dot.setAttribute('cy', y);
+    vline.setAttribute('x1', x); vline.setAttribute('x2', x); vline.setAttribute('y2', y);
+    out.textContent = '−ln(' + q.toFixed(2) + ') = ' + c.toFixed(3) + (c > Math.log(3) ? '  (worse than an even guess among 3)' : '  (better than an even guess among 3)');
+  }
+  slider.addEventListener('input', draw);
+  draw();
+})();
+</script>
+</body>
+</html>

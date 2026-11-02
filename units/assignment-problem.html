@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="assignment-problem">
+<meta name="unit-level" content="u1">
+<title>Matching two sets: the assignment problem</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  .match-wrap { display: flex; flex-wrap: wrap; gap: 1rem 1.6rem; align-items: center; justify-content: center; }
+  .match-wrap svg { flex: 1 1 260px; max-width: 340px; }
+  table.cost { width: auto; border-collapse: separate; border-spacing: 4px; font-family: var(--font-mono); }
+  table.cost th, table.cost td { border: 0; text-align: center; padding: 0; }
+  table.cost th { font-weight: 600; font-size: 0.82rem; padding: 0 0.3rem; }
+  table.cost th.red { color: var(--bad); } table.cost th.blue { color: var(--s1); }
+  table.cost button { font: inherit; font-size: 0.95rem; width: 3.6rem; height: 2.6rem; border-radius: 5px; border: 1px solid var(--rule); background: var(--bg); color: var(--ink); cursor: pointer; }
+  table.cost button:hover { border-color: var(--accent); }
+  table.cost button[aria-pressed="true"] { background: color-mix(in srgb, var(--s3) 30%, var(--surface)); border-color: var(--s3); font-weight: 700; }
+  table.cost button.best { outline: 2px dashed var(--s2); outline-offset: 1px; }
+  table.red-blue td { padding: 0.35rem 0.7rem; background: var(--bg); border: 1px solid var(--rule); border-radius: 4px; }
+  table.red-blue td.z { background: color-mix(in srgb, var(--s3) 25%, var(--surface)); font-weight: 700; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Matching two sets: the assignment problem</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="distance.html">Distance between two points</a> <span class="level-badge level-hs">High school</span> <span class="minutes">6 min</span></li>
+    <li><a href="numpy-arrays.html">Arrays in NumPy</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">9 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>You have two sets of the same size, say three red points and three blue points, and a cost for every red–blue
+  pair, such as the <a href="distance.html">distance</a> between them. The assignment problem asks for the pairing,
+  each red with exactly one blue, that makes the total cost as small as possible. Grabbing the cheapest pair first can
+  go badly wrong. Trying every pairing works for small sets but explodes as they grow. The Hungarian algorithm, in its
+  faster modern form, finds the best pairing in about <var>n</var>³ steps, and its key trick fits in one worked example.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+
+  <section id="problem">
+    <h2>A pairing picks one cell in every row and every column of the cost table</h2>
+    <p>Put the costs in a table, the <dfn>cost matrix</dfn>: one row per red point, one column per blue point. Each cell
+    holds the distance for that pair, rounded here to one decimal. An <dfn>assignment</dfn> picks one cell in each row
+    with no two cells in the same column, so every point gets exactly one partner. Its total is the sum of the picked
+    cells.</p>
+
+    <figure id="fig-match">
+      <div class="fig-title">Try it by hand: find the cheapest pairing</div>
+      <p class="small" style="margin-top:0">Click one cell in each row. A click takes that column away from any other
+      row. Find the lowest total you can before you press "Show the best".</p>
+      <div class="match-wrap">
+        <svg id="match-svg" width="340" height="260" viewBox="0 0 340 260" role="img" aria-label="Three red points R1 at (1, 1), R2 at (2, 4) and R3 at (5, 3), and three blue points B1 at (2, 5), B2 at (3, 3) and B3 at (7, 4), on a grid. Lines join the pairs you pick."></svg>
+        <div class="scroll-x">
+          <table class="cost" id="cost-table">
+            <thead><tr><th></th><th class="blue">B1</th><th class="blue">B2</th><th class="blue">B3</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="controls"><button class="btn" type="button" id="show-best">Show the best</button></div>
+      <div class="readout-box"><output id="match-out"></output></div>
+      <figcaption><b>Three rows, three columns, six possible pairings.</b> Each pairing is one way to order the blue
+      points against R1, R2 and R3. Lines in the drawing join the pairs you picked.</figcaption>
+    </figure>
+  </section>
+
+  <section id="greedy">
+    <h2>Taking the cheapest pair first can force an expensive pair later</h2>
+    <p>A natural shortcut is <dfn>greedy</dfn> matching: take the cheapest pair in the table, remove its row and column,
+    and repeat. Here it takes R2–B1 (1.0), then R3–B2 (2.0). That leaves R1 with only B3, at 6.7. The total is 9.7.</p>
+    <p>The best pairing gives up R3's cheap 2.0 and pairs R1 with B2 instead: R1–B2 (2.8), R2–B1 (1.0) and R3–B3 (2.2), a
+    total of 6.0. Greedy fails because one cheap choice can leave a far worse one for someone else.</p>
+  </section>
+
+  <section id="reduce">
+    <h2>Subtracting a number from a whole row does not change which pairing is best</h2>
+    <p>Every pairing uses exactly one cell from each row. So if you subtract 2.8 from every cell in row R1, every pairing's
+    total drops by exactly 2.8. Their order stays the same, and so does the best one. The same holds for columns. This is
+    the main trick of the <dfn>Hungarian algorithm</dfn>: subtract until zeros appear, then look for a pairing made only
+    of zeros.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: prove that 6.0 is the best</span>
+      <ol>
+        <li>Subtract each row's smallest cell: 2.8 from R1, 1.0 from R2 and 2.0 from R3.</li>
+        <li>Now every column has a zero except B3, whose smallest cell is 0.2. Subtract 0.2 from column B3.</li>
+        <li>Find a pairing that uses only zeros: R1–B2, R2–B1, R3–B3.</li>
+        <li>Total subtracted: 2.8 + 1.0 + 2.0 + 0.2 = 6.0. Every cell is now 0 or more, so no pairing can cost less than
+        6.0 in the original table. The zero pairing costs exactly 6.0, so it is the best.</li>
+      </ol>
+      <div class="table-wrap">
+      <table class="cost red-blue" style="margin:0.4rem auto">
+        <thead><tr><th></th><th class="blue">B1</th><th class="blue">B2</th><th class="blue">B3</th></tr></thead>
+        <tbody>
+          <tr><th class="red">R1</th><td>1.3</td><td class="z">0</td><td>3.7</td></tr>
+          <tr><th class="red">R2</th><td class="z">0</td><td>0.4</td><td>3.8</td></tr>
+          <tr><th class="red">R3</th><td>1.6</td><td>0</td><td class="z">0</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-title">The full algorithm has one more step</span>
+      <p>Here the first subtractions already gave a pairing of zeros. Often they do not. The Hungarian algorithm then
+      covers all zeros with as few lines as possible, finds the smallest uncovered number, and moves it around the table
+      in a way that keeps every cell at 0 or more. It repeats until a full pairing of zeros exists. That part takes more
+      than one page to explain well; see Go further.</p>
+    </div>
+  </section>
+
+  <section id="cost">
+    <h2>Trying every pairing stops working past about ten points</h2>
+    <p>For <var>n</var> points there are <var>n</var>! pairings ("<var>n</var> factorial", 1 × 2 × … × <var>n</var>):
+    <var>n</var> choices for the first red point, <var>n</var> − 1 for the second, and so on. The Hungarian algorithm, in its
+    faster modern form, takes about <var>n</var>³ steps instead. The line-covering version in the box above is slower,
+    about <var>n</var>⁴ steps at worst.</p>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th class="r"><var>n</var></th><th class="r">Pairings, <var>n</var>!</th><th class="r">About <var>n</var>³</th></tr></thead>
+      <tbody>
+        <tr><td class="r">3</td><td class="r">6</td><td class="r">27</td></tr>
+        <tr><td class="r">10</td><td class="r">3,628,800</td><td class="r">1,000</td></tr>
+        <tr><td class="r">20</td><td class="r">about 2.4 × 10<sup>18</sup></td><td class="r">8,000</td></tr>
+        <tr><td class="r">1,000</td><td class="r">a number with 2,568 digits</td><td class="r">10<sup>9</sup></td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>The code below checks all six pairings of the example. For real work, use a library function such as SciPy's
+    <code>scipy.optimize.linear_sum_assignment</code>, which takes the cost matrix and returns the best pairing.</p>
+    <p class="code-cap">assign.py</p>
+<pre><code class="py">from itertools import permutations
+import numpy as np
+
+cost = np.array([[4.1, 2.8, 6.7],      # row i: red point i
+                 [1.0, 1.4, 5.0],      # column j: blue point j
+                 [3.6, 2.0, 2.2]])
+n = len(cost)
+best_total, best_pairs = None, None
+for pairs in permutations(range(n)):   # every way to pair them up
+    total = 0.0
+    for i in range(n):
+        total += cost[i, pairs[i]]     # red i goes to blue pairs[i]
+    if best_total is None or total &lt; best_total:
+        best_total, best_pairs = total, pairs
+print(best_pairs, round(best_total, 1))
+</code></pre>
+<pre class="out"><code>(1, 0, 2) 6.0</code></pre>
+    <p><code>permutations(range(3))</code> lists every ordering of 0, 1 and 2, six in all. The answer
+    <code>(1, 0, 2)</code> means red 0 goes to blue 1, red 1 to blue 0, and red 2 to blue 2: R1–B2, R2–B1, R3–B3.</p>
+    <p>The two sets need not be the same size. With more blue points than red, each red point still gets one partner and
+    some blue points get none. Library functions accept such rectangular tables.</p>
+  </section>
+
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>Your turn: use row and column subtraction to find the best pairing for this table, and its total.</p>
+      <div class="table-wrap">
+      <table class="cost red-blue" style="margin:0.4rem 0">
+        <thead><tr><th></th><th class="blue">B1</th><th class="blue">B2</th><th class="blue">B3</th></tr></thead>
+        <tbody>
+          <tr><th class="red">R1</th><td>3</td><td>7</td><td>5</td></tr>
+          <tr><th class="red">R2</th><td>2</td><td>4</td><td>6</td></tr>
+          <tr><th class="red">R3</th><td>8</td><td>5</td><td>9</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <details><summary>Answer</summary><p>Row minimums 3, 2 and 5 give rows (0, 4, 2), (0, 2, 4) and (3, 0, 4). Column B3's
+      smallest is then 2; subtract it: (0, 4, 0), (0, 2, 2), (3, 0, 2). A pairing of zeros: R1–B3, R2–B1, R3–B2. Its cost
+      is 5 + 2 + 5 = 12, which equals the total subtracted, 3 + 2 + 5 + 2.</p></details>
+    </li>
+    <li>
+      <p>How many pairings would brute force check for 5 red and 5 blue points? For 12 and 12?</p>
+      <details><summary>Answer</summary><p>5! = 120. 12! = 479,001,600, almost half a billion.</p></details>
+    </li>
+    <li>
+      <p>In the first table, greedy took R3–B2 at 2.0. Why does the best pairing skip that cheap cell?</p>
+      <details><summary>Answer</summary><p>B2 is also R1's only nearby partner. If R3 takes B2, R1 must take B3 at 6.7.
+      Giving B2 to R1 and B3 to R3 costs 2.8 + 2.2 = 5.0 for those two, against 2.0 + 6.7 = 8.7.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://en.wikipedia.org/wiki/Hungarian_algorithm#Matrix_interpretation">Hungarian algorithm: Matrix interpretation</a>
+        <span class="fl-src">Wikipedia</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">The full algorithm on a cost table, step by step, including the line-covering step this page skips.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html">scipy.optimize.linear_sum_assignment</a>
+        <span class="fl-src">SciPy documentation</span>
+        <span class="fl-format">Reference</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">The function to call in practice, with a short example and notes on rectangular tables.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://cp-algorithms.com/graph/hungarian-algorithm.html#hungarian-algorithm">Hungarian algorithm for solving the assignment problem</a>
+        <span class="fl-src">cp-algorithms</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">Why the method is correct and how to make it run in <var>n</var>³ steps, with code.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <p>No unit or explanation builds on this one yet.</p>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  'use strict';
+  const NS = 'http://www.w3.org/2000/svg';
+  const R = [[1, 1], [2, 4], [5, 3]], B = [[2, 5], [3, 3], [7, 4]];
+  const C = [[4.1, 2.8, 6.7], [1.0, 1.4, 5.0], [3.6, 2.0, 2.2]];
+  const BEST = [1, 0, 2];
+  const svg = document.getElementById('match-svg'), out = document.getElementById('match-out');
+  const tbody = document.querySelector('#cost-table tbody');
+  let pick = [null, null, null], shown = false;
+  const btns = C.map((row, i) => {
+    const tr = document.createElement('tr');
+    const th = document.createElement('th'); th.className = 'red'; th.textContent = 'R' + (i + 1); tr.appendChild(th);
+    const bs = row.map((c, j) => {
+      const td = document.createElement('td'), b = document.createElement('button');
+      b.type = 'button'; b.textContent = c.toFixed(1); b.setAttribute('aria-pressed', 'false');
+      b.setAttribute('aria-label', 'R' + (i + 1) + ' to B' + (j + 1) + ', cost ' + c.toFixed(1));
+      b.addEventListener('click', () => choose(i, j));
+      td.appendChild(b); tr.appendChild(td); return b;
+    });
+    tbody.appendChild(tr); return bs;
+  });
+  function choose(i, j) {
+    if (pick[i] === j) pick[i] = null;
+    else { pick = pick.map((v, k) => (v === j ? null : v)); pick[i] = j; }
+    draw();
+  }
+  const X = x => 20 + x * 38, Y = y => 235 - y * 38;
+  function mk(tag, attrs, text) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    svg.appendChild(e); return e;
+  }
+  function draw() {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    for (let x = 0; x <= 8; x++) mk('line', { x1: X(x), y1: Y(0), x2: X(x), y2: Y(6), class: 'grid' });
+    for (let y = 0; y <= 6; y++) mk('line', { x1: X(0), y1: Y(y), x2: X(8), y2: Y(y), class: 'grid' });
+    if (shown) BEST.forEach((j, i) => mk('line', { x1: X(R[i][0]), y1: Y(R[i][1]), x2: X(B[j][0]), y2: Y(B[j][1]), stroke: 'var(--s2)', 'stroke-width': 7, 'stroke-opacity': 0.25, 'stroke-linecap': 'round' }));
+    pick.forEach((j, i) => { if (j !== null) mk('line', { x1: X(R[i][0]), y1: Y(R[i][1]), x2: X(B[j][0]), y2: Y(B[j][1]), stroke: 'var(--s3)', 'stroke-width': 2.5 }); });
+    R.forEach((p, i) => { mk('circle', { cx: X(p[0]), cy: Y(p[1]), r: 7, fill: 'var(--bad)' }); mk('text', { x: X(p[0]) + 9, y: Y(p[1]) + 15, style: 'font-weight:600' }, 'R' + (i + 1)); });
+    B.forEach((p, j) => { mk('rect', { x: X(p[0]) - 6.5, y: Y(p[1]) - 6.5, width: 13, height: 13, fill: 'var(--s1)' }); mk('text', { x: X(p[0]) + 9, y: Y(p[1]) - 8, style: 'font-weight:600' }, 'B' + (j + 1)); });
+    btns.forEach((row, i) => row.forEach((b, j) => { b.setAttribute('aria-pressed', String(pick[i] === j)); b.classList.toggle('best', shown && BEST[i] === j); }));
+    const done = pick.every(v => v !== null);
+    const total = pick.reduce((a, j, i) => a + (j === null ? 0 : C[i][j]), 0);
+    let msg;
+    if (!done) msg = 'Picked ' + pick.filter(v => v !== null).length + ' of 3 pairs.';
+    else {
+      msg = 'Your total: ' + total.toFixed(1) + '. ';
+      msg += Math.abs(total - 6.0) < 1e-9 ? 'That is the best possible. The worked example below proves it.' : 'There is a cheaper pairing. Keep trying, or press "Show the best".';
+    }
+    if (shown) msg += ' Best: R1–B2, R2–B1, R3–B3, total 6.0 (dashed cells, wide lines).';
+    out.textContent = msg;
+  }
+  document.getElementById('show-best').addEventListener('click', () => { shown = true; draw(); });
+  draw();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="proofreading">
+<meta name="unit-level" content="u1">
+<title>Proofreading a segmentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  #pr-svg .pr-score { font-size: 11px; text-anchor: middle; }
+  #pr-svg .pr-mark { font-size: 13px; font-weight: 700; text-anchor: middle; dominant-baseline: central; fill: #fff; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Proofreading a segmentation</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="segmentation-errors.html">Two kinds of segmentation error</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="supervoxels.html">Supervoxels: small pieces to merge</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>Proofreading is the work of finding and fixing the merge and split errors in a segmentation. A person looks at
+  each object and its image, joins labels to fix a split, and cuts a label to fix a merge. Finding errors takes
+  most of the time, because there are far too many objects to check everything by eye. So software proposes
+  likely fixes, each with a score, and a person answers yes or no. Fixes with very high scores can be applied
+  without a person, at the risk of adding some new errors.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="by-hand">
+    <h2>By hand, a proofreader looks for shapes that cannot be right</h2>
+    <p>A <a href="segmentation.html">segmentation</a> made by a program has errors of two kinds (see
+    <a href="segmentation-errors.html">two kinds of segmentation error</a>). A <dfn>proofreader</dfn> is a person who
+    fixes them. They use a viewer that shows each object as a 3D surface, next to the image slices it came from.
+    They follow an object along its length and look for clues:</p>
+    <ul>
+      <li><b>A sign of a split:</b> the object stops suddenly, in the middle of the image, with no natural end. The
+        proofreader looks nearby for a piece that continues it.</li>
+      <li><b>A sign of a merge:</b> the shape is impossible, such as two tubes crossing in an X, or a sudden jump in
+        thickness. The proofreader checks the image slices for a membrane the program missed.</li>
+    </ul>
+    <p>The viewer offers two edits. A <dfn>join</dfn> gives two labels one label; it fixes a split. A
+    <dfn>cut</dfn> divides one label in two; it fixes a merge. To cut, the proofreader marks a point on each side,
+    and the software divides the object's <a href="supervoxels.html">supervoxels</a> between the two sides. Because
+    both edits change the lookup table rather than the voxels, either can be undone.</p>
+  </section>
+
+  <section id="assisted">
+    <h2>Software proposes fixes, and people decide</h2>
+    <p>A large image can hold many thousands of objects, so checking every one by eye takes years of work. Software
+    therefore does the searching. For split errors, a common plan has four steps:</p>
+    <ol>
+      <li>Find the ends of objects, where a split might be.</li>
+      <li>For each end, find pieces close by (see <a href="nearest-neighbor-search.html">nearest-neighbor search</a>).</li>
+      <li>Give each (end, nearby piece) pair a score from 0 to 1 for how likely they belong together. A trained model
+        computes it from the image or from the shapes; one way is to predict how the object would continue (see
+        <a href="shape-completion.html">shape completion</a>) and check whether the nearby piece matches.</li>
+      <li>Sort the pairs by score and show them to a person, highest first. The person answers yes or no.</li>
+    </ol>
+
+    <figure id="fig-loop">
+      <div class="fig-title">Proofreading with software that proposes fixes</div>
+      <div class="scroll-x">
+      <svg width="600" height="210" viewBox="0 0 600 210" style="min-width: 520px" role="img"
+        aria-label="A loop of five boxes: segmentation, find suspect spots, score each proposed fix, then either apply automatically if the score is very high or ask a person yes or no, then update the lookup table and return to the segmentation.">
+        <defs>
+          <marker id="pr-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 z" fill="var(--ink-3)"/>
+          </marker>
+        </defs>
+        <g fill="var(--surface)" stroke="var(--ink-3)">
+          <rect x="10" y="20" width="120" height="50" rx="6"/>
+          <rect x="165" y="20" width="120" height="50" rx="6"/>
+          <rect x="320" y="20" width="120" height="50" rx="6"/>
+          <rect x="470" y="0" width="120" height="50" rx="6" stroke="var(--s3)"/>
+          <rect x="470" y="70" width="120" height="50" rx="6" stroke="var(--s1)"/>
+          <rect x="240" y="145" width="140" height="50" rx="6"/>
+        </g>
+        <g text-anchor="middle">
+          <text x="70" y="42">Segmentation</text><text x="70" y="58" class="muted">with errors</text>
+          <text x="225" y="42">Find suspect</text><text x="225" y="58">spots</text>
+          <text x="380" y="42">Score each</text><text x="380" y="58">proposed fix</text>
+          <text x="530" y="22">Very high score:</text><text x="530" y="38" class="muted">apply it</text>
+          <text x="530" y="92">Otherwise:</text><text x="530" y="108" class="muted">a person says yes/no</text>
+          <text x="310" y="167">Update the</text><text x="310" y="183">lookup table</text>
+        </g>
+        <g stroke="var(--ink-3)" stroke-width="1.4" fill="none" marker-end="url(#pr-arrow)">
+          <path d="M130 45 L163 45"/>
+          <path d="M285 45 L318 45"/>
+          <path d="M440 40 L468 27"/>
+          <path d="M440 50 L468 90"/>
+          <path d="M590 25 L597 25 L597 158 L382 158"/>
+          <path d="M530 120 L530 178 L382 178"/>
+          <path d="M240 170 L70 170 L70 72"/>
+        </g>
+      </svg>
+      </div>
+      <figcaption><b>What to notice.</b> People spend their time only on proposals the software is unsure about. Each
+      accepted fix changes the lookup table, and the loop runs again on the improved segmentation.</figcaption>
+    </figure>
+  </section>
+
+  <section id="threshold">
+    <h2>A score threshold trades people's time against new errors</h2>
+    <p>You can apply every proposal whose score is at or above a <dfn>threshold</dfn> without asking anyone. A high
+    threshold applies few fixes, nearly all right. A lower one applies more fixes, but some are wrong, and each wrong
+    join is a new merge error.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: twelve proposed joins</span>
+      <p>A model scores twelve proposed joins: 0.97, 0.95, 0.93, 0.91, 0.84, 0.78, 0.71, 0.62, 0.45, 0.30, 0.22 and
+      0.10. Later checking shows that seven are right: all five above 0.8, plus 0.71 and 0.62.</p>
+      <ol>
+        <li>Threshold 0.9: four joins are applied (0.97 to 0.91). All four are right. Eight are left for people.</li>
+        <li>Threshold 0.7: seven joins are applied (0.97 to 0.71). Six are right, and 0.78 is wrong, so one new merge
+          error appears. Five are left for people.</li>
+      </ol>
+      <p>Lowering the threshold saved three decisions but made one merge error, which costs a cut to fix later.</p>
+    </div>
+
+    <figure id="fig-threshold">
+      <div class="fig-title">Twelve proposals, sorted by score</div>
+      <div class="scroll-x">
+      <svg id="pr-svg" width="560" height="110" viewBox="0 0 560 110" role="img"
+        aria-label="Twelve squares in a row, one per proposed join, with its score beneath. Applied proposals are filled; right ones are marked with a check and wrong ones with a cross."></svg>
+      </div>
+      <div class="controls">
+        <label>Apply without a person at score ≥ <input type="range" id="pr-t" min="0" max="1" step="0.01" value="0.9"> <output id="pr-t-out">0.90</output></label>
+      </div>
+      <div class="readout-box" id="pr-read" aria-live="polite"></div>
+      <figcaption><b>Goal:</b> find the lowest threshold that adds no wrong joins. How many proposals must a person still
+      check there? Filled squares are applied automatically: a check mark means right and a cross means a new merge
+      error. Outlined squares wait for a person.</figcaption>
+    </figure>
+
+    <p>Here the lowest safe threshold is 0.79. It applies five right joins and leaves seven for people. In practice
+    nobody knows which proposals are wrong in advance, so teams measure this on a sample that people have
+    checked, then pick the threshold.</p>
+
+    <p class="code-cap">proofread.py</p>
+<pre><code class="py">import numpy as np
+
+# Twelve proposed joins: the model's score, and whether the join is right (1) or not (0)
+score = np.array([0.97, 0.95, 0.93, 0.91, 0.84, 0.78,
+                  0.71, 0.62, 0.45, 0.30, 0.22, 0.10])
+right = np.array([1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0], dtype=bool)
+
+for threshold in (0.9, 0.7):
+    auto = score >= threshold          # applied without a person
+    good, bad = (auto & right).sum(), (auto & ~right).sum()
+    print(threshold, "correct:", good, " wrong:", bad, " left for people:", (~auto).sum())
+</code></pre>
+<pre class="out"><code>0.9 correct: 4  wrong: 0  left for people: 8
+0.7 correct: 6  wrong: 1  left for people: 5</code></pre>
+
+    <div class="callout warn">
+      <span class="callout-title">This is a simplification</span>
+      <p>Real proofreading differs between teams. A score is not always a true probability, so 0.9 need not mean
+      "right 9 times in 10." People make mistakes too, so important objects are often checked by a second person.
+      Proposals to cut merges also exist, but they are harder to make, because the software must also say where to
+      cut.</p>
+    </div>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>While following an object, you see it stop abruptly in the middle of the image. Which kind of error does that
+      suggest, and which edit fixes it?</p>
+      <details><summary>Answer</summary><p>A split error: the object probably continues in another piece. Find that piece
+      and join it to the object.</p></details>
+    </li>
+    <li>
+      <p>In the worked example, what happens at threshold 0.6?</p>
+      <details><summary>Answer</summary><p>Eight joins are applied (0.97 to 0.62). Seven are right and one (0.78) is wrong,
+      so one new merge error appears. Four proposals are left for people.</p></details>
+    </li>
+    <li>
+      <p>Why not apply every proposal that scores above 0.5 and skip people altogether?</p>
+      <details><summary>Answer</summary><p>Some of those joins are wrong, and each wrong join is a new merge error. Merge
+      errors are costly: they spoil every measurement on the object, and someone must later find them and cut in the
+      right place.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background. This unit covers what you need here.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://arxiv.org/abs/1704.00848">Guided Proofreading of Automatic Segmentations for Connectomics</a>
+        <span class="fl-src">Haehn et al., 2018</span>
+        <span class="fl-format">Paper</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">A worked system: classifiers propose merges and splits, people answer yes or no, and a threshold runs a fully automatic mode.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://eyewire.org/">EyeWire</a>
+        <span class="fl-src">EyeWire</span>
+        <span class="fl-format">Game</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">Try proofreading yourself: a citizen-science game where you add missing pieces to a cell in a real image.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://github.com/google/neuroglancer">Neuroglancer</a>
+        <span class="fl-src">Google, open source</span>
+        <span class="fl-format">Tool</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">A widely used web viewer for large 3D images and their segmentations; its README links live examples.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <p>No unit or explanation builds on this one yet.</p>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  'use strict';
+  const svg = document.getElementById('pr-svg');
+  const tIn = document.getElementById('pr-t'), tOut = document.getElementById('pr-t-out');
+  const read = document.getElementById('pr-read');
+  if (!svg || !tIn) return;
+  const NS = 'http://www.w3.org/2000/svg';
+  const SCORE = [0.97, 0.95, 0.93, 0.91, 0.84, 0.78, 0.71, 0.62, 0.45, 0.30, 0.22, 0.10];
+  const RIGHT = [true, true, true, true, true, false, true, true, false, false, false, false];
+  const el = (tag, attrs, parent, text) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text !== undefined) e.textContent = text;
+    parent.appendChild(e); return e;
+  };
+  function draw() {
+    const t = Number(tIn.value);
+    svg.replaceChildren();
+    let good = 0, bad = 0, left = 0;
+    SCORE.forEach((s, i) => {
+      const x = 12 + i * 45, auto = s >= t;
+      const fill = auto ? (RIGHT[i] ? 'var(--s3)' : 'var(--bad)') : 'var(--surface)';
+      el('rect', { x, y: 18, width: 38, height: 38, rx: 4, fill, stroke: auto ? 'none' : 'var(--ink-3)', 'stroke-dasharray': auto ? '' : '3 3' }, svg);
+      if (auto) el('text', { x: x + 19, y: 37, class: 'pr-mark' }, svg, RIGHT[i] ? '✓' : '✗');
+      else el('text', { x: x + 19, y: 37, class: 'pr-mark', fill: 'var(--ink-3)', style: 'fill: var(--ink-3)' }, svg, '?');
+      el('text', { x: x + 19, y: 74, class: 'pr-score' }, svg, s.toFixed(2));
+      if (auto) { if (RIGHT[i]) good++; else bad++; } else left++;
+    });
+    // threshold line between the last applied and the first waiting square
+    const k = SCORE.filter(s => s >= t).length;
+    if (k > 0 && k < SCORE.length) {
+      const x = 12 + k * 45 - 4;
+      el('line', { x1: x, y1: 8, x2: x, y2: 84, stroke: 'var(--ink)', 'stroke-width': 1.5 }, svg);
+    }
+    el('text', { x: 12, y: 102, class: 'muted' }, svg, 'applied automatically ←');
+    el('text', { x: 548, y: 102, class: 'muted', 'text-anchor': 'end' }, svg, '→ waits for a person');
+    tOut.textContent = t.toFixed(2);
+    read.textContent = 'Applied: ' + (good + bad) + ' (' + good + ' right, ' + bad + ' wrong, so ' + bad +
+      ' new merge error' + (bad === 1 ? '' : 's') + '). Left for people: ' + left + '.';
+  }
+  tIn.addEventListener('input', draw);
+  draw();
+})();
+</script>
+</body>
+</html>

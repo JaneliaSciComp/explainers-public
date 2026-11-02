@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="layer-normalization">
+<meta name="unit-level" content="u1">
+<title>Layer normalization</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  #fig-grid svg text, #fig-ln svg text { font-size: 14px; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Layer normalization</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="normalizing-data.html">Normalizing data</a> <span class="level-badge level-hs">High school</span> <span class="minutes">6 min</span></li>
+    <li><a href="linear-layer.html">A linear layer: weighted sums</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p><dfn>Layer normalization</dfn> takes one token's numbers, the <var>d</var> entries of its vector, and shifts and
+  rescales them to mean 0 and standard deviation 1. It then multiplies each entry by a learned scale and adds a
+  learned shift. It treats every token on its own, so the result does not depend on the other tokens or on the other
+  examples in a batch. Networks use it to keep the numbers that flow from layer to layer at a steady size.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="direction">
+    <h2>Layer normalization works across one token's numbers</h2>
+    <p>Lay out a group of tokens as a table: one row per token, one column per feature. A <dfn>token</dfn> is the
+    vector a network holds for one item, such as one point of a cloud; each of its numbers is a
+    <dfn>feature</dfn>. The <a href="normalizing-data.html">normalizing data</a> unit normalizes a column: one feature,
+    across many examples. Layer normalization normalizes a row: all the features of one token.</p>
+
+    <figure id="fig-grid">
+      <div class="fig-title">Normalizing a column versus normalizing a row</div>
+      <div class="scroll-x">
+      <svg width="440" height="200" viewBox="0 0 440 200" role="img"
+           aria-label="A grid of 4 tokens by 6 features. One column is outlined with a dashed line and labelled normalizing data. One row is filled and outlined and labelled layer normalization.">
+        <g id="ln-grid"></g>
+        <rect x="174" y="26" width="40" height="142" rx="3" fill="none" class="st-s2" stroke-width="2.5" stroke-dasharray="6 4"/>
+        <rect x="54" y="62" width="240" height="34" rx="3" fill="none" class="st-s1" stroke-width="3"/>
+        <text x="304" y="84" class="f-s1" font-weight="700">layer norm:</text>
+        <text x="304" y="101" class="f-s1">one token,</text>
+        <text x="304" y="118" class="f-s1">all its features</text>
+        <text x="194" y="188" text-anchor="middle" class="f-s2" font-weight="700">normalizing data: one feature</text>
+        <text x="194" y="18" text-anchor="middle" class="muted">features →</text>
+        <text x="46" y="84" text-anchor="end" class="muted">token 2</text>
+      </svg>
+      </div>
+      <figcaption><b>What to notice.</b> Each cell is one number. Layer normalization uses only the numbers in one
+      row to compute that row's mean and spread, so every token gets its own.</figcaption>
+    </figure>
+    <p>The name comes from its first use: it normalized all the outputs of one layer for one input. In a transformer,
+    those outputs are exactly one token's features.</p>
+  </section>
+
+  <section id="recipe">
+    <h2>The recipe: subtract the mean, divide by the spread, then scale and shift</h2>
+    <p>For a token <b>x</b> with <var>d</var> numbers:</p>
+    <ol>
+      <li>Find the mean: μ = (<var>x</var><sub>1</sub> + … + <var>x</var><sub><var>d</var></sub>) / <var>d</var>.</li>
+      <li>Find the variance: σ<sup>2</sup> = ((<var>x</var><sub>1</sub> − μ)<sup>2</sup> + … + (<var>x</var><sub><var>d</var></sub> − μ)<sup>2</sup>) / <var>d</var>.</li>
+      <li>Normalize each number: <var>x̂</var><sub><var>i</var></sub> = (<var>x</var><sub><var>i</var></sub> − μ) / √(σ<sup>2</sup> + ε).</li>
+      <li>Scale and shift: <var>y</var><sub><var>i</var></sub> = γ<sub><var>i</var></sub> <var>x̂</var><sub><var>i</var></sub> + β<sub><var>i</var></sub>.</li>
+    </ol>
+    <p>The small number ε (epsilon), usually 0.00001, prevents a division by zero when all the numbers are equal. The
+    scale <b>γ</b> (gamma) and shift <b>β</b> (beta) are learned vectors of <var>d</var> numbers, one pair per
+    feature. At the start of training, every entry of <b>γ</b> is 1 and every entry of <b>β</b> is 0, written
+    <b>γ</b> = 1 and <b>β</b> = 0. Training then adjusts them, like the weights of a
+    <a href="linear-layer.html">linear layer</a>. They let the network give each feature the size and offset that suit the next layer.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: normalize the token [2, 4, 6, 8]</span>
+      <ol>
+        <li>Mean: (2 + 4 + 6 + 8) / 4 = 5.</li>
+        <li>Differences from the mean: [−3, −1, 1, 3]. Variance: (9 + 1 + 1 + 9) / 4 = 5.</li>
+        <li>Spread: √5 ≈ 2.236. Divide: [−3, −1, 1, 3] / 2.236 = [−1.342, −0.447, 0.447, 1.342]. (Adding ε = 0.00001
+        changes only the sixth decimal place.)</li>
+        <li>With <b>γ</b> = 1 and <b>β</b> = 0, these are the outputs.</li>
+      </ol>
+      <p>The outputs have mean 0 and standard deviation 1, as promised.</p>
+    </div>
+
+    <p><b>Predict first.</b> What does layer normalization give for the token [20, 40, 60, 80]? And for
+    [102, 104, 106, 108]?</p>
+    <p>Both give [−1.342, −0.447, 0.447, 1.342] again. The first is the worked example times 10; the second is the
+    worked example plus 100. Normalization undoes any common offset, and any common scale by a positive number.</p>
+  </section>
+
+  <section id="widget">
+    <h2>Shifting a token, or scaling it by a positive number, leaves its normalized values unchanged</h2>
+
+    <figure id="fig-ln">
+      <div class="fig-title">A token before and after layer normalization</div>
+      <div class="scroll-x">
+      <svg id="ln-svg" width="440" height="210" viewBox="0 0 440 210" role="img"
+           aria-label="Left: four bars for the token's numbers. Right: four bars for the normalized numbers. Sliders below scale and shift the token.">
+        <text x="10" y="14" class="ink2">The token: k × [2, 4, 6, 8] + c</text>
+        <text x="250" y="14" class="ink2">After layer normalization</text>
+        <line x1="10" y1="110" x2="210" y2="110" style="stroke:var(--ink-3)"/>
+        <line x1="250" y1="110" x2="430" y2="110" style="stroke:var(--ink-3)"/>
+        <g id="ln-in"></g>
+        <g id="ln-out"></g>
+        <text id="ln-stats" x="110" y="204" text-anchor="middle" class="muted">mean 5.00, spread 2.24</text>
+        <text id="ln-ostats" x="340" y="204" text-anchor="middle" class="muted">mean 0.00, spread 1.00</text>
+      </svg>
+      </div>
+      <div class="controls">
+        <label>Multiply by <var>k</var> <input id="ln-k" type="range" min="-3" max="3" step="0.25" value="1"><output id="ln-kout">1.00</output></label>
+        <label>Add <var>c</var> <input id="ln-c" type="range" min="-20" max="20" step="1" value="0"><output id="ln-cout">0</output></label>
+      </div>
+      <p class="small"><b>Try it.</b> Before you move a slider, predict what the right-hand bars will do. Then
+      search: is there any setting of <var>k</var> and <var>c</var> that changes the right-hand bars?</p>
+      <details><summary>Answer</summary><p>Only two kinds of setting change them. A negative <var>k</var> flips the
+      token, so the normalized bars flip too. At <var>k</var> = 0 all four numbers are equal, the spread is 0, and
+      every output is 0; this is where ε prevents a division by zero.</p></details>
+      <figcaption><b>What to notice.</b> The left bars show the token's numbers on a fixed scale; the right bars show
+      the same token after layer normalization, with <b>γ</b> = 1 and <b>β</b> = 0.</figcaption>
+    </figure>
+  </section>
+
+  <section id="why">
+    <h2>Networks use it to keep each layer's inputs at a steady size</h2>
+    <p>As numbers pass through many layers, their size can drift: some tokens' numbers grow large, others shrink.
+    The next layer then sees inputs of very different sizes from step to step, which makes training slow and
+    unstable. Layer normalization resets each token to a standard size before the next layer reads it. This tends to make
+    training faster and more stable.</p>
+    <p>In a transformer, a layer normalization sits next to each attention and MLP sublayer. Some designs put it
+    before the sublayer, others after the residual addition; <a href="transformer-block.html">the transformer
+    block</a> unit compares the two. Some models compute <b>γ</b> and <b>β</b> from another input, such as the time step of a
+    generative model, instead of learning fixed values (see <a href="time-conditioning.html">time conditioning</a>).
+    A cheaper variant, RMS normalization, skips subtracting the mean and divides by the root of the mean square.</p>
+
+    <p class="code-cap">layer_norm.py</p>
+<pre><code class="py">import numpy as np
+
+def layer_norm(x, gamma, beta, eps=1e-5):
+    mu = x.mean(axis=-1, keepdims=True)                  # each token's mean
+    var = ((x - mu) ** 2).mean(axis=-1, keepdims=True)   # and its variance
+    return gamma * (x - mu) / np.sqrt(var + eps) + beta
+
+tokens = np.array([[2.0, 4.0, 6.0, 8.0],     # one token per row
+                   [20.0, 40.0, 60.0, 80.0],
+                   [5.0, 5.0, 5.0, 5.0]])
+print(np.round(layer_norm(tokens, np.ones(4), np.zeros(4)), 3))
+print(np.round(layer_norm(tokens[0], np.full(4, 2.0), np.ones(4)), 3))
+</code></pre>
+<pre class="out">[[-1.342 -0.447  0.447  1.342]
+ [-1.342 -0.447  0.447  1.342]
+ [ 0.     0.     0.     0.   ]]
+[-1.683  0.106  1.894  3.683]</pre>
+    <p>PyTorch provides the same operation as <code>torch.nn.LayerNorm(d)</code>, with ε = 0.00001 and <b>γ</b>, <b>β</b>
+    learned.</p>
+
+    <div class="callout warn">
+      <span class="callout-title">Two details this page skips</span>
+      <p>Layer normalization throws away each token's overall size and offset. Designs that need that information
+      keep an unnormalized copy, which is one job of the residual path in a transformer block. A different method,
+      batch normalization, normalizes each feature across the examples in a batch, so its result depends on the
+      other examples and it behaves differently in training and in use. Transformers mostly use layer
+      normalization, which avoids both effects.</p>
+    </div>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>Work a similar problem. Normalize the token [0, 3], with <b>γ</b> = 1 and <b>β</b> = 0 (ignore ε).</p>
+      <details><summary>Answer</summary><p>Mean 1.5. Differences [−1.5, 1.5]. Variance (2.25 + 2.25) / 2 = 2.25, so
+      the spread is 1.5. Output [−1, 1].</p></details>
+    </li>
+    <li>
+      <p>What does layer normalization give for [5, 5, 5, 5], and why does ε matter here?</p>
+      <details><summary>Answer</summary><p>The mean is 5 and every difference is 0, so the variance is 0. Without ε
+      the formula would divide 0 by 0. With ε it divides 0 by √0.00001 and gives [0, 0, 0, 0], and then the output
+      is just <b>β</b>.</p></details>
+    </li>
+    <li>
+      <p>Two tokens sit in the same batch. Does the normalized value of token 1 depend on token 2?</p>
+      <details><summary>Answer</summary><p>No. The mean and spread come from token 1's own numbers only. (Batch
+      normalization, by contrast, would mix in other examples.)</p></details>
+    </li>
+    <li>
+      <p>Training has set <b>γ</b> = [2, 2, 2, 2] and <b>β</b> = [1, 1, 1, 1]. What does the token [2, 4, 6, 8] become?</p>
+      <details><summary>Answer</summary><p>Normalize first: [−1.342, −0.447, 0.447, 1.342]. Then 2 × each + 1:
+      [−1.683, 0.106, 1.894, 3.683].</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://d2l.ai/chapter_convolutional-modern/batch-norm.html#layer-normalization">Dive into Deep Learning: "Layer Normalization"</a>
+        <span class="fl-src">Zhang, Lipton, Li and Smola</span>
+        <span class="fl-format">Textbook section</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">A short section that sets layer normalization beside batch normalization, with the formula
+      and the scale-invariance shown on this page.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://poloclub.github.io/transformer-explainer/#article-ln">Transformer Explainer: "Layer Normalization"</a>
+        <span class="fl-src">Georgia Tech Polo Club</span>
+        <span class="fl-format">Interactive page</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">Shows where layer normalization sits inside a live language model, with a few sentences on
+      why it is there.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://arxiv.org/abs/1607.06450">Layer Normalization</a>
+        <span class="fl-src">Ba, Kiros and Hinton (2016)</span>
+        <span class="fl-format">Paper</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">The original paper. Section 3 defines the method, and section 5.1 compares what it is
+      invariant to with batch normalization.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="transformer-block.html">The transformer block</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">8 min</span></li>
+    <li><a href="time-conditioning.html">Time conditioning: telling a network the time</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const NS = 'http://www.w3.org/2000/svg';
+  const mk = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; };
+
+  // the static grid in the first figure: 4 tokens by 6 features
+  const grid = document.getElementById('ln-grid');
+  if (grid) {
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 6; c++) {
+      mk('rect', { x: 56 + 40 * c, y: 28 + 34 * r, width: 36, height: 30, rx: 3,
+        fill: r === 1 ? 'var(--accent-soft)' : 'var(--bg)', stroke: 'var(--rule)' }, grid);
+    }
+  }
+
+  const k = document.getElementById('ln-k'), c = document.getElementById('ln-c');
+  if (!k || !c) return;
+  const base = [2, 4, 6, 8], cls = ['s1', 's2', 's3', 's4'];
+  const gin = document.getElementById('ln-in'), gout = document.getElementById('ln-out');
+  const IN = { x0: 22, bw: 34, gap: 14, y0: 110, s: 80 / 30 }, OUT = { x0: 262, bw: 30, gap: 14, y0: 110, s: 80 / 2 };
+  const bars = base.map((_, i) => ({
+    a: mk('rect', { class: 'f-' + cls[i] }, gin), at: mk('text', { 'text-anchor': 'middle' }, gin),
+    b: mk('rect', { class: 'f-' + cls[i] }, gout), bt: mk('text', { 'text-anchor': 'middle' }, gout)
+  }));
+  const fmt = v => (v < -0.0005 ? '−' : '') + Math.abs(v).toFixed(2);
+  const fmtIn = v => (v < 0 ? '−' : '') + (Math.abs(v) % 1 ? Math.abs(v).toFixed(1) : Math.abs(v));
+  function bar(rect, label, P, i, v, txt) {
+    const h = Math.min(95, Math.abs(v) * P.s), x = P.x0 + i * (P.bw + P.gap);
+    rect.setAttribute('x', x); rect.setAttribute('width', P.bw);
+    rect.setAttribute('y', v >= 0 ? P.y0 - h : P.y0); rect.setAttribute('height', Math.max(h, 0.5));
+    label.setAttribute('x', x + P.bw / 2);
+    label.setAttribute('y', v >= 0 ? P.y0 - h - 5 : P.y0 + h + 15);
+    label.textContent = txt;
+  }
+  function draw() {
+    const kv = Number(k.value), cv = Number(c.value);
+    const x = base.map(v => kv * v + cv);
+    const mu = x.reduce((a, b) => a + b, 0) / 4;
+    const vr = x.reduce((a, b) => a + (b - mu) ** 2, 0) / 4;
+    const y = x.map(v => (v - mu) / Math.sqrt(vr + 1e-5));
+    bars.forEach((b, i) => { bar(b.a, b.at, IN, i, x[i], fmtIn(x[i])); bar(b.b, b.bt, OUT, i, y[i], fmt(y[i])); });
+    document.getElementById('ln-kout').textContent = kv.toFixed(2);
+    document.getElementById('ln-cout').textContent = String(cv);
+    document.getElementById('ln-stats').textContent = 'mean ' + fmt(mu) + ', spread ' + Math.sqrt(vr).toFixed(2);
+    const om = y.reduce((a, b) => a + b, 0) / 4, os = Math.sqrt(y.reduce((a, b) => a + (b - om) ** 2, 0) / 4);
+    document.getElementById('ln-ostats').textContent = 'mean ' + fmt(om) + ', spread ' + os.toFixed(2);
+  }
+  k.addEventListener('input', draw); c.addEventListener('input', draw);
+  draw();
+})();
+</script>
+</body>
+</html>

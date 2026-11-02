@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="velocity-field">
+<meta name="unit-level" content="u1">
+<title>Velocity fields: an arrow at every point</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  .wcanvas { width: 100%; max-width: 440px; height: auto; aspect-ratio: 1 / 1; margin: 0 auto; cursor: crosshair; touch-action: manipulation; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Velocity fields: an arrow at every point</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="vectors.html">Vectors: arrows made of numbers</a> <span class="level-badge level-hs">High school</span> <span class="minutes">8 min</span></li>
+    <li><a href="derivative.html">The derivative: slope at a point</a> <span class="level-badge level-hs">High school</span> <span class="minutes">8 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A velocity field puts an arrow at every point of space. The arrow at a point says which way something there
+  moves, and how fast. Drop a leaf on a river: at each moment it moves along the arrow where it is, so it traces a path
+  through the field. A field can also change over time, like the wind during a day. Then the arrow depends on both the
+  place and the time. Some generative models learn a velocity field that carries random noise to real examples.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="arrows">
+    <h2>Every point gets an arrow that gives direction and speed</h2>
+    <p>Think of a weather map of the wind, with a small arrow drawn over each town. Each arrow is a
+    <a href="vectors.html">vector</a>. Its direction is the direction of motion, and its length is the speed. That
+    vector is the <dfn>velocity</dfn>: how fast the position changes with time, in each coordinate. In other words,
+    each coordinate of the velocity is the <a href="derivative.html">derivative</a> of that coordinate of the position
+    with respect to time.</p>
+    <p>A <dfn>velocity field</dfn> is a rule that gives the velocity at every point <var>p</var>. We write it
+    <var>v</var>(<var>p</var>). If the arrows change over time, we write <var>v</var>(<var>p</var>, <var>t</var>).</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: a swirl</span>
+      <p>The field <var>v</var>(<var>x</var>, <var>y</var>) = (−<var>y</var>, <var>x</var>) turns things around the
+      origin. Read three of its arrows:</p>
+      <ol>
+        <li>At (2, 0) the arrow is (−0, 2) = (0, 2): straight up, at speed 2.</li>
+        <li>At (0, 1) the arrow is (−1, 0): straight left, at speed 1.</li>
+        <li>At (3, 4) the arrow is (−4, 3), with speed √(16 + 9) = 5.</li>
+      </ol>
+      <p>Each arrow is at a right angle to the line from the origin, so things circle the origin. Points farther out
+      move faster.</p>
+    </div>
+    <p><b>Your turn.</b> The <i>sink</i> field is <var>v</var>(<var>p</var>) = (1, 1) − <var>p</var>. Which arrow sits
+    at (4, 2)? Where does a particle in this field come to rest?</p>
+    <details><summary>Answer</summary><p>At (4, 2) the arrow is (1 − 4, 1 − 2) = (−3, −1). A particle comes to rest at
+    (1, 1), the only point where the arrow has length zero. Everywhere else the arrow points toward (1, 1).</p></details>
+  </section>
+
+  <section id="paths">
+    <h2>A particle traces a path by following the arrows</h2>
+    <p>A particle in a field moves, at every moment, with the velocity given by the arrow where it is. As it moves, it
+    reaches new arrows, so its direction and speed change. The curve it traces is its <dfn>path</dfn>. Two particles
+    that start at different points usually follow different paths and may end in different places.</p>
+
+    <figure id="fig-field">
+      <div class="fig-title">Release particles and watch them follow the arrows</div>
+      <canvas id="vf-canvas" class="wcanvas" role="img" aria-label="A grid of arrows; tapping releases a particle that moves along the arrows and leaves a trail"></canvas>
+      <div class="controls">
+        <span role="group" aria-label="Field">
+          <button class="btn" type="button" data-field="swirl" aria-pressed="true">Swirl</button>
+          <button class="btn" type="button" data-field="sink" aria-pressed="false">Sink</button>
+          <button class="btn" type="button" data-field="two" aria-pressed="false">Two sinks</button>
+        </span>
+        <button class="btn" type="button" id="vf-row">Release a row</button>
+      </div>
+      <p class="readout-box" id="vf-read">Move the pointer over the field to read the arrow there. Click or tap to release a particle.</p>
+      <figcaption><b>Try this.</b> Choose <i>Two sinks</i> and release particles on both sides of the middle. Find the
+      line that separates particles that end at the left sink from those that end at the right one. What happens to a
+      particle released exactly on that line? Arrow lengths are scaled to fit the picture. The page moves each particle
+      in many tiny steps, with a refinement of <a href="euler-steps.html">Euler's method</a> called the midpoint
+      method.</figcaption>
+    </figure>
+    <details><summary>What you should find</summary><p>In <i>Two sinks</i>, the dividing line is the vertical line
+    through the middle. A particle released exactly on it slides along the line to the center point and stops there,
+    because the two pulls cancel. Any small nudge sends it to one sink or the other.</p></details>
+    <p>Generative models use fields like this one: where a noise point starts decides which kind of example it
+    becomes.</p>
+  </section>
+
+  <section id="no-crossing">
+    <h2>In a smooth field, two particles never meet</h2>
+    <p>Suppose two particles were ever at the same place at the same time. From then on they would read the same
+    arrows and move together. Run time backward from that moment, and they would also read the same arrows, so they
+    must have been together all along. So in a field whose arrows change smoothly from point to point, two particles
+    that start at different points are never at the same place at the same time.</p>
+    <p>If the field does not change with time, the paths never cross at all. If it does change, two particles can pass
+    through the same spot at different times, but never at the same time.</p>
+    <p>This fact matters for <a href="flow-matching.html">flow matching</a>. Its straight training paths often bring
+    two points to the same place at the same time, heading different ways. Particles that follow its learned field
+    never meet, so their paths bend instead.</p>
+    <div class="callout warn">
+      <span class="callout-title">What "smooth" means here</span>
+      <p>The precise condition is called Lipschitz continuity: the arrow cannot change faster than some fixed rate as you
+      move. Fields with jumps, or with arrows that change infinitely fast at some point, can make paths merge. The usual
+      layers of a neural network meet the condition, at least within any bounded region.</p>
+    </div>
+
+    <p class="code-cap">read_arrows.py</p>
+<pre><code class="py">import numpy as np
+
+def swirl(p):
+    """Turn around the origin: the arrow at (x, y) is (-y, x)."""
+    x, y = p
+    return np.array([-y, x]) + 0.0     # + 0.0 turns -0.0 into 0.0
+
+def sink(p, target=np.array([1.0, 1.0])):
+    """Head for a target: the arrow points from p to the target."""
+    return target - p
+
+for p in [(2.0, 0.0), (0.0, 1.0), (3.0, 4.0)]:
+    v = swirl(np.array(p))
+    print("swirl at", p, "->", v, " speed", round(float(np.linalg.norm(v)), 2))
+print("sink at (4, 2) ->", sink(np.array([4.0, 2.0])))
+</code></pre>
+<pre class="out">swirl at (2.0, 0.0) -> [0. 2.]  speed 2.0
+swirl at (0.0, 1.0) -> [-1.  0.]  speed 1.0
+swirl at (3.0, 4.0) -> [-4.  3.]  speed 5.0
+sink at (4, 2) -> [-3. -1.]</pre>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>In the swirl field <var>v</var>(<var>x</var>, <var>y</var>) = (−<var>y</var>, <var>x</var>), what is the arrow at
+      (0, −2), and which way does a particle there move?</p>
+      <details><summary>Answer</summary><p>(2, 0). The particle moves to the right at speed 2, which is
+      counterclockwise around the origin.</p></details>
+    </li>
+    <li>
+      <p>An arrow is (6, 8). What is the speed?</p>
+      <details><summary>Answer</summary><p>√(36 + 64) = 10.</p></details>
+    </li>
+    <li>
+      <p>In a smooth field that does not change with time, can two paths cross in an X shape?</p>
+      <details><summary>Answer</summary><p>No. At the crossing point the arrow would have to point along both paths at
+      once, but each point has only one arrow. Two particles can still travel the same path, one after the
+      other.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers with more time.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://www.3blue1brown.com/lessons/differential-equations/">Differential equations, studying the unsolvable</a>
+        <span class="fl-src">3Blue1Brown</span>
+        <span class="fl-format">Video</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Shows a swinging pendulum as a point flowing through a field of arrows, with clear animation.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="euler-steps.html">Euler&#x27;s method: small steps along a field</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  'use strict';
+  const root = document.documentElement;
+  const css = n => getComputedStyle(root).getPropertyValue(n).trim();
+  const fit = cv => {
+    const dpr = window.devicePixelRatio || 1;
+    const w = Math.max(1, Math.round(cv.clientWidth)), h = Math.max(1, Math.round(cv.clientHeight));
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
+      cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    }
+    const ctx = cv.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    return { ctx, w, h };
+  };
+  const cv = document.getElementById('vf-canvas');
+  if (!cv) return;
+  const read = document.getElementById('vf-read');
+  const R = 3;                       // the view shows -3..3 in x and y
+  const C1 = [-1.5, 0], C2 = [1.5, 0];
+  const FIELDS = {
+    swirl: p => [-p[1], p[0]],
+    sink: p => [1 - p[0], 1 - p[1]],
+    two: p => {
+      const d1 = (p[0] - C1[0]) ** 2 + (p[1] - C1[1]) ** 2, d2 = (p[0] - C2[0]) ** 2 + (p[1] - C2[1]) ** 2;
+      const w1 = 1 / (1 + Math.exp((d1 - d2) / 1.6)), w2 = 1 - w1;
+      return [w1 * (C1[0] - p[0]) + w2 * (C2[0] - p[0]), w1 * (C1[1] - p[1]) + w2 * (C2[1] - p[1])];
+    },
+  };
+  let field = 'swirl', parts = [], running = false, last = 0, simT = 0;
+
+  const step = (p, dt) => {          // one small midpoint step
+    const f = FIELDS[field], a = f(p), m = [p[0] + a[0] * dt / 2, p[1] + a[1] * dt / 2], b = f(m);
+    return [p[0] + b[0] * dt, p[1] + b[1] * dt];
+  };
+  const advance = dt => {
+    const n = Math.max(1, Math.ceil(dt / 0.004)), h = dt / n;
+    for (const q of parts) {
+      for (let k = 0; k < n; k++) q.p = step(q.p, h);
+      q.trail.push(q.p);
+      if (q.trail.length > 600) q.trail.shift();
+    }
+    simT += dt;
+  };
+  function draw() {
+    const { ctx, w, h } = fit(cv);
+    const S = Math.min(w, h) / (2 * R), X = x => w / 2 + x * S, Y = y => h / 2 - y * S;
+    // axes
+    ctx.strokeStyle = css('--rule'); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(X(-R), Y(0)); ctx.lineTo(X(R), Y(0)); ctx.moveTo(X(0), Y(-R)); ctx.lineTo(X(0), Y(R)); ctx.stroke();
+    // arrows on a grid; length grows with speed, capped so arrows do not overlap
+    const f = FIELDS[field], g = 0.5;
+    ctx.strokeStyle = css('--ink-3'); ctx.fillStyle = css('--ink-3'); ctx.lineWidth = 1.2;
+    for (let gx = -R + g / 2; gx < R; gx += g) {
+      for (let gy = -R + g / 2; gy < R; gy += g) {
+        const v = f([gx, gy]), sp = Math.hypot(v[0], v[1]);
+        if (sp < 1e-6) continue;
+        const L = Math.min(0.42, 0.12 * sp) * S, ux = v[0] / sp, uy = v[1] / sp;
+        const x0 = X(gx) - ux * L / 2, y0 = Y(gy) + uy * L / 2, x1 = X(gx) + ux * L / 2, y1 = Y(gy) - uy * L / 2;
+        ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+        const hh = Math.min(5, L * 0.45);
+        ctx.beginPath(); ctx.moveTo(x1, y1);
+        ctx.lineTo(x1 - ux * hh - uy * hh * 0.5, y1 + uy * hh - ux * hh * 0.5);
+        ctx.lineTo(x1 - ux * hh + uy * hh * 0.5, y1 + uy * hh + ux * hh * 0.5);
+        ctx.closePath(); ctx.fill();
+      }
+    }
+    if (field === 'two') {
+      ctx.fillStyle = css('--s3');
+      for (const c of [C1, C2]) { ctx.beginPath(); ctx.arc(X(c[0]), Y(c[1]), 5, 0, 2 * Math.PI); ctx.fill(); }
+    } else if (field === 'sink') {
+      ctx.fillStyle = css('--s3'); ctx.beginPath(); ctx.arc(X(1), Y(1), 5, 0, 2 * Math.PI); ctx.fill();
+    }
+    // trails and particles
+    for (const q of parts) {
+      ctx.strokeStyle = css('--s2'); ctx.lineWidth = 2; ctx.globalAlpha = 0.75;
+      ctx.beginPath();
+      q.trail.forEach((p, i) => (i ? ctx.lineTo(X(p[0]), Y(p[1])) : ctx.moveTo(X(p[0]), Y(p[1]))));
+      ctx.stroke(); ctx.globalAlpha = 1;
+      ctx.fillStyle = css('--s1'); ctx.beginPath(); ctx.arc(X(q.p[0]), Y(q.p[1]), 4.5, 0, 2 * Math.PI); ctx.fill();
+    }
+  }
+  const loop = now => {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    advance(dt);
+    draw();
+    if (simT < 14) requestAnimationFrame(loop); else running = false;
+  };
+  const start = () => { simT = 0; if (!running) { running = true; last = performance.now(); requestAnimationFrame(loop); } };
+  const release = p => { parts.push({ p, trail: [p] }); if (parts.length > 40) parts.shift(); start(); };
+  const releaseRow = () => {
+    parts = [];
+    for (let i = 0; i < 12; i++) release([-2.6 + 5.2 * i / 11, 2.2]);
+  };
+  const toWorld = ev => {
+    const r = cv.getBoundingClientRect(), S = Math.min(r.width, r.height) / (2 * R);
+    return [(ev.clientX - r.left - r.width / 2) / S, -(ev.clientY - r.top - r.height / 2) / S];
+  };
+  cv.addEventListener('click', ev => release(toWorld(ev)));
+  cv.addEventListener('pointermove', ev => {
+    const p = toWorld(ev), v = FIELDS[field](p);
+    read.textContent = `Arrow at (${p[0].toFixed(2)}, ${p[1].toFixed(2)}): (${v[0].toFixed(2)}, ${v[1].toFixed(2)}), speed ${Math.hypot(v[0], v[1]).toFixed(2)}`;
+  });
+  document.querySelectorAll('button[data-field]').forEach(b => b.addEventListener('click', () => {
+    field = b.dataset.field;
+    document.querySelectorAll('button[data-field]').forEach(o => o.setAttribute('aria-pressed', String(o === b)));
+    parts = [];
+    draw();
+  }));
+  document.getElementById('vf-row').addEventListener('click', releaseRow);
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', draw);
+  new MutationObserver(draw).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+  window.addEventListener('resize', draw);
+  // start with a row already part-way round, so the picture shows paths before any click
+  releaseRow();
+  for (let k = 0; k < 60; k++) advance(1 / 60);
+  simT = 0;
+  draw();
+})();
+</script>
+</body>
+</html>

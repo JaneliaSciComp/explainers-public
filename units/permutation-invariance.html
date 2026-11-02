@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="permutation-invariance">
+<meta name="unit-level" content="u1">
+<title>Order doesn't matter: permutation invariance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  #fig-perm svg text { font-size: 14px; }
+  .pi-wrap { display: flex; flex-wrap: wrap; gap: 0.6rem 1.4rem; align-items: flex-start; }
+  .pi-wrap svg { flex: 0 0 auto; }
+  .pi-wrap .table-wrap { flex: 1 1 16rem; margin: 0; }
+  #pi-table td.changed { color: var(--bad); font-weight: 700; }
+  #pi-table td.same { color: var(--good); font-weight: 700; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Order doesn't matter: permutation invariance</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="point-clouds.html">Shapes as point clouds</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A <a href="point-clouds.html">point cloud</a> stores its points in a list, but the order of that list means
+  nothing: the same shape can be listed in many orders. A function of the whole cloud should give the same answer
+  for every order. Such a function is called <dfn>permutation invariant</dfn>. Sums, averages and maxima are; "the
+  first point in the list" is not. A function that gives one answer per point is called <dfn>permutation
+  equivariant</dfn> if shuffling the points shuffles its answers in the same way.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="orders">
+    <h2>The same shape can be listed in very many orders</h2>
+    <p>A <dfn>permutation</dfn> is a reordering of a list. Three points A, B and C can be listed in 3 × 2 × 1 = 6
+    orders: ABC, ACB, BAC, BCA, CAB and CBA. In general, <var>n</var> points have <var>n</var>! orders ("<var>n</var>
+    factorial", the product 1 × 2 × … × <var>n</var>). That number grows fast: 10 points have 3,628,800 orders, and
+    1,000 points have a number of orders with 2,568 digits.</p>
+    <p>A program that stores a cloud has to pick one order, often the order a scanner happened to produce. A model
+    could try to learn that order does not matter by seeing many shuffled copies of each cloud. With so many orders,
+    it could never see them all. So models for point sets build the property in.</p>
+  </section>
+
+  <section id="summaries">
+    <h2>Some summaries ignore the order, and some do not</h2>
+    <p>Take the points A = (1, 2), B = (4, 0) and C = (2, 3), and list them twice: as A, B, C and as C, A, B.</p>
+    <p><b>Predict first.</b> For each summary in the table, will the two orders give the same answer?</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: four summaries, two orders</span>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Summary of the list</th><th class="r">order A, B, C</th><th class="r">order C, A, B</th><th>Invariant?</th></tr></thead>
+          <tbody>
+            <tr><td>Sum of the points</td><td class="r">(7, 5)</td><td class="r">(7, 5)</td><td>yes</td></tr>
+            <tr><td>Largest <var>x</var> and largest <var>y</var></td><td class="r">(4, 3)</td><td class="r">(4, 3)</td><td>yes</td></tr>
+            <tr><td>The first point</td><td class="r">(1, 2)</td><td class="r">(2, 3)</td><td>no</td></tr>
+            <tr><td>1 × first + 2 × second + 3 × third</td><td class="r">(15, 11)</td><td class="r">(16, 7)</td><td>no</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Check the last row for the order A, B, C: 1 × (1, 2) + 2 × (4, 0) + 3 × (2, 3) = (1 + 8 + 6, 2 + 0 + 9) =
+      (15, 11). It gives each place in the list its own weight, so moving a point to another place changes the
+      answer. The sum gives every place the same weight, 1, so the order cannot matter.</p>
+    </div>
+
+    <p>The last row is a warning about networks. A <a href="linear-layer.html">linear layer</a> fed the coordinates
+    as one long list, [<var>x</var><sub>1</sub>, <var>y</var><sub>1</sub>, <var>x</var><sub>2</sub>, …], gives every
+    place its own weight, exactly like that row. So it is not permutation invariant, and it also cannot accept a
+    different number of points.</p>
+
+    <figure id="fig-perm">
+      <div class="fig-title">Shuffle the list and watch which summaries change</div>
+      <div class="pi-wrap">
+        <svg id="pi-svg" width="200" height="190" viewBox="0 0 200 190" role="img"
+             aria-label="Three points A at (1, 2), B at (4, 0) and C at (2, 3) on a grid, each with a badge showing its current place in the list.">
+          <g id="pi-grid"></g>
+          <g id="pi-pts"></g>
+        </svg>
+        <div class="table-wrap">
+          <table id="pi-table">
+            <thead><tr><th>Summary</th><th class="r">now</th><th>vs. A, B, C</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="btn" type="button" id="pi-shuffle">Shuffle the list</button>
+        <output id="pi-order">list: A, B, C</output>
+      </div>
+      <p class="small"><b>Try it.</b> Before you press the button, predict which of the five summaries will change.
+      Then shuffle several times. Which ones never change?</p>
+      <details><summary>Answer</summary><p>The sum of <var>x</var>, the mean point and the largest <var>y</var> never
+      change: each treats every place in the list alike. The first point's <var>x</var> and the weighted sum change
+      with almost every shuffle, because they depend on which point sits in which place.</p></details>
+      <figcaption><b>What to notice.</b> The points never move; only the badges, their places in the list, change.
+      The shape is the same, so a good summary of the shape should not change either.</figcaption>
+    </figure>
+  </section>
+
+  <section id="equivariance">
+    <h2>Answers for each point should move with their points</h2>
+    <p>Some functions give one answer per point, such as a label for each point or the sum <var>x</var> +
+    <var>y</var> of each point. For the order A, B, C that sum gives [3, 4, 5]. For the order C, A, B it gives
+    [5, 3, 4]: the same answers, reordered the same way as the points. That is permutation equivariance. Each point
+    keeps its own answer, wherever it sits in the list.</p>
+    <p>Models of point sets usually combine the two properties. First they run equivariant steps that compute
+    features for each point, such as the same small network applied to every point, or
+    <a href="attention.html">attention</a> without position information. Then they take one invariant step, such as
+    a sum or a maximum, to summarize the whole set. <a href="pointnet-pooling.html">PointNet pooling</a> is the
+    simplest example.</p>
+
+    <p class="code-cap">permutation.py</p>
+<pre><code class="py">import numpy as np
+
+P = np.array([[1.0, 2.0], [4.0, 0.0], [2.0, 3.0]])   # A, B, C
+Q = P[[2, 0, 1]]                                     # the same points as C, A, B
+w = np.array([1.0, 2.0, 3.0])                        # one weight per list position
+
+print(P.sum(axis=0), Q.sum(axis=0))    # invariant
+print(P.max(axis=0), Q.max(axis=0))    # invariant
+print(w @ P, w @ Q)                    # not invariant
+print(P.sum(axis=1), Q.sum(axis=1))    # x + y of each point: equivariant
+</code></pre>
+<pre class="out">[7. 5.] [7. 5.]
+[4. 3.] [4. 3.]
+[15. 11.] [16.  7.]
+[3. 4. 5.] [5. 3. 4.]</pre>
+
+    <div class="callout warn">
+      <span class="callout-title">Two fine points</span>
+      <p>On a computer, a sum of decimals can differ in its last digit when the order changes, because each
+      addition rounds. In Python, (0.1 + 0.2) + 0.3 gives 0.6000000000000001 but 0.1 + (0.2 + 0.3) gives 0.6. So a
+      sum or a mean is invariant up to rounding; a maximum is exactly invariant. Also, order is only one thing a
+      shape model may need to ignore. Rotating or moving the whole shape changes every coordinate, which is a
+      different property; models often learn to ignore it through <a href="data-augmentation.html">data
+      augmentation</a>.</p>
+    </div>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>Is the median of the points' <var>x</var> coordinates permutation invariant?</p>
+      <details><summary>Answer</summary><p>Yes. The median sorts the values first, so the order you list them in
+      does not matter.</p></details>
+    </li>
+    <li>
+      <p>Work a similar problem. The summary is "<var>x</var> of the last point minus <var>x</var> of the first
+      point". Compute it for the orders A, B, C and C, A, B. Is it invariant?</p>
+      <details><summary>Answer</summary><p>A, B, C: 2 − 1 = 1. C, A, B: 4 − 2 = 2. The answers differ, so it is not
+      invariant.</p></details>
+    </li>
+    <li>
+      <p>How many orders do 5 points have?</p>
+      <details><summary>Answer</summary><p>5! = 5 × 4 × 3 × 2 × 1 = 120.</p></details>
+    </li>
+    <li>
+      <p>A function gives each point its distance to the mean point of the cloud. Is it invariant, equivariant or
+      neither?</p>
+      <details><summary>Answer</summary><p>Equivariant. It gives one answer per point, and the mean point does not
+      depend on the order, so each point keeps its own distance wherever it sits. Shuffling the points shuffles the
+      list of distances the same way.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://fabianfuchsml.github.io/learningonsets/">Review: Deep Learning on Sets</a>
+        <span class="fl-src">Fabian Fuchs, Ed Wagstaff and Martin Engelcke</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">Opens with why sets need order-free models, then reviews the ways to build them: averaging
+      over orders (which leads to Deep Sets and self-attention), sorting, approximate invariance, and
+      graphs.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://arxiv.org/html/1612.00593#S4.SS1">PointNet paper, section 4.1: "Properties of Point Sets"</a>
+        <span class="fl-src">Qi, Su, Mo and Guibas (2017)</span>
+        <span class="fl-format">Paper section</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">One paragraph that names the three properties a point-cloud network needs, starting with
+      "unordered".</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="pointnet-pooling.html">PointNet pooling: one summary for a set</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const svg = document.getElementById('pi-svg');
+  if (!svg) return;
+  const NS = 'http://www.w3.org/2000/svg';
+  const mk = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; };
+  const P = { A: [1, 2], B: [4, 0], C: [2, 3] }, COL = { A: 's1', B: 's2', C: 's3' };
+  const O = [24, 160], S = 36;
+  const px = p => [O[0] + S * p[0], O[1] - S * p[1]];
+  const grid = document.getElementById('pi-grid');
+  for (let i = 0; i <= 4; i++) {
+    mk('line', { x1: O[0] + S * i, y1: O[1], x2: O[0] + S * i, y2: O[1] - S * 4, class: 'grid' }, grid);
+    mk('line', { x1: O[0], y1: O[1] - S * i, x2: O[0] + S * 4, y2: O[1] - S * i, class: 'grid' }, grid);
+    mk('text', { x: O[0] + S * i, y: O[1] + 18, 'text-anchor': 'middle', class: 'muted' }, grid).textContent = String(i);
+  }
+  const badges = {};
+  Object.keys(P).forEach(n => {
+    const [x, y] = px(P[n]);
+    mk('circle', { cx: x, cy: y, r: 7, class: 'f-' + COL[n] }, document.getElementById('pi-pts'));
+    mk('text', { x: x - 10, y: y + 5, 'text-anchor': 'end', 'font-weight': 700 }, document.getElementById('pi-pts')).textContent = n;
+    const b = mk('g', {}, document.getElementById('pi-pts'));
+    mk('circle', { cx: x + 15, cy: y - 14, r: 10, fill: 'var(--surface)', stroke: 'var(--ink-2)' }, b);
+    badges[n] = mk('text', { x: x + 15, y: y - 9, 'text-anchor': 'middle' }, b);
+  });
+  const fmt = v => (Math.round(v * 100) / 100).toString();
+  const sums = [
+    ['Sum of the x values', L => fmt(L.reduce((a, p) => a + p[0], 0))],
+    ['Mean point', L => '(' + fmt(L.reduce((a, p) => a + p[0], 0) / L.length) + ', ' + fmt(L.reduce((a, p) => a + p[1], 0) / L.length) + ')'],
+    ['Largest y', L => fmt(Math.max(...L.map(p => p[1])))],
+    ['x of the first point', L => fmt(L[0][0])],
+    ['1×x₁ + 2×x₂ + 3×x₃', L => fmt(L.reduce((a, p, i) => a + (i + 1) * p[0], 0))]
+  ];
+  const base = sums.map(s => s[1](['A', 'B', 'C'].map(n => P[n])));
+  const tbody = document.querySelector('#pi-table tbody');
+  const cells = sums.map(s => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + s[0] + '</td><td class="r"></td><td></td>';
+    tbody.appendChild(tr);
+    return tr.querySelectorAll('td');
+  });
+  let order = ['A', 'B', 'C'];
+  function draw() {
+    order.forEach((n, i) => { badges[n].textContent = String(i + 1); });
+    const L = order.map(n => P[n]);
+    sums.forEach((s, i) => {
+      const v = s[1](L), same = v === base[i];
+      cells[i][1].textContent = v;
+      cells[i][2].textContent = same ? 'same' : 'changed';
+      cells[i][2].className = same ? 'same' : 'changed';
+    });
+    document.getElementById('pi-order').textContent = 'list: ' + order.join(', ');
+  }
+  document.getElementById('pi-shuffle').addEventListener('click', () => {
+    const before = order.join('');
+    while (order.join('') === before) {
+      for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+    }
+    draw();
+  });
+  draw();
+})();
+</script>
+</body>
+</html>

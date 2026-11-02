@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="softmax">
+<meta name="unit-level" content="u1">
+<title>Softmax: probabilities over many choices</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Softmax: probabilities over many choices</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="exponentials.html">Exponentials, undone by logarithms</a> <span class="level-badge level-hs">High school</span> <span class="minutes">8 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A model that picks one of several choices usually gives each choice a <dfn>score</dfn>: any number, where
+  higher means more likely. <dfn>Softmax</dfn> turns the list of scores into a list of probabilities. It raises
+  <var>e</var> to each score, which makes every value positive, then divides by the total, which makes the values
+  add up to 1. The highest score gets the largest share. Only the gaps between scores matter: adding the same
+  number to every score changes nothing.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="shares">
+    <h2>Softmax turns scores into shares of a whole</h2>
+    <p>Picture a model that looks at a photo and must say whether it shows a cat, a dog or a bird. It gives each
+    choice, or <dfn>class</dfn>, a score: say 2.0 for cat, 1.0 for dog and 0.1 for bird. These scores rank the
+    classes, but they are not probabilities. A score can be negative, and the three do not add up to 1.</p>
+    <p>Softmax fixes both problems in two steps. First, raise <var>e</var> ≈ 2.718 to each score. The
+    <a href="exponentials.html">exponentials</a> unit shows that <var>e</var><sup><var>z</var></sup> is positive for
+    every <var>z</var>. Second, divide each result by the sum of all of them. For class <var>i</var> out of
+    <var>n</var> classes:</p>
+    <p class="math"><var>p</var><sub><var>i</var></sub> = <var>e</var><sup><var>z</var><sub><var>i</var></sub></sup>
+      / ( <var>e</var><sup><var>z</var><sub>1</sub></sup> + <var>e</var><sup><var>z</var><sub>2</sub></sup> + … +
+      <var>e</var><sup><var>z</var><sub><var>n</var></sub></sup> )</p>
+
+    <p><b>Predict first.</b> The cat's score is 1 higher than the dog's. Will the cat be twice as likely as the dog,
+    or more, or less?</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: cat 2.0, dog 1.0, bird 0.1</span>
+      <ol>
+        <li>Raise <var>e</var> to each score: <var>e</var><sup>2.0</sup> ≈ 7.389, <var>e</var><sup>1.0</sup> ≈ 2.718,
+          <var>e</var><sup>0.1</sup> ≈ 1.105.</li>
+        <li>Add them up: 7.389 + 2.718 + 1.105 = 11.212.</li>
+        <li>Divide each by the total: cat 7.389 / 11.212 ≈ 0.659, dog 0.242, bird 0.099.</li>
+      </ol>
+      <p>The three probabilities add up to 1. The cat is 0.659 / 0.242 ≈ 2.72 times as likely as the dog. That
+      ratio is <var>e</var><sup>1</sup>, because the cat's score is 1 higher.</p>
+    </div>
+
+    <figure id="fig-bars">
+      <div class="fig-title">Raising one score takes probability from every other class</div>
+      <svg id="sm-svg" width="540" height="225" viewBox="0 0 360 150" role="img"
+           aria-label="Three rows, one per class: cat, dog and bird. Each row shows the class's score and a bar for its probability. With scores 2.0, 1.0 and 0.1, the bars are 0.659, 0.242 and 0.099.">
+        <text x="0" y="14" class="muted">class</text>
+        <text x="96" y="14" text-anchor="end" class="muted">score</text>
+        <text x="110" y="14" class="muted">probability</text>
+        <g id="sm-rows">
+          <g transform="translate(0,26)">
+            <text x="0" y="20">cat</text><text x="96" y="20" text-anchor="end" class="readout">2.0</text>
+            <rect x="110" y="6" width="200" height="20" class="f-s1" opacity="0.15"/>
+            <rect x="110" y="6" width="131.8" height="20" class="f-s1"/>
+            <text x="316" y="20">0.659</text>
+          </g>
+          <g transform="translate(0,64)">
+            <text x="0" y="20">dog</text><text x="96" y="20" text-anchor="end" class="readout">1.0</text>
+            <rect x="110" y="6" width="200" height="20" class="f-s2" opacity="0.15"/>
+            <rect x="110" y="6" width="48.5" height="20" class="f-s2"/>
+            <text x="316" y="20">0.242</text>
+          </g>
+          <g transform="translate(0,102)">
+            <text x="0" y="20">bird</text><text x="96" y="20" text-anchor="end" class="readout">0.1</text>
+            <rect x="110" y="6" width="200" height="20" class="f-s3" opacity="0.15"/>
+            <rect x="110" y="6" width="19.7" height="20" class="f-s3"/>
+            <text x="316" y="20">0.099</text>
+          </g>
+        </g>
+      </svg>
+      <div class="controls">
+        <label>Dog's score <input id="sm-dog" type="range" min="-2" max="5" step="0.1" value="1"></label>
+        <button class="btn" type="button" id="sm-shift" aria-pressed="false">Add 5 to every score</button>
+      </div>
+      <p class="readout-box"><output id="sm-out">scores 2.0, 1.0, 0.1 → probabilities 0.659, 0.242, 0.099 (sum 1.000)</output></p>
+      <p class="small"><b>Try it.</b> Drag the dog's score until the dog and the cat are equally likely. What score is
+      that, and what is left for the bird? Then predict what "Add 5 to every score" will do to the bars before you
+      press it.</p>
+      <figcaption><b>What to notice.</b> The bars always fill exactly one whole between them. When the dog's score
+      rises, the cat's and the bird's bars both shrink. Adding 5 to every score changes the scores but not one
+      bar.</figcaption>
+    </figure>
+  </section>
+
+  <section id="gaps">
+    <h2>Only the gaps between scores matter</h2>
+    <p>Divide the formula for one class by the formula for another. The totals cancel, and what is left is</p>
+    <p class="math"><var>p</var><sub><var>i</var></sub> / <var>p</var><sub><var>j</var></sub> =
+      <var>e</var><sup><var>z</var><sub><var>i</var></sub> − <var>z</var><sub><var>j</var></sub></sup></p>
+    <p>So each extra point of score gap multiplies the ratio of the two probabilities by <var>e</var> ≈ 2.718. Three
+    things follow:</p>
+    <ul>
+      <li>Adding the same number to every score leaves every probability unchanged, because no gap changes.</li>
+      <li>Doubling every score doubles every gap, so the largest class takes a bigger share. Scores 4.0, 2.0 and 0.2
+        give 0.864, 0.117 and 0.019.</li>
+      <li>Halving every score shrinks the gaps, so the shares even out. Scores 1.0, 0.5 and 0.05 give 0.502, 0.304
+        and 0.194.</li>
+    </ul>
+    <p>When the gaps are large, almost all the probability goes to the top score. That is why the function is
+    called a "soft" maximum: it behaves like picking the largest score, but smoothly. Some code divides every score
+    by a number called the <dfn>temperature</dfn> before the softmax, to make the shares sharper or flatter on
+    purpose.</p>
+    <p>With exactly two classes, softmax is the <a href="sigmoid.html">sigmoid</a> in disguise. Give one class score
+    <var>z</var> and the other 0. Then the first class gets <var>e</var><sup><var>z</var></sup> /
+    (<var>e</var><sup><var>z</var></sup> + 1) = 1 / (1 + <var>e</var><sup>−<var>z</var></sup>) = σ(<var>z</var>).</p>
+
+    <p class="code-cap">softmax.py</p>
+<pre><code class="py">import numpy as np
+
+def softmax(z):
+    e = np.exp(z - z.max())   # subtract the largest score first
+    return e / e.sum()
+
+print(np.round(softmax(np.array([2.0, 1.0, 0.1])), 3))
+print(np.round(softmax(np.array([12.0, 11.0, 10.1])), 3))
+print(np.round(softmax(np.array([1000.0, 999.0])), 3))
+</code></pre>
+<pre class="out">[0.659 0.242 0.099]
+[0.659 0.242 0.099]
+[0.731 0.269]</pre>
+
+    <div class="callout warn">
+      <span class="callout-title">Real code subtracts the largest score first</span>
+      <p>The formula as written breaks for large scores. <var>e</var><sup>1000</sup> is too large for a computer's
+      numbers, so a direct computation of softmax([1000, 999]) divides infinity by infinity. Because adding a
+      constant changes nothing, code subtracts the largest score first. Every exponent is then 0 or less, and the
+      answer is the same. The second and third lines of output above show both facts.</p>
+      <p>Softmax also guarantees only the form of a probability: positive shares that add up to 1. Whether a share
+      of 0.9 is right 9 times in 10 depends on training.</p>
+    </div>
+    <p>Softmax also appears inside networks, where it turns similarity scores into weights. The
+    <a href="attention.html">attention</a> unit covers that use. To train a model whose output is a softmax, the
+    usual loss is <a href="cross-entropy.html">cross-entropy</a>.</p>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>Work the softmax of the scores 0, 1 and 2 by hand.</p>
+      <details><summary>Answer</summary><p><var>e</var><sup>0</sup> = 1, <var>e</var><sup>1</sup> ≈ 2.718,
+      <var>e</var><sup>2</sup> ≈ 7.389. The total is 11.107. The probabilities are 0.090, 0.245 and 0.665.</p></details>
+    </li>
+    <li>
+      <p>All three classes score 3. What does softmax give? What if all three score −50?</p>
+      <details><summary>Answer</summary><p>One third each, both times. Equal scores have no gaps, so the shares are
+      equal, whatever the common value.</p></details>
+    </li>
+    <li>
+      <p>Class A scores 2 higher than class B. How many times more likely is A than B?</p>
+      <details><summary>Answer</summary><p><var>e</var><sup>2</sup> ≈ 7.39 times, whatever the other scores
+      are.</p></details>
+    </li>
+    <li>
+      <p>Can softmax ever give a class a probability of exactly 0?</p>
+      <details><summary>Answer</summary><p>Not in exact arithmetic: <var>e</var><sup><var>z</var></sup> is positive
+      for every score. A computer can round a tiny share to 0, for example when one score is hundreds below the
+      top score.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://developers.google.com/machine-learning/crash-course/neural-networks/multi-class#one_versus_one_softmax">Multi-class neural networks: one versus one (softmax)</a>
+        <span class="fl-src">Google Machine Learning Crash Course</span>
+        <span class="fl-format">Course page</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">A short section that places softmax as the last layer of a classifier, with a diagram.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://d2l.ai/chapter_linear-classification/softmax-regression.html#the-softmax">Dive into Deep Learning: The Softmax</a>
+        <span class="fl-src">Zhang, Lipton, Li and Smola</span>
+        <span class="fl-format">Book</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">The textbook treatment, with the formula, its link to classification and runnable code.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://cs231n.github.io/linear-classify/#softmax-classifier">CS231n notes: Softmax classifier</a>
+        <span class="fl-src">Stanford CS231n</span>
+        <span class="fl-format">Course notes</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Clear notes that end with a practical note on numerical stability, the same trick as above.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="cross-entropy.html">Cross-entropy: scoring a choice among many</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="attention.html">Attention: queries, keys, values</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">10 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const dog = document.getElementById('sm-dog');
+  if (!dog) return;
+  const shiftBtn = document.getElementById('sm-shift');
+  const out = document.getElementById('sm-out');
+  const rows = [...document.querySelectorAll('#sm-rows > g')];
+  let shift = 0;
+  function draw() {
+    const z = [2.0, Number(dog.value), 0.1].map(v => v + shift);
+    const m = Math.max(...z);
+    const e = z.map(v => Math.exp(v - m));
+    const s = e.reduce((a, b) => a + b, 0);
+    const p = e.map(v => v / s);
+    rows.forEach((g, i) => {
+      const texts = g.querySelectorAll('text');
+      texts[1].textContent = z[i].toFixed(1);
+      g.querySelectorAll('rect')[1].setAttribute('width', (200 * p[i]).toFixed(1));
+      texts[2].textContent = p[i].toFixed(3);
+    });
+    shiftBtn.setAttribute('aria-pressed', String(shift !== 0));
+    shiftBtn.textContent = shift ? 'Take the 5 away again' : 'Add 5 to every score';
+    out.textContent = 'scores ' + z.map(v => v.toFixed(1)).join(', ') + ' → probabilities ' +
+      p.map(v => v.toFixed(3)).join(', ') + ' (sum ' + p.reduce((a, b) => a + b, 0).toFixed(3) + ')';
+  }
+  dog.addEventListener('input', draw);
+  shiftBtn.addEventListener('click', () => { shift = shift ? 0 : 5; draw(); });
+  draw();
+})();
+</script>
+</body>
+</html>

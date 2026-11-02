@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="normalizing-data">
+<meta name="unit-level" content="hs">
+<title>Normalizing data</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Normalizing data</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-hs">High school</span> <span class="minutes">6 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="mean-and-spread.html">Summarizing a list of numbers</a> <span class="level-badge level-hs">High school</span> <span class="minutes">7 min</span></li>
+    <li><a href="vectors.html">Vectors: arrows made of numbers</a> <span class="level-badge level-hs">High school</span> <span class="minutes">8 min</span></li>
+    <li><a href="distance.html">Distance between two points</a> <span class="level-badge level-hs">High school</span> <span class="minutes">6 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>Data often arrive at very different positions and sizes: one list in centimeters, another in kilometers; one
+  shape near the origin, another far away and ten times larger. Normalizing makes them comparable in two steps.
+  First subtract the center, so the data sit around zero. Then divide by a measure of size, so the data have size
+  one. Keep the two numbers you used, because they let you undo the change later.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="z-scores">
+    <h2>Subtract the mean, then divide by the spread</h2>
+    <p>Take five heights in centimeters: 150, 160, 170, 180 and 190. Their mean is 170 and their standard deviation is
+    about 14.14, computed as in the <a href="mean-and-spread.html#spread">mean-and-spread unit</a>. Subtract the mean
+    from each height, then divide by the standard deviation. The result for each value is its <dfn>z-score</dfn>: how
+    many standard deviations it lies above or below the mean.</p>
+    <p class="math"><var>z</var> = (value − mean) / standard deviation</p>
+    <p>The new list has mean 0 and standard deviation 1, whatever the units were. A height of 190 cm becomes 1.41,
+    and so would a weight or a price that sat the same number of standard deviations above its own mean. This step is called
+    <dfn>standardizing</dfn>.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example</span>
+      <ol>
+        <li>Mean: (150 + 160 + 170 + 180 + 190) / 5 = 170.</li>
+        <li>Deviations: −20, −10, 0, 10, 20. Squares: 400, 100, 0, 100, 400. Their mean is 1000 / 5 = 200, so the
+        standard deviation is √200 ≈ 14.14.</li>
+        <li>Divide each deviation by 14.14: −1.41, −0.71, 0, 0.71, 1.41.</li>
+      </ol>
+      <p><b>Your turn.</b> A list has mean 50 and standard deviation 5. What are the z-scores of 60 and 47.5? What
+      value has a z-score of −2?</p>
+      <details><summary>Answer</summary><p>(60 − 50) / 5 = 2 and (47.5 − 50) / 5 = −0.5. To undo, multiply and add
+      back: −2 × 5 + 50 = 40.</p></details>
+    </div>
+  </section>
+
+  <section id="shapes">
+    <h2>For a shape, move its center to the origin and scale it to size one</h2>
+    <p>A shape made of points is a list of <a href="vectors.html">vectors</a>. To normalize it, first find its center:
+    the mean point, whose <var>x</var> is the mean of all the <var>x</var>'s and whose <var>y</var> is the mean of all
+    the <var>y</var>'s. Subtract the center from every point; this is called <dfn>centering</dfn>. Then pick one
+    number for the shape's size, such as the <a href="distance.html">distance</a> from the center to the farthest
+    point, and divide every point by it. Afterwards every point lies within distance 1 of the origin.</p>
+
+    <figure id="fig-shapes">
+      <div class="fig-title">Two shapes at different places and sizes end up centered and the same size</div>
+      <div class="scroll-x">
+      <svg id="nd-svg" width="420" height="230" viewBox="0 0 420 230" role="img"
+           aria-label="Left panel: a small triangle and a large house shape at different positions. Right panel: both shapes centered on the origin and scaled so their farthest point touches a circle of radius one">
+        <g id="nd-plot"></g>
+      </svg>
+      </div>
+      <figcaption><b>What to notice.</b> Left, before: a small triangle and a large house, each with its center marked
+      by a cross. Right, after: both centered on the origin and scaled so that the farthest point of each touches the
+      dashed circle of radius 1. Before you read on, predict which corner of the house touches the circle.</figcaption>
+    </figure>
+
+    <div class="example">
+      <span class="example-title">Worked example</span>
+      <p>The triangle with corners (2, 2), (4, 2) and (3, 5).</p>
+      <ol>
+        <li>Center: ((2 + 4 + 3) / 3, (2 + 2 + 5) / 3) = (3, 3).</li>
+        <li>Subtract it: (−1, −1), (1, −1), (0, 2).</li>
+        <li>Distances from the origin: √2 ≈ 1.41, √2 ≈ 1.41, and 2. The largest is 2.</li>
+        <li>Divide by 2: (−0.5, −0.5), (0.5, −0.5), (0, 1).</li>
+      </ol>
+      <p>The house's peak, the corner farthest from its center, is the one that touches the circle.</p>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-title">This is a simplification</span>
+      <p>There is more than one choice for "center" and "size." The size can be the farthest distance, the standard
+      deviation, or the width of a bounding box; each gives a different scale. Pick one and use it everywhere. Also, a
+      model trained on normalized data expects new data normalized with the <em>same</em> recipe, and its answers
+      come back in normalized units. Store the center and size for each example so you can turn the answers back into
+      the original units.</p>
+    </div>
+
+    <p class="code-cap">norm.py: z-scores for a list, and a centered and scaled shape</p>
+<pre><code class="py">import numpy as np
+
+heights = np.array([150, 160, 170, 180, 190])
+z = (heights - heights.mean()) / heights.std()
+print(np.round(z, 2))
+
+shape = np.array([[2.0, 2.0], [4.0, 2.0], [3.0, 5.0]])  # one point per row
+center = shape.mean(axis=0)
+centered = shape - center
+size = np.linalg.norm(centered, axis=1).max()     # farthest point from the center
+print(center, size)
+print(centered / size)
+</code></pre>
+<pre class="out">[-1.41 -0.71  0.    0.71  1.41]
+[3. 3.] 2.0
+[[-0.5 -0.5]
+ [ 0.5 -0.5]
+ [ 0.   1. ]]</pre>
+    <p class="small"><code>axis=0</code> takes the mean down each column, giving one mean per coordinate.
+    <code>axis=1</code> takes each point's length across its row.</p>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>Scores have mean 170 and standard deviation 15. What is the z-score of 185?</p>
+      <details><summary>Answer</summary><p>(185 − 170) / 15 = 1: one standard deviation above the mean.</p></details>
+    </li>
+    <li>
+      <p>A shape was normalized with center (10, 4) and size 5. A program returns the normalized point (0.2, −1).
+      Where is that point in the original units?</p>
+      <details><summary>Answer</summary><p>Multiply by the size, then add the center: (0.2 × 5 + 10, −1 × 5 + 4) =
+      (11, −1).</p></details>
+    </li>
+    <li>
+      <p>You double every point of a shape and then normalize it. How does the result compare with normalizing the
+      original shape?</p>
+      <details><summary>Answer</summary><p>It is the same. Doubling doubles the center and the size, and the division
+      cancels it. That is the point of normalizing: size and position no longer matter.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://www.mathsisfun.com/data/standard-normal-distribution.html">Normal distribution: standard scores</a>
+        <span class="fl-src">Math Is Fun</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">Z-scores explained in plain language, in its "Standard Scores" section.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://scikit-learn.org/stable/modules/preprocessing.html#standardization-or-mean-removal-and-variance-scaling">Standardization, or mean removal and variance scaling</a>
+        <span class="fl-src">scikit-learn user guide</span>
+        <span class="fl-format">Reference</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">The code view: why many learning methods expect standardized inputs, and how to reuse the
+      same recipe on new data.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="layer-normalization.html">Layer normalization</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const svg = document.getElementById('nd-svg');
+  if (!svg) return;
+  const NS = 'http://www.w3.org/2000/svg';
+  const g = document.getElementById('nd-plot');
+  const add = (tag, a, text) => { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); if (text !== undefined) e.textContent = text; g.appendChild(e); return e; };
+  const tri = [[2, 2], [4, 2], [3, 5]];
+  const house = [[5.5, 0.5], [9.5, 0.5], [9.5, 3.5], [7.5, 6.2], [5.5, 3.5]];
+  const shapes = [{ pts: tri, c: 's1' }, { pts: house, c: 's2' }];
+  // left panel: original units, x 0..10, y 0..7
+  const LX = x => 15 + x * 18, LY = y => 200 - y * 18;  // one scale on both axes, so shapes keep their proportions
+  // right panel: normalized units, -1.2..1.2
+  const RX = x => 315 + x * 80, RY = y => 112 - y * 80;
+  const poly = (pts, fx, fy, c) => add('polygon', { points: pts.map(p => fx(p[0]) + ',' + fy(p[1])).join(' '), style: `fill:var(--${c});fill-opacity:0.25;stroke:var(--${c});stroke-width:2` });
+  const cross = (x, y, c) => { add('line', { x1: x - 5, x2: x + 5, y1: y - 5, y2: y + 5, style: `stroke:var(--${c});stroke-width:2` }); add('line', { x1: x - 5, x2: x + 5, y1: y + 5, y2: y - 5, style: `stroke:var(--${c});stroke-width:2` }); };
+  add('line', { x1: LX(0), x2: LX(10), y1: LY(0), y2: LY(0), style: 'stroke:var(--ink-3)' });
+  add('line', { x1: LX(0), x2: LX(0), y1: LY(0), y2: LY(7), style: 'stroke:var(--ink-3)' });
+  add('text', { x: LX(0), y: 222, class: 'muted' }, 'before');
+  add('line', { x1: RX(-1.2), x2: RX(1.2), y1: RY(0), y2: RY(0), style: 'stroke:var(--ink-3)' });
+  add('line', { x1: RX(0), x2: RX(0), y1: RY(-1.2), y2: RY(1.3), style: 'stroke:var(--ink-3)' });
+  add('circle', { cx: RX(0), cy: RY(0), r: 80, style: 'fill:none;stroke:var(--ink-3);stroke-dasharray:5 4' });
+  add('text', { x: RX(-1.2), y: 222, class: 'muted' }, 'after');
+  add('path', { d: 'M200,112 h28 m-8,-6 l8,6 l-8,6', style: 'fill:none;stroke:var(--ink-3);stroke-width:2' });
+  for (const s of shapes) {
+    const n = s.pts.length, c = [s.pts.reduce((a, p) => a + p[0], 0) / n, s.pts.reduce((a, p) => a + p[1], 0) / n];
+    const centered = s.pts.map(p => [p[0] - c[0], p[1] - c[1]]);
+    const size = Math.max(...centered.map(p => Math.hypot(p[0], p[1])));
+    poly(s.pts, LX, LY, s.c); cross(LX(c[0]), LY(c[1]), s.c);
+    poly(centered.map(p => [p[0] / size, p[1] / size]), RX, RY, s.c);
+  }
+  cross(RX(0), RY(0), 'ink');
+})();
+</script>
+</body>
+</html>

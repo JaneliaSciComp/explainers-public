@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="activation-functions">
+<meta name="unit-level" content="u1">
+<title>Activation functions: bending straight lines</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  .plot-pair { display: flex; flex-wrap: wrap; gap: 0.6rem 1rem; }
+  .plot-pair > div { flex: 1 1 260px; min-width: 0; }
+  .plot-cap { font-size: 0.85rem; color: var(--ink-2); margin: 0 0 0.2rem; }
+  svg .ax { stroke: var(--ink-3); stroke-width: 1; }
+  svg .gl { stroke: var(--grid); stroke-width: 1; }
+  svg .tick { font-size: 15px; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Activation functions: bending straight lines</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="linear-layer.html">A linear layer: weighted sums</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>An activation function is a fixed, simple function that a network applies to each output of a linear layer, one
+  number at a time. The most common one, ReLU, replaces negative numbers by zero and keeps positive numbers. Without
+  activation functions, any stack of linear layers works out to a single linear layer, which can only describe
+  straight-line relationships. With them, the stack can bend, and enough bends can follow almost any curve.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="collapse">
+    <h2>Two linear layers in a row are still one straight line</h2>
+    <p>A <a href="linear-layer.html">linear layer</a> computes weighted sums. Take the simplest case: one input
+    <var>x</var> and one output. Let a first layer compute 2<var>x</var> &minus; 1. Let a second layer take that
+    result, multiply by 3 and add 1:</p>
+    <p class="math">3(2<var>x</var> &minus; 1) + 1 = 6<var>x</var> &minus; 2</p>
+    <p>The result is again a straight line. This always happens: a weighted sum of weighted sums is a weighted sum.
+    Ten linear layers in a row can do no more than one.</p>
+  </section>
+
+  <section id="relu">
+    <h2>ReLU puts a corner into the line</h2>
+    <p>Now apply a function between the two layers. The <dfn>ReLU</dfn> (rectified linear unit) is the simplest:</p>
+    <p class="math">ReLU(<var>z</var>) = max(0, <var>z</var>)</p>
+    <p>It keeps a positive number and turns a negative number into 0. So 3 &times; ReLU(2<var>x</var> &minus; 1) + 1 is
+    flat at 1 until <var>x</var> = 0.5, then rises with slope 6. The line has a corner. The second layer cannot undo
+    that corner, because it only scales and shifts.</p>
+    <p>A function used this way is called an <dfn>activation function</dfn>. It acts on each number of a layer's output
+    separately, and it has no weights of its own to learn.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: two corners make a tent</span>
+      <p>Take two hidden numbers, <var>h</var><sub>1</sub> = ReLU(<var>x</var>) and
+      <var>h</var><sub>2</sub> = ReLU(<var>x</var> &minus; 1). Combine them with a second linear layer:
+      <var>y</var> = <var>h</var><sub>1</sub> &minus; 2<var>h</var><sub>2</sub>.</p>
+      <div class="table-wrap"><table>
+        <tr><th><var>x</var></th><td class="r">&minus;1</td><td class="r">0</td><td class="r">0.5</td><td class="r">1</td><td class="r">2</td><td class="r">3</td></tr>
+        <tr><th><var>h</var><sub>1</sub> = ReLU(<var>x</var>)</th><td class="r">0</td><td class="r">0</td><td class="r">0.5</td><td class="r">1</td><td class="r">2</td><td class="r">3</td></tr>
+        <tr><th><var>h</var><sub>2</sub> = ReLU(<var>x</var> &minus; 1)</th><td class="r">0</td><td class="r">0</td><td class="r">0</td><td class="r">0</td><td class="r">1</td><td class="r">2</td></tr>
+        <tr><th><var>y</var> = <var>h</var><sub>1</sub> &minus; 2<var>h</var><sub>2</sub></th><td class="r">0</td><td class="r">0</td><td class="r">0.5</td><td class="r">1</td><td class="r">0</td><td class="r">&minus;1</td></tr>
+      </table></div>
+      <p>The output is flat, then rises to a peak of 1 at <var>x</var> = 1, then falls. No straight line does that.</p>
+      <p><b>Your turn.</b> What is <var>y</var> at <var>x</var> = 1.5?</p>
+      <details><summary>Answer</summary><p><var>h</var><sub>1</sub> = 1.5 and <var>h</var><sub>2</sub> = 0.5, so
+      <var>y</var> = 1.5 &minus; 1 = 0.5. It is on the way down.</p></details>
+    </div>
+  </section>
+
+  <section id="choices">
+    <h2>Several activation functions are in common use</h2>
+    <p>All of them bend. They differ in shape: sharp corner or smooth curve, and whether the output is limited to a
+    range.</p>
+    <div class="table-wrap"><table>
+      <tr><th>Name</th><th>Formula</th><th>Shape</th></tr>
+      <tr><td>ReLU</td><td>max(0, <var>z</var>)</td><td>zero for negatives, a corner at 0</td></tr>
+      <tr><td>GELU</td><td><var>z</var> &times; &Phi;(<var>z</var>)</td><td>a smooth version of ReLU that dips slightly below 0</td></tr>
+      <tr><td>SiLU</td><td><var>z</var> &times; sigmoid(<var>z</var>)</td><td>close to GELU</td></tr>
+      <tr><td>sigmoid</td><td>1 / (1 + <var>e</var><sup>&minus;<var>z</var></sup>)</td><td>an S between 0 and 1</td></tr>
+      <tr><td>tanh</td><td>(<var>e</var><sup><var>z</var></sup> &minus; <var>e</var><sup>&minus;<var>z</var></sup>) / (<var>e</var><sup><var>z</var></sup> + <var>e</var><sup>&minus;<var>z</var></sup>)</td><td>an S between &minus;1 and 1</td></tr>
+    </table></div>
+    <p>&Phi;(<var>z</var>) is the chance that a draw from the standard <a href="bell-curve.html">bell curve</a> is
+    below <var>z</var>. The <a href="sigmoid.html">sigmoid</a> has its own unit. ReLU, GELU and SiLU are the usual
+    choices inside networks today. Sigmoid and tanh appear mostly where an output must stay in a range.</p>
+
+    <p><b>Try it.</b> The figure below runs one small network with each activation function in turn. Predict first:
+    which choice gives a straight output line? Then find the choice whose output has sharp corners, and say where
+    they are.</p>
+    <figure id="fig-picker">
+      <div class="fig-title">The same small network, with the activation function swapped</div>
+      <div class="controls">
+        <label>activation function
+          <select id="af-pick">
+            <option value="none">none (identity)</option>
+            <option value="relu" selected>ReLU</option>
+            <option value="gelu">GELU</option>
+            <option value="sigmoid">sigmoid</option>
+            <option value="tanh">tanh</option>
+          </select>
+        </label>
+      </div>
+      <div class="plot-pair">
+        <div>
+          <p class="plot-cap">The activation function <var>f</var>(<var>z</var>)</p>
+          <svg id="af-f" width="320" height="222" viewBox="0 0 320 222" role="img" aria-label="Plot of the chosen activation function for z from minus 3 to 3."></svg>
+        </div>
+        <div>
+          <p class="plot-cap">The network's output <var>y</var>(<var>x</var>)</p>
+          <svg id="af-y" width="320" height="222" viewBox="0 0 320 222" role="img" aria-label="Plot of the network output for x from minus 3 to 3, using the chosen activation function."></svg>
+        </div>
+      </div>
+      <p class="small" id="af-read"></p>
+      <figcaption><b>Only the activation function changes.</b> The network has one input, three hidden numbers
+      <var>h</var><sub><var>k</var></sub> = <var>f</var>(2(<var>x</var> &minus; <var>c</var><sub><var>k</var></sub>))
+      with <var>c</var> = &minus;1.5, 0 and 1.5, and the output
+      <var>y</var> = <var>h</var><sub>1</sub> &minus; 2<var>h</var><sub>2</sub> + 1.5<var>h</var><sub>3</sub>. The
+      weights stay fixed. The vertical scale adjusts to each choice.</figcaption>
+    </figure>
+    <details><summary>Answer</summary><p>"None" gives a straight line, <var>y</var> = <var>x</var> &minus; 1.5. ReLU gives
+    corners at <var>x</var> = &minus;1.5, 0 and 1.5, where each hidden number switches on. GELU, sigmoid and tanh give
+    smooth bends near the same places.</p></details>
+
+    <div class="callout warn">
+      <span class="callout-title">What this page leaves out</span>
+      <p>Which activation function trains best is mostly found by experiment, not derived. The figure computes GELU with
+      the common tanh approximation, which differs from the exact formula by less than 0.001. ReLU has no slope at
+      exactly 0; software simply uses 0 there.</p>
+    </div>
+  </section>
+
+  <section id="in-code">
+    <h2>In code, an activation is one function call</h2>
+    <p class="code-cap">activations.py</p>
+<pre><code class="py">import torch
+
+z = torch.tensor([-2.0, -0.5, 0.0, 0.5, 2.0])
+print("relu   ", torch.relu(z))
+print("sigmoid", torch.sigmoid(z))
+print("tanh   ", torch.tanh(z))
+print("gelu   ", torch.nn.functional.gelu(z))
+</code></pre>
+<pre class="out"><code>relu    tensor([0.0000, 0.0000, 0.0000, 0.5000, 2.0000])
+sigmoid tensor([0.1192, 0.3775, 0.5000, 0.6225, 0.8808])
+tanh    tensor([-0.9640, -0.4621,  0.0000,  0.4621,  0.9640])
+gelu    tensor([-0.0455, -0.1543,  0.0000,  0.3457,  1.9545])</code></pre>
+    <p>The tent from the worked example, with NumPy, next to the same layers without ReLU:</p>
+    <p class="code-cap">bend.py</p>
+<pre><code class="py">import numpy as np
+
+relu = lambda z: np.maximum(0.0, z)
+x = np.array([-1.0, 0.0, 0.5, 1.0, 2.0, 3.0])
+
+# Two linear steps with nothing between: still a straight line.
+print(3 * (2 * x - 1) + 1)          # same as 6x - 2
+
+# Two hidden units with ReLU, then a weighted sum: a bend.
+h1, h2 = relu(x), relu(x - 1)
+print(h1 - 2 * h2)
+</code></pre>
+<pre class="out"><code>[-8. -2.  1.  4. 10. 16.]
+[ 0.   0.   0.5  1.   0.  -1. ]</code></pre>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>What is ReLU applied to the list (&minus;3, 0.2, 5)?</p>
+      <details><summary>Answer</summary><p>(0, 0.2, 5). The negative number becomes 0; the others stay.</p></details>
+    </li>
+    <li>
+      <p>A network has five linear layers and no activation functions. Can it fit a set of points that lie on a
+      parabola?</p>
+      <details><summary>Answer</summary><p>No. The five layers work out to one linear layer, so the output is a
+      straight line (a flat plane, with more inputs). It cannot follow the curve.</p></details>
+    </li>
+    <li>
+      <p>Using the tent network <var>y</var> = ReLU(<var>x</var>) &minus; 2 &times; ReLU(<var>x</var> &minus; 1), find
+      <var>y</var> at <var>x</var> = 4 and at <var>x</var> = &minus;5.</p>
+      <details><summary>Answer</summary><p>At 4: 4 &minus; 2 &times; 3 = &minus;2. At &minus;5: both hidden numbers are
+      0, so <var>y</var> = 0.</p></details>
+    </li>
+    <li>
+      <p>A model's output must be a probability between 0 and 1. Which activation from the table would you put on
+      that output, and why not ReLU?</p>
+      <details><summary>Answer</summary><p>The sigmoid, because its output always lies between 0 and 1. ReLU can give
+      any number of 0 or above, including numbers above 1.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://cs231n.github.io/neural-networks-1/#commonly-used-activation-functions">Commonly used activation functions</a>
+        <span class="fl-src">Stanford CS231n notes</span>
+        <span class="fl-format">Course notes</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">A short tour of sigmoid, tanh, ReLU and its variants, with their known problems in training.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://d2l.ai/chapter_multilayer-perceptrons/mlp.html#activation-functions">Dive into Deep Learning, 5.1.2 Activation Functions</a>
+        <span class="fl-src">Zhang, Lipton, Li and Smola</span>
+        <span class="fl-format">Book</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Plots each function next to its slope, with runnable code.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://playground.tensorflow.org/">TensorFlow Playground</a>
+        <span class="fl-src">Google</span>
+        <span class="fl-format">Interactive page</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">Switch the activation menu between "Linear" and "ReLU" and watch which shapes a network can then
+      separate.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="mlp.html">The multilayer perceptron (MLP)</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const NS = 'http://www.w3.org/2000/svg';
+  const sig = z => 1 / (1 + Math.exp(-z));
+  const F = {
+    none: z => z,
+    relu: z => Math.max(0, z),
+    gelu: z => 0.5 * z * (1 + Math.tanh(Math.sqrt(2 / Math.PI) * (z + 0.044715 * z * z * z))),
+    sigmoid: sig,
+    tanh: z => Math.tanh(z),
+  };
+  const C = [-1.5, 0, 1.5], A = [1, -2, 1.5];
+  const pick = document.getElementById('af-pick');
+  const sf = document.getElementById('af-f'), sy = document.getElementById('af-y');
+  const read = document.getElementById('af-read');
+  if (!pick || !sf || !sy) return;
+  const el = (tag, attrs, parent, text) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text !== undefined) e.textContent = text;
+    parent.appendChild(e);
+    return e;
+  };
+  const nice = v => (Math.round(v * 100) / 100).toString().replace('-', '−');
+  function plot(svg, fn, label, cls) {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    const L = 44, R = 310, T = 12, B = 180, N = 241, xs = [], ys = [];
+    for (let i = 0; i < N; i++) { const x = -3 + 6 * i / (N - 1); xs.push(x); ys.push(fn(x)); }
+    let lo = Math.min(...ys), hi = Math.max(...ys);
+    if (hi - lo < 1e-9) { lo -= 1; hi += 1; }
+    const pad = 0.08 * (hi - lo); lo -= pad; hi += pad;
+    const px = x => L + (x + 3) / 6 * (R - L), py = y => B - (y - lo) / (hi - lo) * (B - T);
+    for (const gx of [-3, -1.5, 0, 1.5, 3]) el('line', { x1: px(gx), y1: T, x2: px(gx), y2: B, class: 'gl' }, svg);
+    if (lo < 0 && hi > 0) el('line', { x1: L, y1: py(0), x2: R, y2: py(0), class: 'ax' }, svg);
+    el('line', { x1: px(0), y1: T, x2: px(0), y2: B, class: 'ax' }, svg);
+    el('rect', { x: L, y: T, width: R - L, height: B - T, fill: 'none', class: 'gl' }, svg).setAttribute('stroke', 'var(--rule)');
+    el('path', { d: xs.map((x, i) => (i ? 'L' : 'M') + px(x).toFixed(1) + ' ' + py(ys[i]).toFixed(1)).join(''),
+      fill: 'none', class: cls, 'stroke-width': 2.5, 'stroke-linejoin': 'round' }, svg);
+    el('text', { x: L - 6, y: T + 10, 'text-anchor': 'end', class: 'muted tick' }, svg, nice(hi - pad));
+    el('text', { x: L - 6, y: B, 'text-anchor': 'end', class: 'muted tick' }, svg, nice(lo + pad));
+    for (const gx of [-3, 0, 3]) el('text', { x: px(gx), y: B + 18, 'text-anchor': 'middle', class: 'muted tick' }, svg, nice(gx));
+    el('text', { x: (L + R) / 2, y: B + 37, 'text-anchor': 'middle', class: 'ink2 tick' }, svg, label);
+  }
+  function update() {
+    const f = F[pick.value];
+    const net = x => C.reduce((s, c, k) => s + A[k] * f(2 * (x - c)), 0);
+    plot(sf, f, 'z', 'st-s1');
+    plot(sy, net, 'x', 'st-s2');
+    read.textContent = 'Output at x = −1.5, 0, 1.5: ' + [-1.5, 0, 1.5].map(x => nice(net(x))).join(', ') + '.';
+  }
+  pick.addEventListener('change', update);
+  update();
+})();
+</script>
+</body>
+</html>

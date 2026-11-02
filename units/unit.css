@@ -1,0 +1,214 @@
+/* Concept units: shared style.
+   Layout: one reading column (about 68 characters of text); figures, code and tables use the same column
+   and scroll inside their own box when they are wider. Light and dark follow the system setting;
+   <html data-theme="light|dark"> overrides it. */
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --ink: #17212d;
+  --ink-2: #4b5768;
+  --ink-3: #6f7b8c;
+  --rule: #dde2ea;
+  --grid: #eceff4;
+  --accent: #2c5288;
+  --accent-soft: #e5ecf6;
+  --code-bg: #eef1f6;
+  --mark: #fff3c4;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
+  --good: #0ca30c; --bad: #d03b3b; --warn: #c98500;
+  --pa: #6250d6; --pb: #e87ba4; --pc: #7d8ea6; --pd: #8a7f6a;
+  --warn-soft: #fbf0d9;
+  --lv-hs: #1baf7a; --lv-u1: #2a78d6; --lv-u2: #6250d6;
+  --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-body: "Source Sans 3", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "Source Code Pro", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --measure: 46rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f141a; --surface: #161c24; --ink: #e5eaf0; --ink-2: #b3bdc9; --ink-3: #8a96a5; --rule: #2a3340; --grid: #1f2732;
+    --accent: #93b6ea; --accent-soft: #1d2a3c; --code-bg: #121820; --mark: #3a3214;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --good: #2fb52f; --bad: #e66767; --warn: #e0a028;
+    --pa: #9085e9; --pb: #d55181; --pc: #8d9db4; --pd: #a39678;
+    --warn-soft: #2e2614; --lv-hs: #2fbf8a; --lv-u1: #5b9be8; --lv-u2: #9085e9;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f141a; --surface: #161c24; --ink: #e5eaf0; --ink-2: #b3bdc9; --ink-3: #8a96a5; --rule: #2a3340; --grid: #1f2732;
+  --accent: #93b6ea; --accent-soft: #1d2a3c; --code-bg: #121820; --mark: #3a3214;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --good: #2fb52f; --bad: #e66767; --warn: #e0a028;
+  --pa: #9085e9; --pb: #d55181; --pc: #8d9db4; --pd: #a39678;
+  --warn-soft: #2e2614; --lv-hs: #2fbf8a; --lv-u1: #5b9be8; --lv-u2: #9085e9;
+  color-scheme: dark;
+}
+
+/* ---------- page */
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 1.0625rem; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 4rem;
+}
+main.unit, main.unit-index { max-width: var(--measure); margin: 0 auto; min-width: 0; }
+a { color: var(--accent); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+img, video, canvas { max-width: 100%; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.2; margin: 0; overflow-wrap: break-word; }
+h1 { font-size: clamp(1.9rem, 5vw, 2.6rem); font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 1.5rem; font-weight: 700; margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); }
+h3 { font-size: 1.15rem; font-weight: 600; margin-top: 1.8rem; }
+p { margin: 0.75rem 0; }
+ul, ol { padding-left: 1.4rem; }
+li { margin: 0.25rem 0; }
+.eyebrow { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-3); margin: 0; }
+.eyebrow a { color: inherit; }
+.small { font-size: 0.88rem; color: var(--ink-2); }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+
+/* ---------- header: title, level badge, reading minutes */
+header.unit-head { padding-top: 2.6rem; display: grid; gap: 0.7rem; }
+.unit-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.8rem; margin: 0; font-size: 0.9rem; color: var(--ink-2); }
+.level-badge {
+  display: inline-block; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.04em; line-height: 1.5;
+  padding: 0.05rem 0.5rem; border-radius: 99px; border: 1px solid currentColor; white-space: nowrap; font-weight: 600;
+}
+.level-hs { color: var(--lv-hs); }
+.level-u1 { color: var(--lv-u1); }
+.level-u2 { color: var(--lv-u2); }
+.minutes { font-family: var(--font-mono); font-size: 0.8rem; color: var(--ink-3); white-space: nowrap; }
+.tag { display: inline-block; font-family: var(--font-mono); font-size: 0.72rem; padding: 0.05rem 0.45rem; border-radius: 99px; border: 1px dashed var(--ink-3); color: var(--ink-3); white-space: nowrap; }
+
+/* ---------- generated blocks: prerequisites and "where this shows up" */
+.prereqs, .used-by { margin: 1.6rem 0 0; padding: 0.8rem 1rem 0.9rem; background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; }
+.used-by { margin-top: 3rem; }
+.prereqs h2, .used-by h2 { font-family: var(--font-body); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); margin: 0; padding: 0; border: 0; }
+.prereqs p, .used-by p { margin: 0.4rem 0; font-size: 0.95rem; }
+.unit-links { list-style: none; margin: 0.5rem 0 0; padding: 0; display: grid; gap: 0.4rem; }
+.unit-links li { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2rem 0.6rem; font-size: 0.95rem; }
+.used-by h3 { font-family: var(--font-body); font-size: 0.9rem; font-weight: 600; color: var(--ink-2); margin: 0.9rem 0 0; }
+
+/* ---------- the idea in one paragraph */
+.idea p { font-size: 1.12rem; color: var(--ink); }
+
+/* ---------- callouts: .callout for a note, .callout.warn for "this simplifies", .example for a worked example */
+.callout { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 0.6rem 1rem; border-radius: 0 6px 6px 0; margin: 1.2rem 0; }
+.callout.warn { border-left-color: var(--warn); background: var(--warn-soft); }
+.callout p, .example p { margin: 0.35rem 0; }
+.callout-title, .example-title { display: block; font-weight: 700; margin-bottom: 0.2rem; }
+.example { border: 1px solid var(--rule); border-top: 3px solid var(--s3); background: var(--surface); padding: 0.7rem 1rem 0.8rem; border-radius: 0 0 6px 6px; margin: 1.4rem 0; min-width: 0; }
+.example ol, .example ul { margin: 0.4rem 0; }
+
+/* ---------- math written in HTML: <var>, <sub>, <sup>; a display line uses <p class="math"> */
+var { font-family: var(--font-display); font-style: italic; }
+.math { font-family: var(--font-display); font-size: 1.12rem; text-align: center; overflow-x: auto; padding: 0.3rem 0; margin: 1rem 0; white-space: nowrap; }
+.math .vec { font-weight: 700; font-style: normal; }
+
+/* ---------- figures: inline SVG or canvas, with a caption */
+figure { margin: 1.6rem 0; background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 1rem 1.1rem 0.9rem; min-width: 0; }
+figure.plain { background: none; border: 0; padding: 0; }
+figcaption { font-size: 0.9rem; color: var(--ink-2); margin-top: 0.7rem; }
+figcaption b { color: var(--ink); }
+.fig-title { font-weight: 700; font-size: 0.98rem; margin-bottom: 0.5rem; }
+.scroll-x { overflow-x: auto; }
+svg { display: block; max-width: 100%; height: auto; font-family: var(--font-body); }
+svg text { fill: var(--ink); font-size: 12px; }
+svg .muted { fill: var(--ink-3); }
+svg .ink2 { fill: var(--ink-2); }
+svg .axis, svg .grid { stroke: var(--grid); }
+svg .rule { stroke: var(--rule); }
+.f-s1 { fill: var(--s1); } .f-s2 { fill: var(--s2); } .f-s3 { fill: var(--s3); } .f-s4 { fill: var(--s4); }
+.st-s1 { stroke: var(--s1); } .st-s2 { stroke: var(--s2); } .st-s3 { stroke: var(--s3); } .st-s4 { stroke: var(--s4); }
+canvas { display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; font-size: 0.85rem; color: var(--ink-2); margin: 0.2rem 0 0.4rem; }
+.legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.sw { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
+
+/* ---------- widgets: sliders, buttons and readouts */
+.controls { display: flex; flex-wrap: wrap; gap: 0.6rem 1.4rem; align-items: center; font-size: 0.9rem; color: var(--ink-2); margin: 0.6rem 0; }
+.controls label { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; max-width: 100%; }
+.controls input[type=range] { accent-color: var(--accent); max-width: 100%; }
+.controls select { font: inherit; padding: 0.15rem 0.3rem; background: var(--surface); color: var(--ink); border: 1px solid var(--rule); border-radius: 4px; max-width: 100%; }
+button.btn { font: inherit; font-size: 0.88rem; padding: 0.3rem 0.8rem; border: 1px solid var(--rule); border-radius: 6px; background: var(--bg); color: var(--ink); cursor: pointer; }
+button.btn:hover { border-color: var(--accent); }
+button.btn[aria-pressed="true"] { background: var(--accent-soft); font-weight: 600; }
+output, .readout { font-family: var(--font-mono); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.readout-box { font-size: 0.92rem; line-height: 1.5; background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; padding: 0.6rem 0.8rem; margin-top: 0.6rem; }
+
+/* ---------- code: <pre><code class="py"> gets line numbers and highlighting from unit.js */
+pre { margin: 0.9rem 0; background: var(--code-bg); border: 1px solid var(--rule); border-radius: 6px; overflow-x: auto; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.55; padding: 0.7rem 0; }
+pre code { display: block; min-width: max-content; padding: 0 0.9rem; }
+pre code.py { padding: 0; }
+pre .ln { display: block; padding: 0 0.9rem 0 0; }
+pre .ln::before { content: attr(data-n); display: inline-block; width: 3.4em; padding-right: 0.9em; text-align: right; color: var(--ink-3); user-select: none; }
+pre .ln.hl { background: var(--mark); }
+pre .k { color: var(--accent); font-weight: 600; } pre .c { color: var(--ink-3); font-style: italic; } pre .s { color: var(--s3); }
+pre.out { background: var(--surface); padding: 0.7rem 0.9rem; }
+pre.out > code { padding: 0; }
+/* Larger figure text where an SVG shrinks a lot at phone width. */
+svg.wide-text text { font-size: 14px; }
+.code-cap { font-size: 0.82rem; color: var(--ink-3); font-family: var(--font-mono); margin: 1.2rem 0 -0.4rem; }
+:not(pre) > code { font-family: var(--font-mono); font-size: 0.88em; background: var(--code-bg); padding: 0.05em 0.3em; border-radius: 3px; overflow-wrap: anywhere; }
+
+/* ---------- tables: wrap a table in <div class="table-wrap"> so it scrolls inside its box */
+.table-wrap { overflow-x: auto; margin: 1rem 0; }
+table { border-collapse: collapse; font-size: 0.92rem; font-variant-numeric: tabular-nums; width: 100%; }
+th, td { text-align: left; padding: 0.35rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-weight: 600; color: var(--ink-2); font-size: 0.84rem; }
+td.r, th.r { text-align: right; }
+td.nw, th.nw { white-space: nowrap; }
+
+/* ---------- check yourself: questions with answers in <details> */
+ol.questions { padding-left: 1.4rem; display: grid; gap: 1rem; }
+ol.questions > li { margin: 0; }
+ol.questions > li > p:first-child { margin-top: 0; }
+details { margin-top: 0.5rem; font-size: 0.95rem; }
+details summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+details[open] { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 0.4rem 0.8rem 0.6rem; }
+details[open] summary { margin-bottom: 0.3rem; }
+
+/* ---------- go further: hand-picked external material */
+ul.further-list { list-style: none; padding: 0; margin: 0.8rem 0 0; display: grid; gap: 0.9rem; }
+ul.further-list li { margin: 0; padding: 0.6rem 0.9rem 0.7rem; background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; }
+.further-list .fl-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2rem 0.6rem; }
+.further-list .fl-head a { font-weight: 600; overflow-wrap: anywhere; }
+.further-list .fl-src { font-size: 0.88rem; color: var(--ink-2); }
+.further-list .fl-format { font-family: var(--font-mono); font-size: 0.72rem; padding: 0.05rem 0.45rem; border-radius: 99px; border: 1px solid var(--rule); color: var(--ink-2); white-space: nowrap; }
+.further-list .fl-why { margin: 0.3rem 0 0; font-size: 0.93rem; }
+
+/* ---------- video: <figure><video controls ...></video><figcaption>…</figcaption></figure> */
+video { display: block; width: 100%; height: auto; background: #000; border-radius: 4px; }
+
+/* ---------- footer */
+footer.unit-foot { margin-top: 3rem; font-size: 0.88rem; color: var(--ink-3); border-top: 1px solid var(--rule); padding-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; }
+
+/* ---------- index page */
+.index-level { margin-top: 2.4rem; }
+ul.unit-cards { list-style: none; padding: 0; margin: 0.8rem 0 0; display: grid; gap: 0.7rem; }
+ul.unit-cards > li { margin: 0; padding: 0.7rem 0.95rem 0.8rem; background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; }
+ul.unit-cards > li.planned { background: none; border-style: dashed; }
+.unit-cards .uc-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2rem 0.7rem; }
+.unit-cards .uc-title { font-weight: 700; font-size: 1.02rem; }
+.unit-cards li.planned .uc-title { color: var(--ink-2); }
+.unit-cards .uc-summary { margin: 0.3rem 0 0.2rem; font-size: 0.95rem; }
+.unit-cards .uc-needs { margin: 0; font-size: 0.86rem; color: var(--ink-2); }
+.graph-box { overflow-x: auto; }
+.graph-box svg { max-width: none; min-width: 100%; }
+svg.prereq-graph .edge { fill: none; stroke: var(--ink-3); stroke-width: 1.2; opacity: 0.55; }
+svg.prereq-graph .edge.on { stroke: var(--accent); stroke-width: 2.2; opacity: 1; }
+svg.prereq-graph .node rect { fill: var(--surface); stroke-width: 1.6; }
+svg.prereq-graph .node.planned rect { stroke-dasharray: 4 3; }
+svg.prereq-graph .node.lv-hs rect { stroke: var(--lv-hs); }
+svg.prereq-graph .node.lv-u1 rect { stroke: var(--lv-u1); }
+svg.prereq-graph .node.lv-u2 rect { stroke: var(--lv-u2); }
+svg.prereq-graph .node.on rect { fill: var(--accent-soft); }
+svg.prereq-graph .node text { font-size: 11.5px; }
+svg.prereq-graph .node.planned text { fill: var(--ink-2); }
+svg.prereq-graph a .node text { fill: var(--accent); }
+svg.prereq-graph .layer-label { font-family: var(--font-mono); font-size: 10px; fill: var(--ink-3); }
+svg.prereq-graph .arrowhead { fill: var(--ink-3); }
+.idea-lede { font-size: 1.15rem; color: var(--ink-2); margin: 0; }
+.tag.hub { border-style: solid; border-color: var(--accent); color: var(--accent); }
+svg.prereq-graph .node.hub rect { stroke-width: 3; }

@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="backpropagation">
+<meta name="unit-level" content="u1">
+<title>Backpropagation: gradients by the chain rule</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  svg .box { fill: var(--surface); stroke: var(--ink-3); stroke-width: 1.4; }
+  svg .box.param { stroke-dasharray: 4 3; }
+  svg .box.lit { stroke: var(--s2); stroke-width: 2.4; }
+  svg .arr { stroke: var(--ink-3); stroke-width: 1.5; fill: none; }
+  svg .lbl { font-size: 18px; }
+  svg .hdr { font-size: 15px; }
+  .math.wrap { white-space: normal; }
+  svg .fv { font-size: 16px; font-family: var(--font-mono); fill: var(--s1); }
+  svg .gv { font-size: 18px; font-family: var(--font-mono); font-weight: 600; fill: var(--s2); }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Backpropagation: gradients by the chain rule</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="chain-rule.html">The chain rule: slopes of chained steps</a> <span class="level-badge level-hs">High school</span> <span class="minutes">7 min</span></li>
+    <li><a href="mlp.html">The multilayer perceptron (MLP)</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="loss-function.html">Loss: one number for how wrong</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">9 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>Training needs the gradient of the loss with respect to every weight in a network. Backpropagation computes all
+  of them in one backward pass. First, a forward pass runs the network and keeps every number it computes along the
+  way. Then the backward pass starts at the loss and walks back through the same steps in reverse. At each step it
+  multiplies by that step's own slope, which is the chain rule. The whole backward pass costs about as much as two
+  forward passes, however many weights there are.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="why">
+    <h2>Nudging each weight in turn would be far too slow</h2>
+    <p><a href="gradient-descent.html">Gradient descent</a> needs, for every weight, how much the
+    <a href="loss-function.html">loss</a> changes when that weight changes a little. One way to find out: nudge one
+    weight, run the network again, and see how the loss moves. That costs one extra run of the network per weight. A
+    network with a million weights would need a million runs for a single training step.</p>
+    <p>Backpropagation gets the same numbers from one forward run and one backward run.</p>
+  </section>
+
+  <section id="chain">
+    <h2>A network is a chain of small steps, and slopes multiply along a chain</h2>
+    <p>Take the smallest <a href="mlp.html">MLP</a>: one input, one hidden unit with ReLU, one output, and a squared
+    error. Written as a chain of steps:</p>
+    <p class="math wrap"><var>z</var> = <var>w</var><sub>1</sub><var>x</var> + <var>b</var><sub>1</sub>
+      &nbsp;&rarr;&nbsp; <var>h</var> = ReLU(<var>z</var>)
+      &nbsp;&rarr;&nbsp; <var>y</var> = <var>w</var><sub>2</sub><var>h</var> + <var>b</var><sub>2</sub>
+      &nbsp;&rarr;&nbsp; <var>L</var> = (<var>y</var> &minus; <var>t</var>)<sup>2</sup></p>
+    <p>Here <var>x</var> is the input, <var>t</var> the target, and <var>w</var><sub>1</sub>, <var>b</var><sub>1</sub>,
+    <var>w</var><sub>2</sub>, <var>b</var><sub>2</sub> the four weights. Write &part;<var>L</var>/&part;<var>z</var>
+    for "how much <var>L</var> changes per unit change in <var>z</var>, with everything before <var>z</var> held
+    fixed". The <a href="chain-rule.html">chain rule</a> says that slopes along a chain multiply:</p>
+    <p class="math">&part;<var>L</var>/&part;<var>z</var> = &part;<var>L</var>/&part;<var>y</var> &times; &part;<var>y</var>/&part;<var>h</var> &times; &part;<var>h</var>/&part;<var>z</var></p>
+    <p>Backpropagation evaluates this product from the left. It starts with &part;<var>L</var>/&part;<var>L</var> = 1
+    at the loss. Each step back multiplies by one more local slope. So every gradient reuses the one computed just
+    after it, and no work is repeated.</p>
+
+    <p><b>Try it.</b> The figure shows the forward pass with <var>x</var> = 2, <var>t</var> = 2,
+    <var>w</var><sub>1</sub> = 0.5, <var>b</var><sub>1</sub> = 0, <var>w</var><sub>2</sub> = 3 and
+    <var>b</var><sub>2</sub> = 1. Before each press, predict the next orange number. Your goal is to reach
+    &part;<var>L</var>/&part;<var>w</var><sub>1</sub>.</p>
+    <figure id="fig-backprop">
+      <div class="fig-title">The forward pass (blue) and the backward pass (orange) on a tiny network</div>
+      <div class="controls">
+        <button class="btn" type="button" id="bp-next">Next backward step</button>
+        <button class="btn" type="button" id="bp-reset">Start over</button>
+      </div>
+      <svg id="bp-svg" width="480" height="270" viewBox="0 0 480 270" role="img"
+           aria-label="Boxes for x, z, h, y and L in a row, joined by arrows, with the weights w1, b1, w2, b2 and the target t below them. Blue numbers are forward values; orange numbers appear one step at a time, from L back to w1."></svg>
+      <p class="readout-box" id="bp-read" aria-live="polite"></p>
+      <figcaption><b>Blue: each value from the forward pass. Orange: how much the loss changes per unit change in that
+      value.</b> Each orange number is the one to its right times the slope of the step between them.</figcaption>
+    </figure>
+
+    <div class="example">
+      <span class="example-title">Worked example: every gradient of the tiny network</span>
+      <p>Forward pass: <var>z</var> = 0.5 &times; 2 + 0 = 1, <var>h</var> = ReLU(1) = 1,
+      <var>y</var> = 3 &times; 1 + 1 = 4, <var>L</var> = (4 &minus; 2)<sup>2</sup> = 4.</p>
+      <p>Backward pass, from the loss back to the input:</p>
+      <ol>
+        <li>&part;<var>L</var>/&part;<var>y</var> = 2(<var>y</var> &minus; <var>t</var>) = 2 &times; 2 = <b>4</b>.</li>
+        <li><var>y</var> = <var>w</var><sub>2</sub><var>h</var> + <var>b</var><sub>2</sub>, so
+        &part;<var>L</var>/&part;<var>w</var><sub>2</sub> = 4 &times; <var>h</var> = <b>4</b>,
+        &part;<var>L</var>/&part;<var>b</var><sub>2</sub> = 4 &times; 1 = <b>4</b>, and
+        &part;<var>L</var>/&part;<var>h</var> = 4 &times; <var>w</var><sub>2</sub> = <b>12</b>.</li>
+        <li>ReLU has slope 1 where <var>z</var> &gt; 0, and <var>z</var> = 1, so &part;<var>L</var>/&part;<var>z</var> = 12 &times; 1 = <b>12</b>.</li>
+        <li><var>z</var> = <var>w</var><sub>1</sub><var>x</var> + <var>b</var><sub>1</sub>, so
+        &part;<var>L</var>/&part;<var>w</var><sub>1</sub> = 12 &times; <var>x</var> = <b>24</b> and
+        &part;<var>L</var>/&part;<var>b</var><sub>1</sub> = 12 &times; 1 = <b>12</b>.</li>
+      </ol>
+      <p>Check by nudging: raise <var>w</var><sub>1</sub> from 0.5 to 0.501. Then <var>y</var> = 4.006 and
+      <var>L</var> = 2.006<sup>2</sup> &asymp; 4.0240. The loss rose by 0.0240 for a nudge of 0.001, a slope of about 24.</p>
+      <p><b>Your turn.</b> Keep the weights but change the input to <var>x</var> = &minus;1. Find
+      &part;<var>L</var>/&part;<var>b</var><sub>2</sub> and &part;<var>L</var>/&part;<var>w</var><sub>1</sub>.</p>
+      <details><summary>Answer</summary><p>Forward: <var>z</var> = &minus;0.5, <var>h</var> = 0, <var>y</var> = 1,
+      <var>L</var> = 1. Backward: &part;<var>L</var>/&part;<var>y</var> = 2(1 &minus; 2) = &minus;2, so
+      &part;<var>L</var>/&part;<var>b</var><sub>2</sub> = &minus;2. ReLU is switched off (<var>z</var> &lt; 0), so its
+      slope is 0, and &part;<var>L</var>/&part;<var>w</var><sub>1</sub> = 0. The first layer learns nothing from this
+      example.</p></details>
+    </div>
+  </section>
+
+  <section id="rules">
+    <h2>Each kind of step has a short backward rule</h2>
+    <p>Real networks are built from a few kinds of step. Each has a rule that turns the gradient arriving from the
+    right into gradients for its inputs and its weights.</p>
+    <div class="table-wrap"><table>
+      <tr><th>Forward step</th><th>Backward rule, given &part;<var>L</var>/&part;(output) = <var>G</var></th></tr>
+      <tr><td>add a bias: <var>y</var> = <var>u</var> + <var>b</var></td><td>pass <var>G</var> unchanged to both <var>u</var> and <var>b</var></td></tr>
+      <tr><td>multiply: <var>y</var> = <var>w</var><var>h</var></td><td>to <var>h</var>: <var>G</var> &times; <var>w</var>; to <var>w</var>: <var>G</var> &times; <var>h</var></td></tr>
+      <tr><td>ReLU: <var>h</var> = max(0, <var>z</var>)</td><td>pass <var>G</var> where <var>z</var> &gt; 0; pass 0 elsewhere</td></tr>
+      <tr><td>squared error: <var>L</var> = (<var>y</var> &minus; <var>t</var>)<sup>2</sup></td><td>start with 2(<var>y</var> &minus; <var>t</var>)</td></tr>
+      <tr><td>one value used in several places</td><td>add up the gradients coming back from each place</td></tr>
+    </table></div>
+    <p>A whole <a href="linear-layer.html">linear layer</a> applies the first two rules to every weight at once, as
+    matrix arithmetic. The multiply rule also shows why the forward pass must keep its numbers: the gradient for
+    <var>w</var> needs <var>h</var>. These stored values often take a large share of the memory that training uses,
+    alongside the weights, their gradients and the optimizer's state.</p>
+
+    <div class="callout warn">
+      <span class="callout-title">What this page simplifies</span>
+      <p>The example has one number at each step. Real networks have tensors, so each rule becomes a matrix product,
+      and a batch of examples adds up (or averages) each example's gradients. ReLU has no slope at exactly
+      <var>z</var> = 0; software uses 0 there. You will rarely write these rules yourself:
+      <a href="automatic-gradients.html">PyTorch records the forward steps and runs the backward rules for you</a>.</p>
+    </div>
+
+    <p class="code-cap">backprop_torch.py</p>
+<pre><code class="py">import torch
+
+x, t = torch.tensor(2.0), torch.tensor(2.0)    # input and target
+w1 = torch.tensor(0.5, requires_grad=True)
+b1 = torch.tensor(0.0, requires_grad=True)
+w2 = torch.tensor(3.0, requires_grad=True)
+b2 = torch.tensor(1.0, requires_grad=True)
+
+h = torch.relu(w1 * x + b1)   # forward pass
+y = w2 * h + b2
+loss = (y - t) ** 2
+loss.backward()               # backward pass
+
+print(loss.item())
+print(w1.grad.item(), b1.grad.item(), w2.grad.item(), b2.grad.item())
+</code></pre>
+<pre class="out"><code>4.0
+24.0 12.0 4.0 4.0</code></pre>
+    <p>The slow way, nudging one weight, agrees:</p>
+    <p class="code-cap">nudge_check.py</p>
+<pre><code class="py">def loss(w1, b1=0.0, w2=3.0, b2=1.0, x=2.0, t=2.0):
+    h = max(0.0, w1 * x + b1)
+    y = w2 * h + b2
+    return (y - t) ** 2
+
+d = 0.001
+print((loss(0.5 + d) - loss(0.5)) / d)   # nudge w1 and watch the loss
+</code></pre>
+<pre class="out"><code>24.036000000000612</code></pre>
+    <p>The nudge gives 24.036 rather than 24 because a nudge of 0.001 is small but not zero.</p>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>In the tiny network with <var>x</var> = 2, change the target to <var>t</var> = 4. What are all four weight
+      gradients, and why?</p>
+      <details><summary>Answer</summary><p>All are 0. The output <var>y</var> = 4 now equals the target, so
+      &part;<var>L</var>/&part;<var>y</var> = 2(4 &minus; 4) = 0, and every gradient is that 0 times something.</p></details>
+    </li>
+    <li>
+      <p>A step computes <var>y</var> = <var>w</var><var>h</var> with <var>w</var> = &minus;2 and <var>h</var> = 1.5.
+      The gradient arriving from the right is &part;<var>L</var>/&part;<var>y</var> = 3. What are
+      &part;<var>L</var>/&part;<var>w</var> and &part;<var>L</var>/&part;<var>h</var>?</p>
+      <details><summary>Answer</summary><p>&part;<var>L</var>/&part;<var>w</var> = 3 &times; 1.5 = 4.5 and
+      &part;<var>L</var>/&part;<var>h</var> = 3 &times; (&minus;2) = &minus;6.</p></details>
+    </li>
+    <li>
+      <p>A model has 10 million weights. About how many runs of the network does nudging each weight need for one
+      training step? And backpropagation?</p>
+      <details><summary>Answer</summary><p>Nudging: one run per weight plus one, so about 10 million. Backpropagation:
+      one forward run and one backward run, which together cost about as much as three forward runs.</p></details>
+    </li>
+    <li>
+      <p>A hidden unit's ReLU input is negative for every training example. What gradient do the weights feeding it
+      get?</p>
+      <details><summary>Answer</summary><p>Zero, because ReLU passes 0 backward wherever its input is negative. Those
+      weights never change. Such a unit is often called a "dead" ReLU.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://www.3blue1brown.com/lessons/backpropagation/">What is backpropagation really doing?</a>
+        <span class="fl-src">3Blue1Brown</span>
+        <span class="fl-format">Video</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">The intuition first, without formulas. Its follow-up,
+      <a href="https://www.3blue1brown.com/lessons/backpropagation-calculus/">Backpropagation calculus</a>, works the
+      chain rule on a tiny network like the one here.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://cs231n.github.io/optimization-2/#intuitive-understanding-of-backpropagation">Backpropagation, Intuitions: intuitive understanding</a>
+        <span class="fl-src">Stanford CS231n notes</span>
+        <span class="fl-format">Course notes</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Circuit diagrams with forward and backward numbers, and the "patterns in backward flow" for add,
+      multiply and max.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://d2l.ai/chapter_multilayer-perceptrons/backprop.html#backpropagation">Dive into Deep Learning, 5.3.3 Backpropagation</a>
+        <span class="fl-src">Zhang, Lipton, Li and Smola</span>
+        <span class="fl-format">Book</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">The same backward pass for a full one-hidden-layer network, written with matrices.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="mixed-precision.html">Mixed precision: 16-bit numbers (bf16)</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="training-loop.html">The training loop</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (tag, attrs, parent, text) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text !== undefined) e.textContent = text;
+    parent.appendChild(e);
+    return e;
+  };
+  const svg = document.getElementById('bp-svg'), next = document.getElementById('bp-next');
+  const reset = document.getElementById('bp-reset'), read = document.getElementById('bp-read');
+  if (!svg || !next) return;
+  // Node positions (box centres), forward values and gradients.
+  const N = {
+    x:  { x: 38,  y: 90,  name: 'x',  f: 2 },
+    z:  { x: 140, y: 90,  name: 'z',  f: 1,   g: 12 },
+    h:  { x: 242, y: 90,  name: 'h',  f: 1,   g: 12 },
+    y:  { x: 344, y: 90,  name: 'y',  f: 4,   g: 4 },
+    L:  { x: 444, y: 90,  name: 'L',  f: 4,   g: 1 },
+    w1: { x: 105, y: 200, name: 'w₁', f: 0.5, g: 24, p: 1 },
+    b1: { x: 175, y: 200, name: 'b₁', f: 0,   g: 12, p: 1 },
+    w2: { x: 309, y: 200, name: 'w₂', f: 3,   g: 4,  p: 1 },
+    b2: { x: 379, y: 200, name: 'b₂', f: 1,   g: 4,  p: 1 },
+    t:  { x: 444, y: 200, name: 't',  f: 2 },
+  };
+  const BW = 62, BH = 48;
+  const defs = el('defs', {}, svg);
+  const mk = el('marker', { id: 'bp-ah', viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 6, markerHeight: 6, orient: 'auto' }, defs);
+  el('path', { d: 'M0 0L10 5L0 10z', fill: 'var(--ink-3)' }, mk);
+  const arrow = (a, b) => {
+    const A = N[a], B = N[b];
+    if (A.y === B.y) el('path', { d: `M${A.x + BW / 2} ${A.y}H${B.x - BW / 2 - 2}`, class: 'arr', 'marker-end': 'url(#bp-ah)' }, svg);
+    else el('path', { d: `M${A.x} ${A.y - BH / 2}L${B.x + (A.x - B.x) * 0.25} ${B.y + BH / 2 + 2}`, class: 'arr', 'marker-end': 'url(#bp-ah)' }, svg);
+  };
+  [['x', 'z'], ['z', 'h'], ['h', 'y'], ['y', 'L'], ['w1', 'z'], ['b1', 'z'], ['w2', 'y'], ['b2', 'y'], ['t', 'L']].forEach(e => arrow(...e));
+  const box = {}, gtxt = {};
+  for (const k in N) {
+    const n = N[k];
+    box[k] = el('rect', { x: n.x - BW / 2, y: n.y - BH / 2, width: BW, height: BH, rx: 6, class: 'box' + (n.p ? ' param' : '') }, svg);
+    el('text', { x: n.x, y: n.y - 4, 'text-anchor': 'middle', class: 'lbl', 'font-style': 'italic' }, svg, n.name);
+    el('text', { x: n.x, y: n.y + 17, 'text-anchor': 'middle', class: 'fv' }, svg, String(n.f));
+    if (n.g !== undefined) gtxt[k] = el('text', { x: n.x, y: n.p ? n.y + BH / 2 + 21 : n.y - BH / 2 - 10, 'text-anchor': 'middle', class: 'gv' }, svg, '');
+  }
+  el('text', { x: 8, y: 22, class: 'muted hdr' }, svg, 'forward →');
+  el('text', { x: 474, y: 22, 'text-anchor': 'end', class: 'muted hdr' }, svg, '← backward');
+  const STEPS = [
+    { show: ['L'], say: 'Start at the loss: ∂L/∂L = 1.' },
+    { show: ['y'], say: 'L = (y − t)² has slope 2(y − t) = 2 × (4 − 2) = 4. So ∂L/∂y = 1 × 4 = 4.' },
+    { show: ['w2', 'b2'], say: 'y = w2 × h + b2. Slope with respect to w2 is h = 1, so ∂L/∂w2 = 4 × 1 = 4. Slope with respect to b2 is 1, so ∂L/∂b2 = 4.' },
+    { show: ['h'], say: 'Slope of y with respect to h is w2 = 3, so ∂L/∂h = 4 × 3 = 12.' },
+    { show: ['z'], say: 'ReLU has slope 1 because z = 1 is positive, so ∂L/∂z = 12 × 1 = 12.' },
+    { show: ['w1', 'b1'], say: 'z = w1 × x + b1. Slope with respect to w1 is x = 2, so ∂L/∂w1 = 12 × 2 = 24. ∂L/∂b1 = 12 × 1 = 12. Goal reached: every weight has its gradient.' },
+  ];
+  let k = 0;
+  function draw() {
+    for (const key in gtxt) gtxt[key].textContent = '';
+    for (const key in box) box[key].setAttribute('class', 'box' + (N[key].p ? ' param' : ''));
+    for (let i = 0; i < k; i++) for (const key of STEPS[i].show) {
+      gtxt[key].textContent = String(N[key].g);
+      if (i === k - 1) box[key].setAttribute('class', 'box lit');
+    }
+    read.textContent = k === 0 ? 'Forward pass done: L = 4. Press "Next backward step" to start at the loss.' : 'Step ' + k + ' of ' + STEPS.length + '. ' + STEPS[k - 1].say;
+    next.disabled = k >= STEPS.length;
+  }
+  next.addEventListener('click', () => { if (k < STEPS.length) { k++; draw(); } });
+  reset.addEventListener('click', () => { k = 0; draw(); });
+  draw();
+})();
+</script>
+</body>
+</html>

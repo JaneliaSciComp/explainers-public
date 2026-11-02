@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="cross-attention">
+<meta name="unit-level" content="u2">
+<title>Cross-attention: reading from another set</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  #fig-cross svg text { font-size: 14px; }
+  #fig-cross .wlab { font-weight: 700; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Cross-attention: reading from another set</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">7 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="attention.html">Attention: queries, keys, values</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">10 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p><dfn>Cross-attention</dfn> is <a href="attention.html">attention</a> between two sets of tokens. The tokens
+  being updated, set A, make the queries. The tokens being read, set B, make the keys and values. Each A token gets
+  a weighted sum of B's values, weighted by how well B's keys match its own query. Set B is often a condition: the
+  words of a caption, say, or the points of the part of a shape you can see. The output has one vector per A token,
+  however many tokens B has.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="two-sets">
+    <h2>Queries come from one set; keys and values come from the other</h2>
+    <p>In self-attention, one set of tokens makes all three vectors. In cross-attention, the roles split. For each
+    token <b>a</b> of set A and each token <b>b</b> of set B, learned matrices make</p>
+    <p class="math"><span class="vec">q</span> = <span class="vec">W</span><sub>Q</sub><span class="vec">a</span>, &nbsp; <span class="vec">k</span> = <span class="vec">W</span><sub>K</sub><span class="vec">b</span>, &nbsp; <span class="vec">v</span> = <span class="vec">W</span><sub>V</sub><span class="vec">b</span></p>
+    <p>Stack A's <var>n</var> queries as the rows of <b>Q</b>, and B's <var>m</var> keys and values as the rows
+    of <b>K</b> and <b>V</b>. The formula is the same as before:</p>
+    <p class="math">CrossAttention = softmax( <span class="vec">Q</span><span class="vec">K</span><sup>T</sup> / √<var>d</var><sub>k</sub> ) <span class="vec">V</span></p>
+    <p>Only the shapes change, because <var>n</var> and <var>m</var> can differ:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Matrix</th><th>Made from</th><th class="r">Rows</th><th class="r">Columns</th></tr></thead>
+        <tbody>
+          <tr><td><b>Q</b>, the queries</td><td>set A</td><td class="r"><var>n</var></td><td class="r"><var>d</var><sub>k</sub></td></tr>
+          <tr><td><b>K</b>, the keys</td><td>set B</td><td class="r"><var>m</var></td><td class="r"><var>d</var><sub>k</sub></td></tr>
+          <tr><td><b>V</b>, the values</td><td>set B</td><td class="r"><var>m</var></td><td class="r"><var>d</var><sub>v</sub></td></tr>
+          <tr><td>the weights, softmax(<b>Q</b><b>K</b><sup>T</sup> / √<var>d</var><sub>k</sub>)</td><td>both</td><td class="r"><var>n</var></td><td class="r"><var>m</var></td></tr>
+          <tr><td>the output</td><td>both</td><td class="r"><var>n</var></td><td class="r"><var>d</var><sub>v</sub></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Each row of the weights belongs to one A token and adds up to 1. The output has <var>n</var> rows: one new
+    vector per A token. Set B is read, not changed. Self-attention is the special case where A and B are the same
+    set.</p>
+  </section>
+
+  <section id="by-hand">
+    <h2>Worked by hand: two tokens read from three</h2>
+    <p>Set A has two tokens with queries <b>q</b><sub>1</sub> = [1, 0] and <b>q</b><sub>2</sub> = [0, 2].
+    Set B has three tokens with keys [2, 0], [0, 1] and [1, 1], and values [6, 0], [0, 6] and [3, 3]. The key size
+    is <var>d</var><sub>k</sub> = 2.</p>
+    <p><b>Predict first.</b> Which B token will A's first token read most? Which will the second read most?</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: the scores, the weights and the outputs</span>
+      <ol>
+        <li>Scores <b>q</b> · <b>k</b>: for <b>q</b><sub>1</sub>, [2, 0, 1]; for <b>q</b><sub>2</sub>,
+        [0, 2, 2].</li>
+        <li>Divide by √2: [1.414, 0, 0.707] and [0, 1.414, 1.414].</li>
+        <li>Softmax of each row: [0.576, 0.140, 0.284] and [0.108, 0.446, 0.446].</li>
+        <li>Weighted sums of the values. First token: 0.576 × [6, 0] + 0.140 × [0, 6] + 0.284 × [3, 3] =
+        [4.31, 1.69]. Second token: 0.108 × [6, 0] + 0.446 × [0, 6] + 0.446 × [3, 3] = [1.99, 4.01].</li>
+      </ol>
+      <p>The first A token reads mostly B's first token. The second splits its attention evenly between B's second and
+      third tokens, whose keys match its query equally well.</p>
+    </div>
+
+    <figure id="fig-cross">
+      <div class="fig-title">Each A token spreads one unit of weight over the B tokens</div>
+      <div class="scroll-x">
+      <svg width="440" height="250" viewBox="0 0 440 250" role="img"
+           aria-label="Two A tokens on the left and three B tokens on the right. Lines join every A token to every B token; the line width shows the weight. A's first token sends a thick line to B's first token. A's second token sends two equal, fairly thick lines to B's second and third tokens.">
+        <text x="70" y="20" text-anchor="middle" class="ink2">set A: queries</text>
+        <text x="350" y="20" text-anchor="middle" class="ink2">set B: keys, values</text>
+        <g stroke-linecap="round" opacity="0.8">
+          <line x1="100" y1="90" x2="320" y2="55" class="st-s1" stroke-width="8.4"/>
+          <line x1="100" y1="90" x2="320" y2="135" class="st-s1" stroke-width="3.2"/>
+          <line x1="100" y1="90" x2="320" y2="215" class="st-s1" stroke-width="4.9"/>
+          <line x1="100" y1="180" x2="320" y2="55" class="st-s2" stroke-width="2.8"/>
+          <line x1="100" y1="180" x2="320" y2="135" class="st-s2" stroke-width="6.8"/>
+          <line x1="100" y1="180" x2="320" y2="215" class="st-s2" stroke-width="6.8"/>
+        </g>
+        <rect x="246" y="53" width="38" height="20" rx="4" fill="var(--surface)" stroke="var(--rule)"/>
+        <text x="265" y="68" text-anchor="middle" class="wlab f-s1">0.58</text>
+        <rect x="246" y="113" width="38" height="20" rx="4" fill="var(--surface)" stroke="var(--rule)"/>
+        <text x="265" y="128" text-anchor="middle" class="wlab f-s1">0.14</text>
+        <rect x="246" y="173" width="38" height="20" rx="4" fill="var(--surface)" stroke="var(--rule)"/>
+        <text x="265" y="188" text-anchor="middle" class="wlab f-s1">0.28</text>
+        <rect x="246" y="75" width="38" height="20" rx="4" fill="var(--surface)" stroke="var(--rule)"/>
+        <text x="265" y="90" text-anchor="middle" class="wlab f-s2">0.11</text>
+        <rect x="246" y="135" width="38" height="20" rx="4" fill="var(--surface)" stroke="var(--rule)"/>
+        <text x="265" y="150" text-anchor="middle" class="wlab f-s2">0.45</text>
+        <rect x="246" y="195" width="38" height="20" rx="4" fill="var(--surface)" stroke="var(--rule)"/>
+        <text x="265" y="210" text-anchor="middle" class="wlab f-s2">0.45</text>
+        <circle cx="90" cy="90" r="11" class="f-s1"/>
+        <circle cx="90" cy="180" r="11" class="f-s2"/>
+        <text x="72" y="95" text-anchor="end" font-weight="700">a1</text>
+        <text x="72" y="185" text-anchor="end" font-weight="700">a2</text>
+        <text x="90" y="118" text-anchor="middle" class="muted"><tspan font-weight="700">q</tspan> [1, 0]</text>
+        <text x="90" y="208" text-anchor="middle" class="muted"><tspan font-weight="700">q</tspan> [0, 2]</text>
+        <circle cx="330" cy="55" r="11" fill="var(--ink-2)"/>
+        <circle cx="330" cy="135" r="11" fill="var(--ink-2)"/>
+        <circle cx="330" cy="215" r="11" fill="var(--ink-2)"/>
+        <text x="348" y="51" font-weight="700">b1</text><text x="348" y="68" class="muted"><tspan font-weight="700">k</tspan> [2, 0]</text>
+        <text x="348" y="131" font-weight="700">b2</text><text x="348" y="148" class="muted"><tspan font-weight="700">k</tspan> [0, 1]</text>
+        <text x="348" y="211" font-weight="700">b3</text><text x="348" y="228" class="muted"><tspan font-weight="700">k</tspan> [1, 1]</text>
+      </svg>
+      </div>
+      <figcaption><b>What to notice.</b> Line width shows the weight. Each A token's three weights add up to 1, but
+      a B token's incoming weights need not: B's first token gets 0.58 + 0.11 = 0.69 in total. A tokens are not
+      joined to each other; cross-attention gives them no way to read one another.</figcaption>
+    </figure>
+  </section>
+
+  <section id="order">
+    <h2>The order of set B does not matter, and its size can change</h2>
+    <p>Each A token takes a weighted sum over all of B, and a sum does not depend on the order of its terms. So
+    reordering B's tokens leaves every output the same: cross-attention is <a href="permutation-invariance.html">permutation
+    invariant</a> in B. Reordering A's tokens reorders the outputs in the same way. Set B can also hold 3 tokens or
+    3,000; the output still has one vector per A token.</p>
+
+    <p class="code-cap">cross_attention.py</p>
+<pre><code class="py">import numpy as np
+
+def softmax(s):
+    e = np.exp(s - s.max(axis=-1, keepdims=True))
+    return e / e.sum(axis=-1, keepdims=True)
+
+def cross_attention(Qa, Kb, Vb):
+    w = softmax(Qa @ Kb.T / np.sqrt(Qa.shape[-1]))   # n rows, m columns
+    return w @ Vb, w
+
+Qa = np.array([[1.0, 0.0], [0.0, 2.0]])               # queries from set A
+Kb = np.array([[2.0, 0.0], [0.0, 1.0], [1.0, 1.0]])   # keys from set B
+Vb = np.array([[6.0, 0.0], [0.0, 6.0], [3.0, 3.0]])   # values from set B
+out, w = cross_attention(Qa, Kb, Vb)
+print(np.round(w, 3))
+print(np.round(out, 2))
+
+perm = [2, 0, 1]                                      # reorder set B
+print(np.allclose(cross_attention(Qa, Kb[perm], Vb[perm])[0], out))
+</code></pre>
+<pre class="out">[[0.576 0.14  0.284]
+ [0.108 0.446 0.446]]
+[[4.31 1.69]
+ [1.99 4.01]]
+True</pre>
+  </section>
+
+  <section id="uses">
+    <h2>A model uses cross-attention to let each token choose what to read</h2>
+    <p>A common block for set A runs three steps, each with a <a href="layer-normalization.html">layer
+    normalization</a> and a <a href="residual-connections.html">residual connection</a>: self-attention, so A's
+    tokens can coordinate with each other; cross-attention, so each A token can read the condition B; and an
+    <a href="mlp.html">MLP</a>. The original transformer for translation worked this way: the words of the sentence
+    being written read the words of the sentence being translated. The <a href="transformer-block.html">transformer
+    block</a> unit shows this pattern without the cross-attention step.</p>
+    <p>There are two other common ways to bring a condition in. A model can join A and B into one set and run
+    self-attention over all <var>n</var> + <var>m</var> tokens. Or it can squeeze B into one summary vector and add
+    it to every A token, which is cheap but gives every token the same information. Cross-attention lets each A token
+    pick the parts of B it needs, at a cost of <var>n</var> × <var>m</var> scores.</p>
+    <p>Cross-attention can also shrink a large set. A model can learn a handful of query tokens that read a set of
+    thousands of tokens, and so get a fixed-size summary of it. The Perceiver model works this way;
+    <a href="pointnet-pooling.html">PointNet pooling</a> is a simpler order-free summary.</p>
+
+    <div class="callout warn">
+      <span class="callout-title">What this page leaves out</span>
+      <p>Like self-attention, cross-attention usually has several heads, and each projection usually has a bias.
+      When the B sets in a batch have different sizes, libraries pad the short ones with dummy tokens and use a mask
+      that sets the scores of the dummies to −∞, so they get zero weight.</p>
+    </div>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>Set A has 1,000 tokens and set B has 16. What shape is the table of weights, and how many output vectors
+      are there?</p>
+      <details><summary>Answer</summary><p>The weights form a table of 1,000 rows and 16 columns: one row per A
+      token, one column per B token. There are 1,000 output vectors, one per A token.</p></details>
+    </li>
+    <li>
+      <p>Work a similar problem. One A token has query [2, 0]. Set B has keys [1, 0] and [−1, 0], with the
+      one-number values 5 and −5. What is the output?</p>
+      <details><summary>Answer</summary><p>Scores 2 and −2; divided by √2: 1.414 and −1.414. Softmax:
+      <var>e</var><sup>1.414</sup> = 4.113 and <var>e</var><sup>−1.414</sup> = 0.243, so the weights are 0.944 and
+      0.056. Output: 0.944 × 5 + 0.056 × (−5) = 4.44.</p></details>
+    </li>
+    <li>
+      <p>You shuffle set B, then separately shuffle set A. What happens to the outputs each time?</p>
+      <details><summary>Answer</summary><p>Shuffling B changes nothing: each output is a sum over all of B. Shuffling
+      A shuffles the outputs in the same way, since each A token still gets its own output.</p></details>
+    </li>
+    <li>
+      <p>Can one A token learn anything about another A token through a cross-attention layer?</p>
+      <details><summary>Answer</summary><p>No. Its keys and values come only from B. Information passes between A
+      tokens in self-attention layers, which models place before or after the cross-attention.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://jalammar.github.io/illustrated-transformer/#the-decoder-side">The Illustrated Transformer: "The Decoder Side"</a>
+        <span class="fl-src">Jay Alammar</span>
+        <span class="fl-format">Illustrated article</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">Animates the original transformer's "encoder-decoder attention", which is cross-attention:
+      the decoder's queries read the encoder's keys and values.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://d2l.ai/chapter_attention-mechanisms-and-transformers/transformer.html#decoder">Dive into Deep Learning: "The Transformer Architecture", section "Decoder"</a>
+        <span class="fl-src">Zhang, Lipton, Li and Smola</span>
+        <span class="fl-format">Textbook section</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">Code for a decoder block with self-attention, then cross-attention to the encoder's output,
+      then the MLP.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://arxiv.org/abs/2103.03206">Perceiver: General Perception with Iterative Attention</a>
+        <span class="fl-src">Jaegle and others (2021)</span>
+        <span class="fl-format">Paper</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">Uses a small set of learned queries that cross-attend to a large input, such as an image or a
+      point cloud. Its Figure 1 shows the idea at a glance.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <p>No unit or explanation builds on this one yet.</p>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+</body>
+</html>

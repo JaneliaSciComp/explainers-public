@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="binary-cross-entropy">
+<meta name="unit-level" content="u1">
+<title>Binary cross-entropy: scoring yes-or-no guesses</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Binary cross-entropy: scoring yes-or-no guesses</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="sigmoid.html">The sigmoid: from score to probability</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+    <li><a href="loss-function.html">Loss: one number for how wrong</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">9 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A model that answers yes or no gives a probability of yes, usually from a <a href="sigmoid.html">sigmoid</a>.
+  <dfn>Binary cross-entropy</dfn> is the <a href="loss-function.html">loss</a> that grades that probability once the
+  true answer is known. The charge is minus the natural logarithm of the probability the model gave to what really
+  happened. A confident right answer costs almost nothing. A confident wrong answer costs a lot, and the charge has
+  no upper limit.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="forecaster">
+    <h2>The charge is minus the log of the probability given to what happened</h2>
+    <p>Picture a weather forecaster who says "90% chance of rain". The next day it either rains or it does not.
+    How should we score the forecast? A good rule rewards forecasts that put high probability on what happened.
+    It should punish a forecaster who was sure and wrong more than one who was unsure.</p>
+    <p>Binary cross-entropy does this. Call the true answer <var>y</var>: 1 for yes, 0 for no. Call the model's
+    probability of yes <var>p</var>. The charge for one example is</p>
+    <p class="math"><var>L</var> = −[ <var>y</var> ln <var>p</var> + (1 − <var>y</var>) ln(1 − <var>p</var>) ]</p>
+    <p>Only one of the two terms is ever switched on. If the answer is yes (<var>y</var> = 1), the charge is
+    −ln <var>p</var>. If the answer is no (<var>y</var> = 0), the charge is −ln(1 − <var>p</var>). Either way, it is
+    minus the log of the probability the model gave to the true answer. Here ln is the natural logarithm, from the
+    <a href="exponentials.html">exponentials</a> unit.</p>
+
+    <p><b>Predict first.</b> The forecaster said 90% rain. Guess which charge is larger, and by how much: the one
+    for "it rained" or the one for "it stayed dry"?</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: one forecast, then four</span>
+      <p>The forecaster said <var>p</var> = 0.9.</p>
+      <ul>
+        <li>It rained (<var>y</var> = 1): charge = −ln 0.9 ≈ 0.105.</li>
+        <li>It stayed dry (<var>y</var> = 0): charge = −ln 0.1 ≈ 2.303, about 22 times more.</li>
+        <li>A forecaster who said 0.5 pays −ln 0.5 ≈ 0.693 either way.</li>
+      </ul>
+      <p>To grade a model on many examples, average the charges. Four examples:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>True answer <var>y</var></th><th class="r">Model's <var>p</var> of yes</th><th class="r">Probability of what happened</th><th class="r">Charge</th></tr></thead>
+          <tbody>
+            <tr><td>1 (yes)</td><td class="r">0.9</td><td class="r">0.9</td><td class="r">0.105</td></tr>
+            <tr><td>0 (no)</td><td class="r">0.2</td><td class="r">0.8</td><td class="r">0.223</td></tr>
+            <tr><td>1 (yes)</td><td class="r">0.6</td><td class="r">0.6</td><td class="r">0.511</td></tr>
+            <tr><td>0 (no)</td><td class="r">0.95</td><td class="r">0.05</td><td class="r">2.996</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The average is (0.105 + 0.223 + 0.511 + 2.996) / 4 ≈ 0.959. The one confident mistake in the last row
+      supplies more than three quarters of the total.</p>
+    </div>
+
+    <figure id="fig-charge">
+      <div class="fig-title">The charge climbs without limit as the model grows sure of the wrong answer</div>
+      <svg width="540" height="348" viewBox="0 0 360 232" role="img"
+           aria-label="Two curves of charge against the model's probability of yes. The blue curve, for a true answer of yes, is high on the left and falls to zero at probability 1. The orange curve, for a true answer of no, is zero at probability 0 and climbs steeply on the right.">
+        <line x1="40" y1="54" x2="340" y2="54" class="grid"/>
+        <line x1="40" y1="122" x2="340" y2="122" class="grid"/>
+        <line x1="190" y1="20" x2="190" y2="190" class="grid"/>
+        <line x1="40" y1="190" x2="340" y2="190" style="stroke:var(--ink-3)"/>
+        <line x1="40" y1="20" x2="40" y2="190" style="stroke:var(--ink-3)"/>
+        <text x="34" y="58" text-anchor="end" class="muted">4</text>
+        <text x="34" y="126" text-anchor="end" class="muted">2</text>
+        <text x="34" y="194" text-anchor="end" class="muted">0</text>
+        <text x="40" y="206" text-anchor="middle" class="muted">0</text>
+        <text x="190" y="206" text-anchor="middle" class="muted">0.5</text>
+        <text x="340" y="206" text-anchor="middle" class="muted">1</text>
+        <text x="190" y="224" text-anchor="middle" class="ink2">model's probability of yes, p</text>
+        <text x="40" y="11" class="ink2">charge</text>
+        <path id="bce-yes" d="M42.0,20.0 L43.0,33.4 L44.5,47.2 L46.0,57.0 L49.0,70.8 L52.0,80.6 L55.0,88.1 L58.0,94.3 L64.0,104.1 L70.0,111.7 L82.0,123.2 L94.0,131.7 L106.0,138.5 L118.0,144.2 L130.0,149.1 L142.0,153.3 L154.0,157.1 L166.0,160.5 L178.0,163.6 L190.0,166.4 L202.0,169.0 L214.0,171.5 L226.0,173.7 L238.0,175.9 L250.0,177.9 L262.0,179.8 L274.0,181.6 L286.0,183.3 L298.0,184.9 L310.0,186.4 L322.0,187.9 L334.0,189.3 L340.0,190.0"
+              fill="none" class="st-s1" stroke-width="2.5"/>
+        <path id="bce-no" d="M338.0,20.0 L337.0,33.4 L335.5,47.2 L334.0,57.0 L331.0,70.8 L328.0,80.6 L325.0,88.1 L322.0,94.3 L316.0,104.1 L310.0,111.7 L298.0,123.2 L286.0,131.7 L274.0,138.5 L262.0,144.2 L250.0,149.1 L238.0,153.3 L226.0,157.1 L214.0,160.5 L202.0,163.6 L190.0,166.4 L178.0,169.0 L166.0,171.5 L154.0,173.7 L142.0,175.9 L130.0,177.9 L118.0,179.8 L106.0,181.6 L94.0,183.3 L82.0,184.9 L70.0,186.4 L58.0,187.9 L46.0,189.3 L40.0,190.0"
+              fill="none" class="st-s2" stroke-width="2.5"/>
+        <text x="64" y="86" class="ink2">answer yes</text>
+        <text x="316" y="86" text-anchor="end" class="ink2">answer no</text>
+        <line id="bce-v" x1="310" y1="190" x2="310" y2="111.7" style="stroke:var(--ink-3)" stroke-dasharray="4 3"/>
+        <circle id="bce-dot" cx="310" cy="111.7" r="6" class="f-s2"/>
+      </svg>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--s1)"></i>true answer yes: −ln p</span>
+        <span><i class="sw" style="background:var(--s2)"></i>true answer no: −ln(1 − p)</span>
+      </div>
+      <div class="controls">
+        <label>p <input id="bce-p" type="range" min="0.01" max="0.99" step="0.01" value="0.9"></label>
+        <span>True answer:
+          <button class="btn" type="button" id="bce-yes-btn" aria-pressed="false">yes</button>
+          <button class="btn" type="button" id="bce-no-btn" aria-pressed="true">no</button></span>
+      </div>
+      <p class="readout-box"><output id="bce-out">p = 0.90, answer no: charge = −ln(0.10) = 2.303</output></p>
+      <p class="small"><b>Try it.</b> With the answer set to no, drag p from 0.5 up to 0.9. Then guess the charge at
+      0.99 before you drag there. Does moving from 0.9 to 0.99 add more or less than moving from 0.5 to 0.9?</p>
+      <figcaption><b>What to notice.</b> Each curve is zero where the model is sure and right, and shoots up where it
+      is sure and wrong. The curves cross at p = 0.5, where the charge is 0.693 whatever the answer.</figcaption>
+    </figure>
+  </section>
+
+  <section id="why-log">
+    <h2>The logarithm makes the loss add up across examples</h2>
+    <p>Why a logarithm and not something simpler? Treat each answer as independent. Then the probability the model
+    gives to the whole set of true answers is the product of its probabilities for each one. A good model makes
+    that product large. A logarithm turns a product into a sum, and a sum is easy to average and to improve one
+    example at a time. So making the average binary cross-entropy small is the same as making the true answers as
+    likely as possible under the model. Statisticians call this <dfn>maximum likelihood</dfn>.</p>
+    <p>The logarithm also explains the missing ceiling. A squared-error loss, (<var>y</var> − <var>p</var>)<sup>2</sup>,
+    charges at most 1 for any mistake. Binary cross-entropy charges 4.6 for a probability of 0.01 on the truth,
+    and 9.2 for 0.0001. A model trained with it learns that confident mistakes are very expensive.</p>
+
+    <p class="code-cap">bce.py</p>
+<pre><code class="py">import numpy as np
+
+y = np.array([1, 0, 1, 0])           # the right answers: 1 = yes, 0 = no
+p = np.array([0.9, 0.2, 0.6, 0.95])  # the model's probability of yes
+
+loss = -(y * np.log(p) + (1 - y) * np.log(1 - p))
+print(np.round(loss, 3))
+print(round(loss.mean(), 3))
+</code></pre>
+<pre class="out">[0.105 0.223 0.511 2.996]
+0.959</pre>
+
+    <div class="callout warn">
+      <span class="callout-title">Real code computes the loss from the score, not from p</span>
+      <p>If a model gives <var>p</var> = 0 exactly and the answer is yes, ln 0 is minus infinity and the loss breaks.
+      With a sigmoid, <var>p</var> never reaches 0 or 1 in exact arithmetic, but a computer can round it there.
+      So libraries start from the model's score <var>z</var>, before the sigmoid. For a true yes,
+      −ln σ(<var>z</var>) equals ln(1 + <var>e</var><sup>−<var>z</var></sup>). Written that way, it still overflows
+      when <var>z</var> is very negative. So libraries compute it as
+      max(−<var>z</var>, 0) + ln(1 + <var>e</var><sup>−|<var>z</var>|</sup>), whose exponent is never positive.
+      PyTorch calls this version <code>binary_cross_entropy_with_logits</code>. The value is the same; only
+      the arithmetic is safer.</p>
+    </div>
+    <p>Binary cross-entropy is the two-choice case of <a href="cross-entropy.html">cross-entropy</a>, which grades a
+    choice among many.</p>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>A model gives <var>p</var> = 0.99 that an email is spam. It is not spam. What is the charge?</p>
+      <details><summary>Answer</summary><p>The model gave 1 − 0.99 = 0.01 to the true answer, so the charge is
+      −ln 0.01 ≈ 4.605. Compare 0.010 if the email had been spam.</p></details>
+    </li>
+    <li>
+      <p>A lazy model says <var>p</var> = 0.5 for every example. What is its average binary cross-entropy? Why is
+      that number a useful yardstick?</p>
+      <details><summary>Answer</summary><p>Every example costs −ln 0.5 = ln 2 ≈ 0.693, so the average is 0.693. A
+      model whose average is not below 0.693 has learned nothing useful about the answers. This yardstick assumes yes
+      and no are equally common. If 90% of the answers are yes, always saying 0.9 already scores about 0.325, so a
+      useful model must beat that instead.</p></details>
+    </li>
+    <li>
+      <p>Which costs more in total? (a) Two yes-examples, each given <var>p</var> = 0.6. (b) Two yes-examples, one
+      given 0.99 and one given 0.2.</p>
+      <details><summary>Answer</summary><p>(a) costs 2 × 0.511 = 1.022. (b) costs 0.010 + 1.609 = 1.619. One
+      confident miss outweighs one confident hit, so (b) costs more.</p></details>
+    </li>
+    <li>
+      <p>Can a model with a sigmoid output ever reach a loss of exactly 0 on a yes-example?</p>
+      <details><summary>Answer</summary><p>No. That needs <var>p</var> = 1, and the sigmoid only approaches 1 as the
+      score grows. The loss keeps shrinking toward 0, so training keeps nudging scores of easy examples higher, by
+      ever smaller amounts.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://developers.google.com/machine-learning/crash-course/logistic-regression/loss-regularization#log_loss">Logistic regression: loss and regularization</a>
+        <span class="fl-src">Google Machine Learning Crash Course</span>
+        <span class="fl-format">Course page</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">The "Log Loss" section gives the same formula under its other common name and says why squared error is a poor fit here.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://mlu-explain.github.io/logistic-regression/">Logistic Regression</a>
+        <span class="fl-src">MLU-Explain (Erin Bugbee and Jared Wilber)</span>
+        <span class="fl-format">Interactive page</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Its "Estimating Coefficients" section shows how this loss chooses a model's weights.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <p>No unit or explanation builds on this one yet.</p>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const slider = document.getElementById('bce-p');
+  if (!slider) return;
+  const yesBtn = document.getElementById('bce-yes-btn'), noBtn = document.getElementById('bce-no-btn');
+  const yesPath = document.getElementById('bce-yes'), noPath = document.getElementById('bce-no');
+  const dot = document.getElementById('bce-dot'), vline = document.getElementById('bce-v');
+  const out = document.getElementById('bce-out');
+  let answer = 0;
+  function draw() {
+    const p = Number(slider.value);
+    const q = answer === 1 ? p : 1 - p;            // probability given to what happened
+    const charge = -Math.log(q);
+    const x = 40 + 300 * p, y = 190 - 34 * Math.min(5, charge);
+    dot.setAttribute('cx', x); dot.setAttribute('cy', y);
+    dot.setAttribute('class', answer === 1 ? 'f-s1' : 'f-s2');
+    vline.setAttribute('x1', x); vline.setAttribute('x2', x); vline.setAttribute('y2', y);
+    yesPath.style.opacity = answer === 1 ? 1 : 0.3;
+    noPath.style.opacity = answer === 0 ? 1 : 0.3;
+    yesBtn.setAttribute('aria-pressed', String(answer === 1));
+    noBtn.setAttribute('aria-pressed', String(answer === 0));
+    out.textContent = 'p = ' + p.toFixed(2) + ', answer ' + (answer === 1 ? 'yes' : 'no') +
+      ': charge = −ln(' + q.toFixed(2) + ') = ' + charge.toFixed(3);
+  }
+  slider.addEventListener('input', draw);
+  yesBtn.addEventListener('click', () => { answer = 1; draw(); });
+  noBtn.addEventListener('click', () => { answer = 0; draw(); });
+  draw();
+})();
+</script>
+</body>
+</html>

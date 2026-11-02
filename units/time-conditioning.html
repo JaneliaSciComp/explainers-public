@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="time-conditioning">
+<meta name="unit-level" content="u2">
+<title>Time conditioning: telling a network the time</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  .dg text { font-size: 13px; }
+  .dg text.sm { font-size: 12px; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Time conditioning: telling a network the time</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">7 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="layer-normalization.html">Layer normalization</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+    <li><a href="fourier-features.html">Fourier features: positions as waves</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">8 min</span></li>
+    <li><a href="mlp.html">The multilayer perceptron (MLP)</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A network that removes noise sees a blend of noise and data, and it must know how far along the blend is. That
+  amount is the time <var>t</var>, from 0 (pure noise) to 1 (data). The same input can need a different output at a
+  different time, so the time is an input too. A common way to feed it in has three parts. Turn <var>t</var> into many
+  sines and cosines, pass those through a small network, and let the result set the scale and shift after each layer
+  normalization. This last part is adaptive layer normalization, or adaLN.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="why-time">
+    <h2>The same point needs a different answer at a different time</h2>
+    <p>Generative models such as <a href="flow-matching.html">flow matching</a> blend a noise draw
+    <var>x</var><sub>0</sub> and a data example <var>x</var><sub>1</sub>:
+    <var>x</var><sub><var>t</var></sub> = (1 − <var>t</var>) <var>x</var><sub>0</sub> + <var>t</var> <var>x</var><sub>1</sub>.
+    At <var>t</var> = 0 the input is pure noise; at <var>t</var> = 1 it is data. The network sees
+    <var>x</var><sub><var>t</var></sub> and must predict how to move it toward the data. The right move depends on
+    <var>t</var>, even for the same <var>x</var><sub><var>t</var></sub>.</p>
+    <div class="example">
+      <span class="example-title">Worked example: one place, three times, three answers</span>
+      <p>Let the data be a single number, <var>x</var><sub>1</sub> = 2, and look at the position 0. A point at 0 at time
+      <var>t</var> must reach 2 by time 1 on a straight path, so its velocity is the distance over the time left:
+      (2 − 0) / (1 − <var>t</var>).</p>
+      <ol>
+        <li>At <var>t</var> = 0: 2 / 1 = 2.</li>
+        <li>At <var>t</var> = 0.5: 2 / 0.5 = 4.</li>
+        <li>At <var>t</var> = 0.75: 2 / 0.25 = 8.</li>
+      </ol>
+      <p>The input position is the same each time, but the right output changes by a factor of 4. A network that does
+      not know <var>t</var> cannot give all three answers.</p>
+    </div>
+    <figure id="fig-same-place">
+      <div class="fig-title">At position 0, the velocity toward the data point 2 grows as time runs out</div>
+      <svg class="dg" width="400" height="150" viewBox="0 0 400 150" role="img" aria-label="Three arrows starting at position 0, of lengths 2, 4 and 8, for times 0, 0.5 and 0.75">
+        <line x1="70" y1="132" x2="392" y2="132" class="rule" stroke-width="1"/>
+        <line x1="80" y1="18" x2="80" y2="136" stroke="var(--ink-3)" stroke-dasharray="3 3"/>
+        <line x1="150" y1="18" x2="150" y2="136" class="st-s3" stroke-dasharray="3 3" stroke-width="1.5"/>
+        <text x="80" y="148" text-anchor="middle" class="muted">0</text>
+        <text x="150" y="148" text-anchor="middle" class="muted">2 (data)</text>
+        <g class="st-s2" stroke-width="3"><line x1="80" y1="34" x2="143" y2="34"/><line x1="80" y1="69" x2="213" y2="69"/><line x1="80" y1="104" x2="353" y2="104"/></g>
+        <g class="f-s2"><path d="M150 34 l-9 -5 v10 z"/><path d="M220 69 l-9 -5 v10 z"/><path d="M360 104 l-9 -5 v10 z"/></g>
+        <text x="4" y="38">t = 0</text><text x="4" y="73">t = 0.5</text><text x="4" y="108">t = 0.75</text>
+        <text x="158" y="30" class="ink2">2</text><text x="228" y="65" class="ink2">4</text><text x="368" y="100" class="ink2">8</text>
+      </svg>
+      <figcaption><b>What to notice.</b> Each arrow's length is the speed. With less time left, the point must move
+      faster to arrive on time. The scale is 35 pixels per unit of speed.</figcaption>
+    </figure>
+    <p><b>Your turn.</b> What is the velocity at position 0 at <var>t</var> = 0.9?</p>
+    <details><summary>Answer</summary><p>2 / (1 − 0.9) = 2 / 0.1 = 20.</p></details>
+  </section>
+
+  <section id="embed-time">
+    <h2>First, turn the time into many numbers</h2>
+    <p>One number is a weak input for a network. Its first layer can only scale it and add to it, so small differences
+    in <var>t</var> are hard to act on. The usual fix uses <a href="fourier-features.html">Fourier features</a>: the
+    sines and cosines of <var>t</var> at several frequencies. Nearby times then get similar lists of numbers, and the
+    fast waves let the network tell close times apart.</p>
+    <p>A small <a href="mlp.html">MLP</a> then maps those features to a vector <b>e</b>(<var>t</var>), the
+    <dfn>time embedding</dfn>. It has as many numbers as each token has features. Other conditions can ride along. For
+    example, a model that takes a class label can add the label's <a href="embeddings.html">embedding</a> to
+    <b>e</b>(<var>t</var>) and use the sum wherever it would use <b>e</b>(<var>t</var>).</p>
+  </section>
+
+  <section id="adaln">
+    <h2>adaLN lets the time set each layer's scale and shift</h2>
+    <p><a href="layer-normalization.html">Layer normalization</a> takes each token's features, subtracts their mean and
+    divides by their spread. It then multiplies by a learned scale and adds a learned shift. In plain layer norm, the
+    scale and shift are fixed after training: the same for every input and every time.</p>
+    <p>Adaptive layer normalization computes the scale and shift from the time embedding instead. A linear layer maps
+    <b>e</b>(<var>t</var>) to two vectors, <b>γ</b>(<var>t</var>) and <b>β</b>(<var>t</var>), one number per feature:</p>
+    <p class="math">adaLN(<span class="vec">h</span>, <var>t</var>) = LN(<span class="vec">h</span>) ⊙ (1 + <span class="vec">γ</span>(<var>t</var>)) + <span class="vec">β</span>(<var>t</var>)</p>
+    <p>Here <b>h</b> is a token's feature vector, LN is layer normalization without its own scale and shift, and ⊙
+    multiplies feature by feature. The "1 +" means that <b>γ</b> = 0 leaves the scale at 1. Each block of the network has its
+    own linear layer, so each block can respond to the time in its own way.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: one token at two times</span>
+      <p>A token has the features <b>h</b> = (2, 4, 6, 8).</p>
+      <ol>
+        <li>Mean: 5. Spread: √((9 + 1 + 1 + 9) / 4) = √5 ≈ 2.236.</li>
+        <li>LN(<b>h</b>) = ((2 − 5), (4 − 5), (6 − 5), (8 − 5)) / 2.236 = (−1.34, −0.45, 0.45, 1.34).</li>
+        <li>Suppose that at <var>t</var> = 0.2 the time layer gives <b>γ</b> = (0.5, 0, 0, −0.5) and <b>β</b> = (0, 0, 1, 0). Then the
+        output is (−1.34 × 1.5, −0.45, 0.45 + 1, 1.34 × 0.5) = (−2.01, −0.45, 1.45, 0.67).</li>
+        <li>Suppose that at <var>t</var> = 0.9 it gives <b>γ</b> = 0 and <b>β</b> = 0. Then the output is just LN(<b>h</b>) =
+        (−1.34, −0.45, 0.45, 1.34).</li>
+      </ol>
+      <p>The same token leaves the layer differently at the two times. The rest of the block sees that difference.</p>
+    </div>
+    <p><b>Your turn.</b> LN(<b>h</b>) = (−1, 0, 1), <b>γ</b> = (1, 0, 0) and <b>β</b> = (0, 0, 2). What does adaLN output?</p>
+    <details><summary>Answer</summary><p>(−1 × 2 + 0, 0 × 1 + 0, 1 × 1 + 2) = (−2, 0, 3).</p></details>
+
+    <figure id="fig-adaln">
+      <div class="fig-title">Where the time enters one block</div>
+      <div class="scroll-x">
+      <svg class="dg" width="380" height="360" viewBox="0 0 380 360" role="img" aria-label="Left: time t goes through sines and cosines, a small MLP, the time embedding, and the block's linear layer, which outputs gamma, beta and alpha. Right: token features go through layer norm, are scaled by one plus gamma and shifted by beta, pass through attention or an MLP, are multiplied by alpha, and are added back to the input.">
+        <defs><marker id="tc-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-2)"/></marker></defs>
+        <g fill="none" stroke-width="1.6">
+          <rect x="4" y="12" width="136" height="34" rx="5" class="st-s1"/>
+          <rect x="4" y="72" width="136" height="34" rx="5" class="st-s1"/>
+          <rect x="4" y="132" width="136" height="34" rx="5" class="st-s1"/>
+          <rect x="4" y="192" width="136" height="34" rx="5" class="st-s1"/>
+          <rect x="4" y="252" width="136" height="34" rx="5" class="st-s1"/>
+          <rect x="200" y="12" width="156" height="34" rx="5" class="st-s3"/>
+          <rect x="200" y="72" width="156" height="34" rx="5" class="st-s3"/>
+          <rect x="200" y="132" width="156" height="34" rx="5" class="st-s2" stroke-width="2.2"/>
+          <rect x="200" y="192" width="156" height="34" rx="5" class="st-s3"/>
+          <rect x="200" y="252" width="156" height="34" rx="5" class="st-s2" stroke-width="2.2"/>
+          <rect x="200" y="312" width="156" height="34" rx="5" class="st-s3"/>
+          <rect x="190" y="62" width="186" height="236" rx="8" stroke="var(--ink-3)" stroke-dasharray="5 4" stroke-width="1"/>
+        </g>
+        <g text-anchor="middle">
+          <text x="72" y="34">time <tspan font-style="italic">t</tspan></text>
+          <text x="72" y="94">sines and cosines</text>
+          <text x="72" y="154">small MLP</text>
+          <text x="72" y="214">time embedding <tspan font-weight="700">e</tspan>(<tspan font-style="italic">t</tspan>)</text>
+          <text x="72" y="274">block's linear layer</text>
+          <text x="278" y="34">token features <tspan font-weight="700">h</tspan></text>
+          <text x="278" y="94">layer norm</text>
+          <text x="278" y="154">× (1 + <tspan font-weight="700">γ</tspan>), then + <tspan font-weight="700">β</tspan></text>
+          <text x="278" y="214">attention or MLP</text>
+          <text x="278" y="274">× <tspan font-weight="700">α</tspan></text>
+          <text x="278" y="334">add to <tspan font-weight="700">h</tspan></text>
+        </g>
+        <text x="196" y="57" class="muted sm">one block</text>
+        <g stroke="var(--ink-2)" stroke-width="1.5" fill="none" marker-end="url(#tc-ah)">
+          <path d="M72 46 V70"/><path d="M72 106 V130"/><path d="M72 166 V190"/><path d="M72 226 V250"/>
+          <path d="M278 46 V70"/><path d="M278 106 V130"/><path d="M278 166 V190"/><path d="M278 226 V250"/><path d="M278 286 V310"/>
+          <path d="M140 262 H168 V149 H198"/><path d="M140 276 H198"/>
+          <path d="M356 29 H368 V329 H358"/>
+        </g>
+        <text x="172" y="143" class="ink2"><tspan font-weight="700">γ</tspan>, <tspan font-weight="700">β</tspan></text>
+        <text x="176" y="270" class="ink2"><tspan font-weight="700">α</tspan></text>
+      </svg>
+      </div>
+      <figcaption><b>What to notice.</b> In this design, the time never enters the token features directly. It changes how each block
+      scales, shifts and gates them (orange boxes). The line on the right is the residual path, which adds the block's
+      input back to its output. The gate <b>α</b> multiplies the output of the attention or MLP step. The next section
+      explains it.</figcaption>
+    </figure>
+  </section>
+
+  <section id="ada-zero">
+    <h2>adaLN-Zero starts every block switched off</h2>
+    <p>In a diffusion transformer, the time layer also makes a <dfn>gate</dfn> <b>α</b> for each branch of a block. The
+    branch's output is multiplied by <b>α</b> before it is added back to the input, through a
+    <a href="residual-connections.html">residual connection</a>. The layer that makes <b>γ</b>, <b>β</b> and <b>α</b> starts with all its
+    weights set to zero. So at the start <b>α</b> = 0, every branch adds nothing, and every block passes its input through
+    unchanged. Training then opens each gate as far as it helps.</p>
+    <p>This variant is called adaLN-Zero. The paper that introduced diffusion transformers compared it with three other
+    ways to feed in the time and a class label: adding them as extra tokens, reading them with cross-attention, and
+    plain adaLN. adaLN-Zero gave the best images in that comparison.</p>
+    <div class="callout warn">
+      <span class="callout-title">Other designs work too</span>
+      <p>adaLN is common, not universal. Small networks often just append <var>t</var> to the input, as the flow-matching
+      example does. Other models add the time embedding to every token. Which works best depends on the model and the
+      data.</p>
+    </div>
+
+    <p class="code-cap">adaln.py (PyTorch)</p>
+<pre><code class="py">import torch
+import torch.nn as nn
+
+torch.manual_seed(0)
+D = 4                                      # features per token
+
+def time_features(t):
+    """Sines and cosines of t at four frequencies: 8 numbers per time."""
+    freqs = torch.pi * 2.0 ** torch.arange(4)
+    return torch.cat([torch.sin(t * freqs), torch.cos(t * freqs)], dim=-1)
+
+class AdaLN(nn.Module):
+    def __init__(self, d, d_time=8):
+        super().__init__()
+        self.norm = nn.LayerNorm(d, elementwise_affine=False)    # no fixed scale or shift
+        self.to_scale_shift = nn.Linear(d_time, 2 * d)           # the time chooses them
+
+    def forward(self, h, t):
+        scale, shift = self.to_scale_shift(time_features(t)).chunk(2, dim=-1)
+        return self.norm(h) * (1 + scale) + shift
+
+layer = AdaLN(D)
+h = torch.tensor([2.0, 4.0, 6.0, 8.0])     # one token's features
+with torch.no_grad():
+    print("normalized    ", layer.norm(h).numpy().round(2))
+    for t in [0.1, 0.9]:
+        print(f"adaLN at t={t}", layer(h, torch.tensor([t])).numpy().round(2))
+</code></pre>
+<pre class="out">normalized     [-1.34 -0.45  0.45  1.34]
+adaLN at t=0.1 [-1.21 -0.52  0.95  0.34]
+adaLN at t=0.9 [-0.97  0.09 -0.08  1.25]</pre>
+    <p>The layer here is untrained, so its outputs are arbitrary. The point is that one token leaves it differently at
+    two times. For brevity, the code skips the small MLP and feeds the sines and cosines straight to the linear
+    layer.</p>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>The data are the single number <var>x</var><sub>1</sub> = 4. On a straight path, what velocity does a point at
+      position 0 need at <var>t</var> = 0.5? And at <var>t</var> = 0?</p>
+      <details><summary>Answer</summary><p>(4 − 0) / (1 − 0.5) = 8 at <var>t</var> = 0.5, and 4 / 1 = 4 at
+      <var>t</var> = 0. The same position needs different answers, so the network must know <var>t</var>.</p></details>
+    </li>
+    <li>
+      <p>The time layer outputs <b>γ</b> = 0 and <b>β</b> = 0. What does adaLN do to a token?</p>
+      <details><summary>Answer</summary><p>Plain normalization: it subtracts the token's mean and divides by its spread,
+      with no extra scale or shift.</p></details>
+    </li>
+    <li>
+      <p>Why does adaLN-Zero start every gate <b>α</b> at zero?</p>
+      <details><summary>Answer</summary><p>So every block starts by passing its input through unchanged. The untrained
+      network is then simple and stable, and training opens each block's gate as far as it helps.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers with more time.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://distill.pub/2018/feature-wise-transformations/#feature-wise-transformations">Feature-wise transformations</a>
+        <span class="fl-src">Dumoulin and others, Distill</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">The general idea behind adaLN, called FiLM: one input sets a scale and a shift for every feature
+      of another. Clear diagrams and many examples.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://arxiv.org/abs/2212.09748">Scalable Diffusion Models with Transformers</a>
+        <span class="fl-src">Peebles and Xie</span>
+        <span class="fl-format">Paper</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">Section 3.2 defines four ways to feed in the time and the class, including adaLN-Zero. Figure 5,
+      in Section 5, compares them.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="diffusion-transformer.html">Diffusion transformers (DiT)</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">8 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+</body>
+</html>

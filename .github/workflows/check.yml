@@ -1,0 +1,28 @@
+# Checks that need no private material. The forbidden list is not in CI (on purpose), so the build prints a
+# notice and skips the private-name check, and the leak scan runs its built-in patterns only. The full scan
+# runs on the pusher's machine, in the pre-push hook (scripts/install-hooks.sh).
+name: check
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0   # the leak scan reads every commit
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Build check
+        run: python3 -I -B scripts/build_units.py --check --require-all
+      - name: Links on the front page
+        run: python3 -I -B scripts/build_units.py --check-links index.html
+      - name: Leak scan, built-in patterns
+        run: python3 -I -B scripts/scan_public.py --all --builtin-only

@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="point-clouds">
+<meta name="unit-level" content="u1">
+<title>Shapes as point clouds</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  #pc-view { width: 100%; height: auto; touch-action: none; cursor: grab; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Shapes as point clouds</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="vectors.html">Vectors: arrows made of numbers</a> <span class="level-badge level-hs">High school</span> <span class="minutes">8 min</span></li>
+    <li><a href="numpy-arrays.html">Arrays in NumPy</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">9 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A point cloud describes a shape by a list of points on it or inside it. Each point is three numbers, its
+  <var>x</var>, <var>y</var> and <var>z</var> coordinates. The list has no special order: shuffle it and you still
+  have the same shape. The number of points is a choice. More points show more detail and cost more memory. A
+  point cloud stores only where the shape is, so it stays small even for a long, thin object in a big space.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="what-it-is">
+    <h2>A point cloud is a table of points, one row per point</h2>
+    <p>Picture a donut dusted with flour. Each grain of flour sits at one spot on the surface. If you write down
+    where every grain sits, you can draw the donut again from that list alone. That list is a
+    <dfn>point cloud</dfn>: a set of points that together show a shape.</p>
+    <p>Each point is a position in space, written as three numbers (see <a href="vectors.html">vectors</a>).
+    So a point cloud with <var>N</var> points is a table with <var>N</var> rows and 3 columns. In Python this table
+    is an array of shape <code>(N, 3)</code> (see <a href="numpy-arrays.html">arrays in NumPy</a>).</p>
+
+    <p>Before you use the viewer below, guess: how many points do you need before you can tell that the shape is a
+    donut?</p>
+
+    <figure id="fig-viewer">
+      <div class="fig-title">The same donut drawn with more or fewer points</div>
+      <canvas id="pc-view" width="640" height="320" role="img"
+        aria-label="A ring-shaped point cloud seen at an angle. Points nearer the viewer are drawn darker and larger."></canvas>
+      <div class="controls">
+        <label>Points <input type="range" id="pc-n" min="10" max="3000" step="10" value="60"> <output id="pc-n-out">60</output></label>
+        <label>Turn <input type="range" id="pc-turn" min="0" max="360" step="1" value="30"> <output id="pc-turn-out">30°</output></label>
+      </div>
+      <figcaption><b>Goal:</b> drag "Points" up from 60 until you are sure the shape is a donut, then turn it. Each
+      dot is one row of the table. Nothing joins the dots; your eye fills in the surface. You can also drag the
+      picture to turn it.</figcaption>
+    </figure>
+
+    <p>With a few hundred points the hole becomes clear. With a few thousand the surface looks
+    smooth. The shape did not change. Only the number of samples did.</p>
+  </section>
+
+  <section id="order">
+    <h2>The order of the rows does not matter</h2>
+    <p>The table lists the points in some order, but the order carries no meaning. Swap two rows and the shape stays
+    the same. So a point cloud is really a <dfn>set</dfn>: a collection where only membership counts, not
+    position in a list.</p>
+
+    <figure id="fig-order">
+      <div class="fig-title">Two numberings of the same five points draw the same shape</div>
+      <div class="scroll-x">
+      <svg width="560" height="170" viewBox="0 0 560 170" role="img"
+        aria-label="Left and right panels show the same five points forming a house shape. The points carry different numbers in each panel.">
+        <g transform="translate(20,10)">
+          <text x="110" y="12" text-anchor="middle" class="ink2">Order A</text>
+          <polyline points="40,140 40,80 110,30 180,80 180,140" fill="none" stroke="var(--rule)" stroke-dasharray="4 4"/>
+          <g class="f-s1">
+            <circle cx="40" cy="140" r="7"/><circle cx="40" cy="80" r="7"/><circle cx="110" cy="30" r="7"/>
+            <circle cx="180" cy="80" r="7"/><circle cx="180" cy="140" r="7"/>
+          </g>
+          <text x="22" y="158">1</text><text x="20" y="84">2</text><text x="122" y="30">3</text>
+          <text x="192" y="84">4</text><text x="192" y="158">5</text>
+        </g>
+        <g transform="translate(300,10)">
+          <text x="110" y="12" text-anchor="middle" class="ink2">Order B (shuffled)</text>
+          <polyline points="40,140 40,80 110,30 180,80 180,140" fill="none" stroke="var(--rule)" stroke-dasharray="4 4"/>
+          <g class="f-s2">
+            <circle cx="40" cy="140" r="7"/><circle cx="40" cy="80" r="7"/><circle cx="110" cy="30" r="7"/>
+            <circle cx="180" cy="80" r="7"/><circle cx="180" cy="140" r="7"/>
+          </g>
+          <text x="22" y="158">4</text><text x="20" y="84">1</text><text x="122" y="30">5</text>
+          <text x="192" y="84">3</text><text x="192" y="158">2</text>
+        </g>
+      </svg>
+      </div>
+      <figcaption><b>What to notice.</b> The numbers next to the points differ, but the points sit in the same places.
+      The dashed outline is only a guide for your eye; a point cloud does not store it.</figcaption>
+    </figure>
+
+    <p>This fact shapes every program that reads point clouds. A program should give the same answer for both
+    numberings above. A function with that property is called <em>permutation invariant</em>; the unit
+    <a href="permutation-invariance.html">order doesn't matter</a> explains how a model can have it.</p>
+  </section>
+
+  <section id="size">
+    <h2>A point cloud stores only where the shape is</h2>
+    <p>Another way to store a shape is a 3D grid of tiny boxes that are each full or empty (see
+    <a href="voxels.html">voxels</a>). A grid spends memory on every box, including all the empty space around the
+    shape. A point cloud spends memory only on the shape itself.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: the memory of a point cloud and of a grid</span>
+      <p>A program stores each coordinate as a 32-bit decimal number, which takes 4 bytes.</p>
+      <ol>
+        <li>A point cloud of 2,048 points has 2,048 × 3 = 6,144 numbers.</li>
+        <li>That takes 6,144 × 4 = 24,576 bytes, about 25 kilobytes.</li>
+        <li>A grid of 256 × 256 × 256 boxes, at 1 byte per box, takes 16,777,216 bytes, about 17 megabytes.</li>
+        <li>The grid is 16,777,216 ÷ 24,576 ≈ 683 times larger.</li>
+      </ol>
+      <p>The gap grows for thin shapes, such as a long wire, because most of the grid is then empty.</p>
+    </div>
+
+    <p>The price is that a point cloud has a fixed level of detail. Between two points, it says nothing. If a part of
+    the shape is thinner than the gap between points, that part can vanish. Programs often choose a fixed number
+    of points per shape, spread evenly; <a href="farthest-point-sampling.html">farthest-point sampling</a> is one
+    way to choose them.</p>
+
+    <div class="callout warn">
+      <span class="callout-title">This is a simplification</span>
+      <p>Here each point holds only a position. Real point clouds often carry more numbers per row, such as a color,
+      a brightness, or the direction the surface faces at that point (its <em>normal</em>). Also, some point clouds
+      sample only the surface of a shape, while others fill its inside. Which one you have depends on how the
+      points were made.</p>
+    </div>
+  </section>
+
+  <section id="code">
+    <h2>In NumPy, a point cloud is an array with three columns</h2>
+    <p>This snippet builds the eight corners of a cube as a point cloud, shuffles the rows, and checks that the
+    shape is unchanged.</p>
+    <p class="code-cap">point_clouds.py</p>
+<pre><code class="py">import numpy as np
+
+# The 8 corners of a cube with side 2, centered at the origin
+cloud = np.array([[x, y, z] for x in (-1, 1) for y in (-1, 1) for z in (-1, 1)], dtype=float)
+print(cloud.shape)
+
+rng = np.random.default_rng(0)
+shuffled = cloud[rng.permutation(len(cloud))]   # the same points, rows in a new order
+print(cloud[0], shuffled[0])                     # the first rows differ
+print(cloud.mean(axis=0), shuffled.mean(axis=0)) # the center does not
+print(np.array_equal(np.unique(cloud, axis=0), np.unique(shuffled, axis=0)))
+</code></pre>
+<pre class="out"><code>(8, 3)
+[-1. -1. -1.] [-1.  1. -1.]
+[0. 0. 0.] [0. 0. 0.]
+True</code></pre>
+    <p>The center, the mean of all the points, does not depend on the order. Neither does the sorted list of rows
+    that <code>np.unique</code> returns. Both are examples of permutation-invariant summaries.</p>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>A point cloud has 4,096 points with only <var>x</var>, <var>y</var>, <var>z</var> per point. What is the
+      shape of its NumPy array, and how many bytes does it take at 4 bytes per number?</p>
+      <details><summary>Answer</summary><p>The shape is <code>(4096, 3)</code>. It holds 4,096 × 3 = 12,288 numbers,
+      so it takes 12,288 × 4 = 49,152 bytes.</p></details>
+    </li>
+    <li>
+      <p>A program reads a point cloud and reports the coordinates of its first row as "the tip of the shape." What
+      is wrong with that?</p>
+      <details><summary>Answer</summary><p>The first row is not special. Shuffling the rows gives the same shape but
+      a different first row, so the program would report a different "tip." A useful answer must not depend on the
+      order of the rows.</p></details>
+    </li>
+    <li>
+      <p>You sample a thin wire, 1 unit long, with points spaced about 0.1 units apart. The wire has a gap of 0.02
+      units in the middle. Will the point cloud show the gap?</p>
+      <details><summary>Answer</summary><p>Probably not. The gap is much smaller than the spacing between points, so
+      the two sides look continuous. To see the gap, you need points spaced closer than 0.02 units near it.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background. This unit covers what you need here.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://www.open3d.org/docs/release/tutorial/geometry/pointcloud.html#Visualize-point-cloud">Point cloud: Visualize point cloud</a>
+        <span class="fl-src">Open3D documentation</span>
+        <span class="fl-format">Tutorial</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Load a real point cloud in Python, view it, and thin it out; the later sections show normals and cropping.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://pytorch-geometric.readthedocs.io/en/latest/tutorial/point_cloud.html#d-point-cloud-datasets">Point Cloud Processing: 3D point cloud datasets</a>
+        <span class="fl-src">PyTorch Geometric documentation</span>
+        <span class="fl-format">Tutorial</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">How a machine-learning library loads shapes as point clouds and samples a fixed number of points from each.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://arxiv.org/abs/1612.00593">PointNet: Deep Learning on Point Sets for 3D Classification and Segmentation</a>
+        <span class="fl-src">Qi, Su, Mo and Guibas, 2017</span>
+        <span class="fl-format">Paper</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">The paper that made "a point cloud is an unordered set" the starting point for neural networks on points.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="farthest-point-sampling.html">Farthest-point sampling</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="connectomics.html">Connectomics: mapping neurons from images</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+    <li><a href="data-augmentation.html">Data augmentation: new views of an example</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="shape-completion.html">Shape completion: generating the missing part</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="permutation-invariance.html">Order doesn&#x27;t matter: permutation invariance</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  'use strict';
+  const canvas = document.getElementById('pc-view');
+  const nIn = document.getElementById('pc-n'), nOut = document.getElementById('pc-n-out');
+  const tIn = document.getElementById('pc-turn'), tOut = document.getElementById('pc-turn-out');
+  if (!canvas || !nIn || !tIn) return;
+  const ctx = canvas.getContext('2d');
+  const W = 640, H = 320;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  ctx.scale(dpr, dpr);
+
+  // A seeded random generator, so the page draws the same points every time.
+  let seed = 12345;
+  const rand = () => { seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  // Points on the surface of a donut (a torus): ring radius 1, tube radius 0.42.
+  const R = 1, r = 0.42, pts = [];
+  while (pts.length < 3000) {
+    const u = rand() * 2 * Math.PI, v = rand() * 2 * Math.PI;
+    // Keep each draw with probability proportional to the local surface area, so points spread evenly.
+    if (rand() > (R + r * Math.cos(v)) / (R + r)) continue;
+    pts.push([(R + r * Math.cos(v)) * Math.cos(u), r * Math.sin(v), (R + r * Math.cos(v)) * Math.sin(u)]);
+  }
+
+  let turn = Number(tIn.value) * Math.PI / 180;
+  const tilt = 0.5;  // radians: we look down on the donut a little
+  function draw() {
+    const css = getComputedStyle(document.documentElement);
+    const ink = css.getPropertyValue('--s1').trim() || '#2a78d6';
+    const bg = css.getPropertyValue('--surface').trim() || '#fff';
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+    const n = Number(nIn.value);
+    const ct = Math.cos(turn), st = Math.sin(turn), cl = Math.cos(tilt), sl = Math.sin(tilt);
+    const proj = pts.slice(0, n).map(([x, y, z]) => {
+      const x1 = ct * x + st * z, z1 = -st * x + ct * z;      // turn about the vertical axis
+      const y2 = cl * y - sl * z1, z2 = sl * y + cl * z1;     // tilt toward the viewer
+      return [x1, y2, z2];
+    }).sort((a, b) => a[2] - b[2]);                          // draw far points first
+    const s = 125;
+    ctx.fillStyle = ink;
+    for (const [x, y, z] of proj) {
+      const depth = (z + 1.5) / 3;                             // 0 far, 1 near
+      ctx.globalAlpha = 0.35 + 0.6 * depth;
+      ctx.beginPath();
+      ctx.arc(W / 2 + s * x, H / 2 - s * y, 2.4 + 2 * depth, 0, 2 * Math.PI);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    nOut.textContent = n;
+    tOut.textContent = Math.round(((turn * 180 / Math.PI) % 360 + 360) % 360) + '°';
+  }
+  nIn.addEventListener('input', draw);
+  tIn.addEventListener('input', () => { turn = Number(tIn.value) * Math.PI / 180; draw(); });
+  let dragX = null;
+  canvas.addEventListener('pointerdown', e => { dragX = e.clientX; canvas.setPointerCapture(e.pointerId); });
+  canvas.addEventListener('pointermove', e => {
+    if (dragX === null) return;
+    turn += (e.clientX - dragX) * 0.01; dragX = e.clientX;
+    tIn.value = Math.round(((turn * 180 / Math.PI) % 360 + 360) % 360); draw();
+  });
+  canvas.addEventListener('pointerup', () => { dragX = null; });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', draw);
+  draw();
+})();
+</script>
+</body>
+</html>

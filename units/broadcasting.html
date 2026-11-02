@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="broadcasting">
+<meta name="unit-level" content="u1">
+<title>Broadcasting: arrays of different shapes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Broadcasting: arrays of different shapes</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="numpy-arrays.html">Arrays in NumPy</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">9 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>NumPy can add, subtract or multiply two arrays of different shapes. It lines up the two shapes from the right. Where
+  one array has length 1 along an axis, or lacks that axis, NumPy repeats it to match the other. So subtracting one
+  point, shape (3,), from a table of points, shape (4, 3), subtracts it from every row. This rule is
+  <dfn>broadcasting</dfn>. NumPy does the repeating without making copies, so it costs no extra memory for the
+  smaller array.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+
+  <section id="picture">
+    <h2>One row is repeated down every row of the table</h2>
+    <p>Suppose you want to move four points so that their center sits at the origin. You subtract the center,
+    (1, 2, 0.5), from each point. Without broadcasting you would write a loop over the rows. With broadcasting you write
+    <code>pts - center</code>. NumPy treats the single row as if it were stacked four times.</p>
+
+    <figure id="fig-stretch">
+      <div class="fig-title">(4, 3) minus (3,): the short array is repeated down the rows</div>
+      <div class="scroll-x"><svg width="560" height="170" viewBox="0 0 560 170" style="min-width:470px" role="img" aria-label="A 4 by 3 grid of points minus a single row 1, 2, 0.5. The single row is drawn once in solid color and three more times in faint dashed outlines below it, showing that NumPy repeats it to fill a 4 by 3 grid. The result is a 4 by 3 grid.">
+        <g id="stretch-g" font-family="var(--font-mono)" text-anchor="middle"></g>
+      </svg></div>
+      <figcaption><b>Faint rows are not stored.</b> NumPy reads the same row again for each row of the table. The result
+      has shape (4, 3).</figcaption>
+    </figure>
+
+    <p class="code-cap">center.py</p>
+<pre><code class="py">import numpy as np
+
+pts = np.array([[0.0, 0.0, 0.0],
+                [2.0, 0.0, 0.0],
+                [2.0, 4.0, 0.0],
+                [0.0, 4.0, 2.0]])
+center = pts.mean(axis=0)
+print(center.shape)
+print(pts - center)        # (4, 3) minus (3,) gives (4, 3)
+scale = np.array([[1.0], [2.0], [3.0], [4.0]])
+print(scale.shape)
+print(pts * scale)         # (4, 3) times (4, 1): row i times scale[i]
+</code></pre>
+<pre class="out"><code>(3,)
+[[-1.  -2.  -0.5]
+ [ 1.  -2.  -0.5]
+ [ 1.   2.  -0.5]
+ [-1.   2.   1.5]]
+(4, 1)
+[[ 0.  0.  0.]
+ [ 4.  0.  0.]
+ [ 6. 12.  0.]
+ [ 0. 16.  8.]]</code></pre>
+    <p>The second case goes the other way. <code>scale</code> has one column, shape (4, 1), so NumPy repeats that column
+    across the three columns. Each point is multiplied by its own number.</p>
+  </section>
+
+  <section id="rule">
+    <h2>The rule: line the shapes up from the right, and stretch the 1s</h2>
+    <ol>
+      <li>Write the two shapes one above the other, aligned on the right.</li>
+      <li>If one shape is shorter, pad it on the left with 1s.</li>
+      <li>Compare the two lengths in each position. They fit if they are equal, or if one of them is 1.</li>
+      <li>The result takes the larger length in each position. If any position does not fit, NumPy raises an error.</li>
+    </ol>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>A</th><th>B</th><th>B, padded</th><th>Result</th></tr></thead>
+      <tbody>
+        <tr><td class="nw"><code>(4, 3)</code></td><td class="nw"><code>(3,)</code></td><td class="nw"><code>(1, 3)</code></td><td class="nw"><code>(4, 3)</code></td></tr>
+        <tr><td class="nw"><code>(4, 3)</code></td><td class="nw"><code>(4, 1)</code></td><td class="nw"><code>(4, 1)</code></td><td class="nw"><code>(4, 3)</code></td></tr>
+        <tr><td class="nw"><code>(3, 1, 2)</code></td><td class="nw"><code>(1, 2, 2)</code></td><td class="nw"><code>(1, 2, 2)</code></td><td class="nw"><code>(3, 2, 2)</code></td></tr>
+        <tr><td class="nw"><code>(4, 3)</code></td><td class="nw"><code>(4,)</code></td><td class="nw"><code>(1, 4)</code></td><td>error: 3 and 4 do not fit</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <figure id="fig-rule">
+      <div class="fig-title">Try the rule: pick a shape for B</div>
+      <p class="small" style="margin-top:0">A has shape (4, 3). Before you choose, predict the result shape. Then find
+      the one choice of B that fails.</p>
+      <div class="controls">
+        <label>B has shape
+          <select id="b-shape">
+            <option value="3">(3,)</option>
+            <option value="1,3">(1, 3)</option>
+            <option value="4,1" selected>(4, 1)</option>
+            <option value="4">(4,)</option>
+            <option value="1">(1,)</option>
+            <option value="4,3">(4, 3)</option>
+          </select>
+        </label>
+      </div>
+      <div class="scroll-x">
+        <svg id="rule-svg" width="520" height="190" viewBox="0 0 520 190" style="min-width:400px" role="img" aria-label="Grid A of 4 by 3 cells beside grid B; the stretched copies of B appear as dashed cells; the readout states the result shape or the error."></svg>
+      </div>
+      <div class="readout-box"><output id="rule-out"></output></div>
+      <figcaption><b>Solid cells are stored; dashed cells are repeats.</b> A length-1 axis, or a missing one, is
+      stretched. Any other mismatch is an error.</figcaption>
+    </figure>
+  </section>
+
+  <section id="pairs">
+    <h2>A length-1 axis turns two lists of points into a table of every pair</h2>
+    <p>Broadcasting can also compare every point of one set with every point of another. Indexing with
+    <code>None</code> inserts a new axis of length 1. Then <code>a[:, None, :]</code> has shape (3, 1, 2), and
+    <code>b[None, :, :]</code> has shape (1, 2, 2). By the rule, their difference has shape (3, 2, 2): row
+    <var>i</var>, column <var>j</var> holds a[i] − b[j].</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: every distance between two small sets</span>
+      <p>Set a holds (0, 0), (3, 0) and (0, 4). Set b holds (0, 1) and (3, 4).</p>
+      <ol>
+        <li>Shapes: a is (3, 2) and b is (2, 2). After adding axes they are (3, 1, 2) and (1, 2, 2), so the difference is (3, 2, 2).</li>
+        <li>Entry [0, 1] is a[0] − b[1] = (0 − 3, 0 − 4) = (−3, −4).</li>
+        <li>Square, add along the last axis, and take the root, as in the <a href="distance.html">distance formula</a>: √(9 + 16) = 5.</li>
+        <li>The full table of distances has shape (3, 2): one row per point of a, one column per point of b.</li>
+      </ol>
+    </div>
+    <p class="code-cap">pairs.py</p>
+<pre><code class="py">import numpy as np
+
+a = np.array([[0.0, 0.0], [3.0, 0.0], [0.0, 4.0]])   # 3 points, shape (3, 2)
+b = np.array([[0.0, 1.0], [3.0, 4.0]])               # 2 points, shape (2, 2)
+diff = a[:, None, :] - b[None, :, :]                 # (3, 1, 2) - (1, 2, 2)
+print(diff.shape)
+d = np.sqrt((diff ** 2).sum(axis=-1))                # every distance, shape (3, 2)
+print(d)
+</code></pre>
+<pre class="out"><code>(3, 2, 2)
+[[1.         5.        ]
+ [3.16227766 4.        ]
+ [3.         3.        ]]</code></pre>
+    <p>When the shapes do not fit, NumPy says so:</p>
+<pre><code class="py">import numpy as np
+
+pts = np.zeros((4, 3))
+try:
+    pts - np.array([1.0, 2.0, 3.0, 4.0])
+except ValueError as e:
+    print(e)
+</code></pre>
+<pre class="out"><code>operands could not be broadcast together with shapes (4,3) (4,)</code></pre>
+
+    <div class="callout warn">
+      <span class="callout-title">Broadcasting can succeed when you meant it to fail</span>
+      <p>Subtract an array of shape (4,) from one of shape (4, 1), and you get shape (4, 4), not (4,). NumPy pairs every
+      entry with every other entry, with no error. This is a common silent bug in code that computes a loss. Print the
+      shapes when a result looks wrong. A table of every pair also grows fast: 100,000 points against 100,000 points
+      in 3D is 3 × 10<sup>10</sup> numbers, which takes 240 GB as 64-bit floats.</p>
+    </div>
+  </section>
+
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>Give the result shape, or say it is an error: (5, 1) + (3,); (5, 3) + (5,); (2, 1, 3) − (4, 3).</p>
+      <details><summary>Answer</summary><p>(5, 3): pad (3,) to (1, 3), then both 1s stretch. Error: pad (5,) to (1, 5),
+      and 3 does not fit 5. (2, 4, 3): pad (4, 3) to (1, 4, 3); the 1s stretch to 2 and 4.</p></details>
+    </li>
+    <li>
+      <p>You have 1000 points in an array of shape (1000, 3) and want every point moved up by 2 in z. Write the
+      one-line array expression.</p>
+      <details><summary>Answer</summary><p><code>pts + np.array([0.0, 0.0, 2.0])</code>. The shape (3,) row is repeated
+      down all 1000 rows.</p></details>
+    </li>
+    <li>
+      <p>In the pairs example, what shape would <code>a[:, None, :] - b[None, :, :]</code> have if a held 100 points and
+      b held 40, both in 3D?</p>
+      <details><summary>Answer</summary><p>(100, 40, 3). After the sum over the last axis, the distance table is
+      (100, 40).</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://numpy.org/doc/stable/user/basics.broadcasting.html#general-broadcasting-rules">Broadcasting: General broadcasting rules</a>
+        <span class="fl-src">NumPy documentation</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">The official statement of the rule, with drawings of each case and a worked example of every pair.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://jalammar.github.io/visual-numpy/#matrix-arithmetic">A Visual Intro to NumPy: Matrix Arithmetic</a>
+        <span class="fl-src">Jay Alammar</span>
+        <span class="fl-format">Illustrated article</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Colored drawings of a table combined with a single row, the most common broadcast.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <p>No unit or explanation builds on this one yet.</p>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  'use strict';
+  const NS = 'http://www.w3.org/2000/svg';
+  function mk(parent, tag, attrs, text) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    parent.appendChild(e);
+    return e;
+  }
+  const W = 46, H = 28;
+  function cell(g, x, y, txt, kind) {
+    const a = { x, y, width: W - 4, height: H - 4, rx: 3 };
+    if (kind === 'A') Object.assign(a, { fill: 'var(--bg)', stroke: 'var(--ink-3)' });
+    if (kind === 'B') Object.assign(a, { fill: 'var(--s2)', 'fill-opacity': 0.25, stroke: 'var(--s2)', 'stroke-width': 1.5 });
+    if (kind === 'ghost') Object.assign(a, { fill: 'none', stroke: 'var(--s2)', 'stroke-dasharray': '4 3', 'stroke-opacity': 0.8 });
+    if (kind === 'R') Object.assign(a, { fill: 'var(--s1)', 'fill-opacity': 0.18, stroke: 'var(--s1)' });
+    mk(g, 'rect', a);
+    if (txt != null) mk(g, 'text', { x: x + (W - 4) / 2, y: y + 17, class: kind === 'ghost' ? 'muted' : '' }, txt);
+  }
+
+  // ---- static figure: (4,3) - (3,)
+  const P = [[0, 0, 0], [2, 0, 0], [2, 4, 0], [0, 4, 2]], C = [1, 2, 0.5];
+  const g = document.getElementById('stretch-g');
+  P.forEach((r, i) => r.forEach((v, j) => cell(g, 10 + j * W, 30 + i * H, String(v), 'A')));
+  mk(g, 'text', { x: 75, y: 18, class: 'ink2' }, 'pts (4, 3)');
+  mk(g, 'text', { x: 168, y: 92, style: 'font-size:22px' }, '−');
+  for (let i = 0; i < 4; i++) C.forEach((v, j) => cell(g, 190 + j * W, 30 + i * H, String(v), i === 0 ? 'B' : 'ghost'));
+  mk(g, 'text', { x: 255, y: 18, class: 'ink2' }, 'center (3,)');
+  mk(g, 'text', { x: 348, y: 92, style: 'font-size:22px' }, '=');
+  P.forEach((r, i) => r.forEach((v, j) => cell(g, 370 + j * W, 30 + i * H, String(+(v - C[j]).toFixed(1)), 'R')));
+  mk(g, 'text', { x: 435, y: 18, class: 'ink2' }, 'result (4, 3)');
+
+  // ---- rule widget: A is (4, 3)
+  const svg = document.getElementById('rule-svg'), sel = document.getElementById('b-shape'), out = document.getElementById('rule-out');
+  function draw() {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    const gg = mk(svg, 'g', { 'font-family': 'var(--font-mono)', 'text-anchor': 'middle' });
+    const b = sel.value.split(',').map(Number);
+    const pad = b.length === 1 ? [1, b[0]] : b;
+    const A = [4, 3];
+    const fits = [0, 1].every(k => pad[k] === A[k] || pad[k] === 1);
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 3; j++) cell(gg, 10 + j * W, 30 + i * H, null, 'A');
+    mk(gg, 'text', { x: 75, y: 18, class: 'ink2' }, 'A (4, 3)');
+    const bx = 200;
+    const label = 'B (' + b.join(', ') + (b.length === 1 ? ',' : '') + ')';
+    mk(gg, 'text', { x: bx + 70, y: 18, class: 'ink2' }, label);
+    if (fits) {
+      for (let i = 0; i < 4; i++) for (let j = 0; j < 3; j++) {
+        const stored = (pad[0] === 4 || i === 0) && (pad[1] === 3 || j === 0);
+        cell(gg, bx + j * W, 30 + i * H, null, stored ? 'B' : 'ghost');
+      }
+      out.textContent = 'Padded to (' + pad.join(', ') + '). Each column fits, so the result has shape (4, 3).';
+    } else {
+      for (let i = 0; i < pad[0]; i++) for (let j = 0; j < pad[1]; j++) cell(gg, bx + j * W * 0.75, 30 + i * H, null, 'B');
+      const bad = [0, 1].filter(k => !(pad[k] === A[k] || pad[k] === 1)).map(k => 'axis ' + k + ': ' + pad[k] + ' against ' + A[k]);
+      out.textContent = 'Padded to (' + pad.join(', ') + '). Error, because ' + bad.join(' and ') + ' do not fit.';
+      mk(gg, 'text', { x: bx + 160, y: 170, style: 'fill:var(--bad)' }, 'cannot line up');
+    }
+  }
+  sel.addEventListener('change', draw);
+  draw();
+})();
+</script>
+</body>
+</html>

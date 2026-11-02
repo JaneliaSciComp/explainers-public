@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="attention">
+<meta name="unit-level" content="u2">
+<title>Attention: queries, keys, values</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  #att-svg .handle { cursor: grab; touch-action: none; }
+  #att-svg .handle:focus { outline: none; }
+  #att-svg .handle:focus-visible circle.q-dot { stroke: var(--accent); stroke-width: 3; }
+  #att-left { touch-action: none; }
+  .wbar { display: inline-block; height: 0.7rem; border-radius: 2px; vertical-align: middle; min-width: 1px; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Attention: queries, keys, values</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">10 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="embeddings.html">Embeddings: things as vectors</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="softmax.html">Softmax: probabilities over many choices</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+    <li><a href="matrix-times-vector.html">Multiplying a matrix by a vector</a> <span class="level-badge level-hs">High school</span> <span class="minutes">8 min</span></li>
+    <li><a href="dot-product.html">The dot product: how much two vectors agree</a> <span class="level-badge level-hs">High school</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>Attention lets each token collect information from the other tokens. Each token makes three vectors from its
+  current vector (in the first layer, its embedding): a <dfn>query</dfn>, which describes what it looks for; a
+  <dfn>key</dfn>, which describes what it offers; and a <dfn>value</dfn>, the information it passes on. A token compares its query with every key, turns
+  the match scores into weights with softmax, and adds up the values with those weights. The result is the token's
+  new vector, made mostly of the values whose keys best match its query.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="dot-product">
+    <h2>A dot product scores how well a query matches a key</h2>
+    <p>A <dfn>token</dfn> is one item's vector, such as the <a href="embeddings.html">embedding</a> of a word or of a
+    point. Attention needs a score for "how well does this query match that key". It uses the <dfn>dot
+    product</dfn>: multiply the two vectors entry by entry and add the results.</p>
+    <p class="math"><span class="vec">q</span> · <span class="vec">k</span> = <var>q</var><sub>1</sub><var>k</var><sub>1</sub> +
+      <var>q</var><sub>2</sub><var>k</var><sub>2</sub> + … + <var>q</var><sub><var>d</var></sub><var>k</var><sub><var>d</var></sub></p>
+    <p>For example, [1, 2] · [1, 1] = 1 × 1 + 2 × 1 = 3. The dot product is large when the two vectors point the
+    same way, zero when they are at right angles, and negative when they point apart. It also grows with the length
+    of either vector. Each entry of a <a href="matrix-times-vector.html">matrix times a vector</a> is a dot product of
+    one row with the vector, so you have met this sum before.</p>
+  </section>
+
+  <section id="by-hand">
+    <h2>One token's turn: score, scale, softmax, weighted sum</h2>
+    <p>Follow one token as it attends to three tokens. Its query is <b>q</b> = [1, 2]. The three tokens have
+    the keys [1, 0], [0, 1] and [1, 1], and the values [10, 0], [0, 10] and [5, 5]. Each key has 2 entries, so the key
+    size is <var>d</var><sub>k</sub> = 2.</p>
+
+    <p><b>Predict first.</b> Which key matches the query best? Which value will the result lean toward?</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: one query, three keys</span>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Token</th><th>Key <b>k</b></th><th>Value <b>v</b></th><th class="r">Score <b>q</b> · <b>k</b></th><th class="r">Score / √2</th><th class="r">Weight</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>[1, 0]</td><td>[10, 0]</td><td class="r">1</td><td class="r">0.707</td><td class="r">0.140</td></tr>
+            <tr><td>2</td><td>[0, 1]</td><td>[0, 10]</td><td class="r">2</td><td class="r">1.414</td><td class="r">0.284</td></tr>
+            <tr><td>3</td><td>[1, 1]</td><td>[5, 5]</td><td class="r">3</td><td class="r">2.121</td><td class="r">0.576</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ol>
+        <li><b>Score.</b> Take the dot product of the query with each key: 1, 2 and 3.</li>
+        <li><b>Scale.</b> Divide each score by √<var>d</var><sub>k</sub> = √2 ≈ 1.414. A later section explains
+        why.</li>
+        <li><b>Softmax.</b> Apply <a href="softmax.html">softmax</a> to turn the scaled scores into weights:
+        <var>e</var><sup>0.707</sup> = 2.028, <var>e</var><sup>1.414</sup> = 4.113 and
+        <var>e</var><sup>2.121</sup> = 8.342. They add up to 14.483, and each divided by that sum gives 0.140, 0.284
+        and 0.576. The weights are positive and add up to 1.</li>
+        <li><b>Weighted sum.</b> Add the values with these weights:
+        0.140 × [10, 0] + 0.284 × [0, 10] + 0.576 × [5, 5] = [4.28, 5.72].</li>
+      </ol>
+      <p>Token 3's key matches best, so its value [5, 5] gets the largest weight. The other tokens still contribute,
+      which pulls the result to [4.28, 5.72].</p>
+    </div>
+  </section>
+
+  <section id="widget">
+    <h2>A longer query picks more sharply</h2>
+    <p>The figure below runs the same four steps for four tokens, A to D. The left panel shows their keys and the
+    query. The right panel shows their values and the result, which is the weighted average of the values. Every
+    dot is a 2D vector, drawn from the center.</p>
+
+    <figure id="fig-att">
+      <div class="fig-title">One attention head: drag the query and watch the weights</div>
+      <div class="scroll-x">
+      <svg id="att-svg" width="480" height="275" viewBox="0 0 360 206" role="img"
+           aria-label="Two square panels. Left: four colored key dots A to D and a draggable query dot. Right: four value dots, sized by their weights, and a ring marking the weighted average.">
+        <g id="att-left">
+          <rect x="2" y="18" width="172" height="172" rx="4" fill="var(--bg)" stroke="var(--rule)"/>
+          <line x1="2" y1="104" x2="174" y2="104" class="grid"/>
+          <line x1="88" y1="18" x2="88" y2="190" class="grid"/>
+          <text x="4" y="12" class="ink2">Keys and the query (drag it)</text>
+          <g id="att-keys"></g>
+          <line id="att-qline" x1="88" y1="104" x2="88" y2="104" stroke="var(--ink)" stroke-width="1.5"/>
+          <g class="handle" id="att-handle" tabindex="0" role="slider" aria-label="Query vector. Use the arrow keys to move it." aria-valuetext="">
+            <circle id="att-qhit" cx="88" cy="104" r="16" fill="transparent"/>
+            <circle class="q-dot" id="att-qdot" cx="88" cy="104" r="7" fill="var(--ink)" stroke="var(--surface)" stroke-width="2"/>
+          </g>
+          <text id="att-qlab" x="96" y="98" font-weight="700">q</text>
+        </g>
+        <g id="att-right">
+          <rect x="186" y="18" width="172" height="172" rx="4" fill="var(--bg)" stroke="var(--rule)"/>
+          <line x1="186" y1="104" x2="358" y2="104" class="grid"/>
+          <line x1="272" y1="18" x2="272" y2="190" class="grid"/>
+          <text x="188" y="12" class="ink2">Values and the result</text>
+          <g id="att-vals"></g>
+          <circle id="att-out" cx="272" cy="104" r="7" fill="none" stroke="var(--ink)" stroke-width="2.5"/>
+          <text id="att-outlab" x="280" y="98" font-weight="700">out</text>
+        </g>
+      </svg>
+      </div>
+      <div class="controls">
+        <button class="btn" id="att-reset" type="button">Put the query back</button>
+        <output id="att-qout"><b>q</b> = [1.0, 1.0]</output>
+      </div>
+      <div class="table-wrap">
+        <table id="att-table">
+          <thead><tr><th>Token</th><th class="r">Score / √2</th><th class="r">Weight</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="small"><b>Try it.</b> Drag the query until token C gets more than 90% of the weight. Pointing the
+      query at C is not enough. What else did you have to change? (You can also select the query and use the arrow
+      keys.)</p>
+      <details><summary>Answer</summary><p>You had to make the query longer, by dragging it far from the center.
+      Doubling the query's length doubles every score. Softmax turns bigger gaps between scores into more lopsided
+      weights, so a long query concentrates the weight on the best match, and a short one spreads it.</p></details>
+      <figcaption><b>What to notice.</b> The result always lies inside the diamond whose corners are the four values,
+      because the weights are positive and add up to 1. With the query at the center, every score is 0 and each token gets
+      0.25.</figcaption>
+    </figure>
+  </section>
+
+  <section id="matrix-form">
+    <h2>All tokens at once: one line of matrix algebra</h2>
+    <p>In <dfn>self-attention</dfn>, every token computes its own query, key and value from its vector
+    <b>x</b>, using three learned matrices:</p>
+    <p class="math"><span class="vec">q</span> = <span class="vec">W</span><sub>Q</sub><span class="vec">x</span>, &nbsp; <span class="vec">k</span> = <span class="vec">W</span><sub>K</sub><span class="vec">x</span>, &nbsp; <span class="vec">v</span> = <span class="vec">W</span><sub>V</sub><span class="vec">x</span></p>
+    <p>Training sets these matrices, so the network decides what a query looks for and what a key offers. Every
+    token then takes its turn, as in the worked example. Stack the <var>n</var> queries as the rows of a matrix
+    <b>Q</b>, and the keys and values likewise as <b>K</b> and <b>V</b>. All the turns together are
+    then exactly</p>
+    <p class="math">Attention(<span class="vec">Q</span>, <span class="vec">K</span>, <span class="vec">V</span>) = softmax( <span class="vec">Q</span><span class="vec">K</span><sup>T</sup> / √<var>d</var><sub>k</sub> ) <span class="vec">V</span></p>
+    <p>Here <b>K</b><sup>T</sup> is <b>K</b> turned on its side (its transpose), so <b>Q</b><b>K</b><sup>T</sup>
+    is the table of every query's dot product with every key, with <var>n</var> rows and <var>n</var> columns.
+    Softmax works on each row separately, so each token's weights add up to 1. Multiplying by <b>V</b> forms each
+    token's weighted sum of values. The output has one row per token.</p>
+
+    <p class="code-cap">attention.py</p>
+<pre><code class="py">import numpy as np
+
+def softmax(s):
+    # Subtracting the max first avoids overflow in exp.
+    e = np.exp(s - s.max(axis=-1, keepdims=True))
+    return e / e.sum(axis=-1, keepdims=True)
+
+def attention(Q, K, V):
+    d_k = Q.shape[-1]
+    weights = softmax(Q @ K.T / np.sqrt(d_k))       # one row of weights per query
+    return weights @ V, weights
+
+# The worked example: one query, three keys and values.
+Q = np.array([[1.0, 2.0]])
+K = np.array([[1.0, 0.0], [0.0, 1.0], [1.0, 1.0]])
+V = np.array([[10.0, 0.0], [0.0, 10.0], [5.0, 5.0]])
+out, w = attention(Q, K, V)
+print(np.round(w, 3), np.round(out, 2))
+
+# Self-attention: 5 tokens with 4 numbers each, as the rows of X.
+rng = np.random.default_rng(0)
+X = rng.normal(size=(5, 4))
+Wq, Wk, Wv = rng.normal(size=(3, 4, 4))
+def self_attention(X):
+    return attention(X @ Wq, X @ Wk, X @ Wv)[0]
+
+perm = [3, 0, 4, 1, 2]                          # a new order for the tokens
+print(np.allclose(self_attention(X)[perm], self_attention(X[perm])))
+</code></pre>
+<pre class="out">[[0.14  0.284 0.576]] [[4.28 5.72]]
+True</pre>
+    <p>In code, tokens are the rows of a matrix <code>X</code>, so the queries are <code>X @ Wq</code>, where
+    <code>Wq</code> is <b>W</b><sub>Q</sub> turned on its side (its transpose). Each row of <code>X @ Wq</code> is
+    then one token's query <b>W</b><sub>Q</sub><b>x</b>. The last line is explained two sections below.</p>
+  </section>
+
+  <section id="scaling">
+    <h2>Dividing by √d<sub>k</sub> keeps the softmax from saturating</h2>
+    <p>Real models use keys of 32 to 128 numbers, not 2. A dot product adds up <var>d</var><sub>k</sub> products, so
+    its typical size grows with <var>d</var><sub>k</sub>. If the entries of <b>q</b> and <b>k</b> are independent
+    random numbers with mean 0 and spread (standard deviation) 1, their dot product has mean 0 and spread
+    √<var>d</var><sub>k</sub>. Dividing by √<var>d</var><sub>k</sub> brings the spread back to 1, whatever the key
+    size.</p>
+    <p class="code-cap">scaling.py</p>
+<pre><code class="py">import numpy as np
+
+rng = np.random.default_rng(0)
+q = rng.normal(size=(10000, 64))     # 10,000 random queries, d_k = 64
+k = rng.normal(size=(10000, 64))
+scores = (q * k).sum(axis=1)         # 10,000 dot products
+print(round(scores.std(), 2), round((scores / 8).std(), 2))
+</code></pre>
+<pre class="out">8.08 1.01</pre>
+    <p>Why does the spread matter? Softmax of the scores [8, 0, −8] is [0.99966, 0.00034, 0.0000001]: almost all
+    the weight goes to one token. Softmax of [1, 0, −1] is [0.665, 0.245, 0.090]. When softmax is that lopsided we
+    say it <dfn>saturates</dfn>. Small changes to the scores then barely change the weights, so the training signal
+    that should adjust the queries and keys becomes tiny, and learning stalls.</p>
+  </section>
+
+  <section id="sets">
+    <h2>Without positions, attention treats its tokens as a set</h2>
+    <p>Nothing in the formula looks at where a token sits in the list. Shuffle the input tokens, and each token
+    still meets the same keys and values, so it gets the same output. The outputs come out shuffled in the same
+    way. The last line of <code>attention.py</code> checks this. In the terms of the
+    <a href="permutation-invariance.html">permutation invariance</a> unit, self-attention is permutation
+    equivariant.</p>
+    <p>For a <a href="point-clouds.html">point cloud</a>, this is what we want: the points have no natural order, and
+    each point's coordinates already say where it is. For a sentence, the order of the words matters. So language
+    models give each token information about its position, for example by adding
+    <a href="fourier-features.html">Fourier features</a> of the word's position to its embedding.</p>
+  </section>
+
+  <section id="multi-head">
+    <h2>Multi-head attention runs several attentions side by side</h2>
+    <p>One set of weights per token can follow only one notion of "match". <dfn>Multi-head attention</dfn> runs
+    <var>h</var> attentions, called <dfn>heads</dfn>, in parallel. Each head has its own
+    <b>W</b><sub>Q</sub>, <b>W</b><sub>K</sub> and <b>W</b><sub>V</sub>, which make vectors with fewer
+    entries: usually <var>d</var><sub>k</sub> = <var>d</var> / <var>h</var>, where <var>d</var> is the number of
+    entries in a token. Each head
+    computes its own weights and its own weighted sum. The <var>h</var> results are joined end to end into one
+    vector of <var>d</var> entries and multiplied by one more learned matrix, <b>W</b><sub>O</sub>.</p>
+    <p>For example, the original transformer used tokens of 512 numbers and 8 heads with keys of 64 numbers. The
+    total work is about that of one head with keys of 512 numbers. In a model of points, one head may learn to weight nearby
+    points and another to weight points with similar features. Nothing forces a head to specialize; training finds
+    whatever helps.</p>
+
+    <div class="callout warn">
+      <span class="callout-title">What this page leaves out</span>
+      <p>Language models that write one word at a time add a <em>mask</em>: they set the scores for later words to
+      −∞ before the softmax, so a word cannot attend to words that come after it. Libraries also add a bias vector
+      to each projection, and often randomly drop some weights during training (dropout). The names "query", "key"
+      and "value" describe the roles in the formula; the network learns what the vectors contain.</p>
+    </div>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>A query has dot product 0 with every one of four keys. What are the weights, and what is the output?</p>
+      <details><summary>Answer</summary><p>All scaled scores are 0, and softmax of equal scores gives equal weights:
+      0.25 each. The output is the plain average of the four values.</p></details>
+    </li>
+    <li>
+      <p>Work a similar problem. The query is [2, 0]. The keys are [1, 0] and [0, 1], with values [4, 0] and
+      [0, 4]. What is the output?</p>
+      <details><summary>Answer</summary><p>Scores: 2 and 0. Divided by √2: 1.414 and 0. Softmax:
+      <var>e</var><sup>1.414</sup> = 4.113 and <var>e</var><sup>0</sup> = 1, so the weights are 4.113 / 5.113 = 0.804 and
+      0.196. Output: 0.804 × [4, 0] + 0.196 × [0, 4] = [3.22, 0.78].</p></details>
+    </li>
+    <li>
+      <p>A model uses keys of 256 numbers but forgets to divide by √<var>d</var><sub>k</sub>. What goes wrong?</p>
+      <details><summary>Answer</summary><p>With random entries the scores have a spread of about √256 = 16 instead of
+      1. Softmax then puts nearly all the weight on one token, the weights hardly respond to small changes, and
+      training of the queries and keys slows to a crawl.</p></details>
+    </li>
+    <li>
+      <p>Self-attention without position information reads five points in the order A, B, C, D, E and gives the
+      outputs <b>o</b><sub>A</sub> … <b>o</b><sub>E</sub>. What does it give for the order E, D, C, B, A?</p>
+      <details><summary>Answer</summary><p>The same five outputs, in the order <b>o</b><sub>E</sub>, <b>o</b><sub>D</sub>,
+      <b>o</b><sub>C</sub>, <b>o</b><sub>B</sub>, <b>o</b><sub>A</sub>. Each point meets the same keys and values either way.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://jalammar.github.io/illustrated-transformer/#self-attention-in-detail">The Illustrated Transformer: "Self-Attention in Detail"</a>
+        <span class="fl-src">Jay Alammar</span>
+        <span class="fl-format">Illustrated article</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">The standard picture of queries, keys and values on a two-word sentence. Read on through
+      "Matrix Calculation of Self-Attention" and "The Beast With Many Heads" for the matrix form and multi-head
+      attention.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://www.3blue1brown.com/lessons/attention#queries">Attention in transformers, step-by-step: "Queries"</a>
+        <span class="fl-src">3Blue1Brown</span>
+        <span class="fl-format">Video and page</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">The best animated version of one head, with the geometry of the dot product shown, not
+      stated.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://poloclub.github.io/transformer-explainer/">Transformer Explainer</a>
+        <span class="fl-src">Georgia Tech Polo Club</span>
+        <span class="fl-format">Interactive page</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">Type a sentence into a small live language model, open "Multi-Head Self-Attention", and see
+      the real query, key and value numbers and the weights.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://peterbloem.nl/blog/transformers#self-attention">Transformers from scratch: "Self-attention"</a>
+        <span class="fl-src">Peter Bloem</span>
+        <span class="fl-format">Article with code</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">Builds attention from a plain weighted sum, then adds queries, keys, values and the scaling.
+      It is the only item here with code, written in PyTorch.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="cross-attention.html">Cross-attention: reading from another set</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="transformer-block.html">The transformer block</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">8 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const svg = document.getElementById('att-svg');
+  if (!svg) return;
+  const NS = 'http://www.w3.org/2000/svg';
+  const tokens = [
+    { name: 'A', key: [2.0, 0.3], val: [3, 0], cls: 's1' },
+    { name: 'B', key: [0.4, 1.8], val: [0, 3], cls: 's2' },
+    { name: 'C', key: [-1.8, 0.6], val: [-3, 0], cls: 's3' },
+    { name: 'D', key: [0.2, -1.9], val: [0, -3], cls: 's4' }
+  ];
+  const START = [1.0, 1.0], LIM = 3.2, S = 25, SV = 21;  // world units to pixels: keys, values
+  const L = [88, 104], R = [272, 104];                  // panel centers
+  const px = (c, v, s = S) => [c[0] + s * v[0], c[1] - s * v[1]];
+  let q = START.slice();
+
+  const keysG = document.getElementById('att-keys'), valsG = document.getElementById('att-vals');
+  const mk = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; };
+  tokens.forEach(t => {
+    const [kx, ky] = px(L, t.key);
+    mk('line', { x1: L[0], y1: L[1], x2: kx, y2: ky, class: 'st-' + t.cls, 'stroke-width': 1.5, opacity: 0.6 }, keysG);
+    mk('circle', { cx: kx, cy: ky, r: 6, class: 'f-' + t.cls }, keysG);
+    const kl = mk('text', { x: kx + (t.key[0] < 0 ? -10 : 9), y: ky + (t.key[1] < 0 ? 14 : -6), 'text-anchor': t.key[0] < 0 ? 'end' : 'start', 'font-weight': 700 }, keysG);
+    kl.textContent = t.name;
+    const [vx, vy] = px(R, t.val, SV);
+    t.vdot = mk('circle', { cx: vx, cy: vy, r: 6, class: 'f-' + t.cls, opacity: 0.85 }, valsG);
+    const vl = mk('text', { x: vx + (t.val[0] < 0 ? 4 : t.val[0] > 0 ? -4 : 12), y: vy + (t.val[1] > 0 ? 24 : t.val[1] < 0 ? -16 : -14), 'text-anchor': t.val[0] < 0 ? 'start' : t.val[0] > 0 ? 'end' : 'start', 'font-weight': 700 }, valsG);
+    vl.textContent = t.name;
+  });
+  const tbody = document.querySelector('#att-table tbody');
+  tokens.forEach(t => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td><b>' + t.name + '</b></td><td class="r"><output></output></td><td class="r"><output></output></td>' +
+      '<td style="width:40%"><span class="wbar" style="background:var(--' + t.cls + ')"></span></td>';
+    tbody.appendChild(tr);
+    t.row = tr;
+  });
+
+  const qline = document.getElementById('att-qline'), qdot = document.getElementById('att-qdot'),
+    qhit = document.getElementById('att-qhit'), qlab = document.getElementById('att-qlab'),
+    out = document.getElementById('att-out'), outlab = document.getElementById('att-outlab'),
+    qout = document.getElementById('att-qout'), handle = document.getElementById('att-handle');
+
+  function draw() {
+    const scores = tokens.map(t => (q[0] * t.key[0] + q[1] * t.key[1]) / Math.SQRT2);
+    const m = Math.max(...scores), ex = scores.map(s => Math.exp(s - m)), sum = ex.reduce((a, b) => a + b, 0);
+    const w = ex.map(e => e / sum);
+    const o = [0, 0];
+    tokens.forEach((t, i) => { o[0] += w[i] * t.val[0]; o[1] += w[i] * t.val[1]; });
+    const [qx, qy] = px(L, q);
+    qline.setAttribute('x2', qx); qline.setAttribute('y2', qy);
+    qdot.setAttribute('cx', qx); qdot.setAttribute('cy', qy);
+    qhit.setAttribute('cx', qx); qhit.setAttribute('cy', qy);
+    qlab.setAttribute('x', qx + 9); qlab.setAttribute('y', qy - 9);
+    const [ox, oy] = px(R, o, SV);
+    out.setAttribute('cx', ox); out.setAttribute('cy', oy);
+    outlab.setAttribute('x', ox + 10); outlab.setAttribute('y', oy - 9);
+    tokens.forEach((t, i) => {
+      t.vdot.setAttribute('r', (3 + 11 * Math.sqrt(w[i])).toFixed(1));
+      const outs = t.row.querySelectorAll('output');
+      outs[0].textContent = scores[i].toFixed(2);
+      outs[1].textContent = w[i].toFixed(3);
+      t.row.querySelector('.wbar').style.width = (100 * w[i]).toFixed(1) + '%';
+    });
+    const nums = '[' + q[0].toFixed(1) + ', ' + q[1].toFixed(1) + ']', txt = 'q = ' + nums;
+    qout.innerHTML = '<b>q</b> = ' + nums + ', output = [' + o[0].toFixed(2) + ', ' + o[1].toFixed(2) + ']';
+    handle.setAttribute('aria-valuetext', txt);
+  }
+
+  const clamp = v => Math.max(-LIM, Math.min(LIM, v));
+  function setFromEvent(ev) {
+    const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
+    const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+    q = [clamp((p.x - L[0]) / S), clamp((L[1] - p.y) / S)];
+    draw();
+  }
+  const left = document.getElementById('att-left');
+  let dragging = false;
+  left.addEventListener('pointerdown', ev => { dragging = true; left.setPointerCapture(ev.pointerId); setFromEvent(ev); ev.preventDefault(); });
+  left.addEventListener('pointermove', ev => { if (dragging) setFromEvent(ev); });
+  left.addEventListener('pointerup', () => { dragging = false; });
+  left.addEventListener('pointercancel', () => { dragging = false; });
+  handle.addEventListener('keydown', ev => {
+    const step = 0.1, d = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, step], ArrowDown: [0, -step] }[ev.key];
+    if (!d) return;
+    q = [clamp(q[0] + d[0]), clamp(q[1] + d[1])];
+    draw(); ev.preventDefault();
+  });
+  document.getElementById('att-reset').addEventListener('click', () => { q = START.slice(); draw(); });
+  draw();
+})();
+</script>
+</body>
+</html>

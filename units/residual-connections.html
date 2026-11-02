@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="residual-connections">
+<meta name="unit-level" content="u1">
+<title>Residual connections</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  #fig-res svg text { font-size: 14px; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Residual connections</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">5 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="mlp.html">The multilayer perceptron (MLP)</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="chain-rule.html">The chain rule: slopes of chained steps</a> <span class="level-badge level-hs">High school</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A <dfn>residual connection</dfn> adds a layer's input back to its output: <b>y</b> = <b>x</b> +
+  <var>F</var>(<b>x</b>). The layer <var>F</var> then only has to learn a change to <b>x</b>, not a whole new
+  vector. If <var>F</var> outputs zeros, <b>x</b> passes through unchanged. Deep networks built this way train
+  well, because the input, and the training signal on its way back, can pass straight through the addition. Picture
+  a running vector that each block edits a little.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="add-back">
+    <h2>The block adds its input to its output</h2>
+    <p>Take any layer or small network <var>F</var> whose output has the same size as its input, such as an
+    <a href="mlp.html">MLP</a>. A residual block computes <var>F</var>(<b>x</b>) and adds <b>x</b> to it. The
+    path that carries <b>x</b> around <var>F</var> is the <dfn>skip path</dfn>; people also call the whole thing a
+    skip connection. <var>F</var> is the <dfn>residual branch</dfn>, because it computes the residual: the difference
+    between the output and the input.</p>
+
+    <figure id="fig-res">
+      <div class="fig-title">A residual block, and what it does to one vector</div>
+      <div class="scroll-x">
+      <svg width="470" height="190" viewBox="0 0 470 190" role="img"
+           aria-label="Left: x enters, splits; one path goes through a box F, the other skips around it; the two meet at a plus sign that gives y. Right: the vector x as a long arrow, the short arrow F of x added at its tip, and their sum y.">
+        <defs>
+          <marker id="res-arr" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--ink-2)"/>
+          </marker>
+          <marker id="res-arr-a" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+          </marker>
+        </defs>
+        <!-- block diagram -->
+        <text x="14" y="124" font-weight="700">x</text>
+        <line x1="28" y1="120" x2="62" y2="120" stroke="var(--ink-2)" stroke-width="2"/>
+        <circle cx="62" cy="120" r="3.5" fill="var(--ink-2)"/>
+        <line x1="62" y1="120" x2="92" y2="120" stroke="var(--ink-2)" stroke-width="2" marker-end="url(#res-arr)"/>
+        <rect x="94" y="100" width="70" height="40" rx="6" fill="var(--surface)" class="st-s2" stroke-width="2"/>
+        <text x="129" y="125" text-anchor="middle" font-weight="700">F</text>
+        <line x1="164" y1="120" x2="194" y2="120" stroke="var(--ink-2)" stroke-width="2" marker-end="url(#res-arr)"/>
+        <text x="170" y="112" class="f-s2">F(<tspan font-weight="700">x</tspan>)</text>
+        <path d="M62,120 C62,52 206,52 206,108" fill="none" stroke="var(--accent)" stroke-width="3" marker-end="url(#res-arr-a)"/>
+        <text x="134" y="56" text-anchor="middle" fill="var(--accent)" font-weight="700">skip path: x</text>
+        <circle cx="206" cy="120" r="12" fill="var(--surface)" stroke="var(--ink)" stroke-width="2"/>
+        <text x="206" y="125" text-anchor="middle" font-weight="700">+</text>
+        <line x1="218" y1="120" x2="246" y2="120" stroke="var(--ink-2)" stroke-width="2" marker-end="url(#res-arr)"/>
+        <text x="250" y="125" font-weight="700">y</text>
+        <text x="134" y="168" text-anchor="middle" class="ink2"><tspan font-weight="700">y</tspan> = <tspan font-weight="700">x</tspan> + F(<tspan font-weight="700">x</tspan>)</text>
+        <!-- vector picture: origin at (285,40), 70 px per unit; x = [2, -1], F(x) = [0.1, 0.3], y = [2.1, -0.7] -->
+        <line x1="276" y1="40" x2="466" y2="40" class="grid"/>
+        <line x1="285" y1="22" x2="285" y2="172" class="grid"/>
+        <line x1="285" y1="40" x2="425" y2="110" class="st-s1" stroke-width="3" marker-end="url(#res-arr)"/>
+        <line x1="425" y1="110" x2="432" y2="89" class="st-s2" stroke-width="3" marker-end="url(#res-arr)"/>
+        <line x1="285" y1="40" x2="432" y2="89" class="st-s3" stroke-width="2" stroke-dasharray="5 3" marker-end="url(#res-arr)"/>
+        <text x="336" y="98" class="f-s1" font-weight="700">x</text>
+        <text x="438" y="106" class="f-s2" font-weight="700">F(x)</text>
+        <text x="360" y="58" class="f-s3" font-weight="700">y</text>
+        <text x="291" y="32" class="muted">origin</text>
+      </svg>
+      </div>
+      <figcaption><b>What to notice.</b> Left: the input reaches the output twice, once through <var>F</var> and once
+      along the skip path (blue). Right: <var>F</var>(<b>x</b>) is a short arrow added at the tip of <b>x</b>,
+      so <b>y</b> stays close to <b>x</b>. The block edits <b>x</b>; it does not replace it.</figcaption>
+    </figure>
+
+    <p><b>Predict first.</b> If every weight in <var>F</var> were 0, what would the block output?</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: one residual block on x = [2, −1]</span>
+      <p>Let <var>F</var> be a two-layer MLP with a ReLU between the layers and no biases:
+      <var>F</var>(<b>x</b>) = <b>W</b><sub>2</sub> ReLU(<b>W</b><sub>1</sub><b>x</b>), with
+      <b>W</b><sub>1</sub> = [[0.5, 0], [0, −0.5]] and <b>W</b><sub>2</sub> = [[0.1, 0], [0.2, 0.2]] (each
+      inner pair is one row).</p>
+      <ol>
+        <li><b>W</b><sub>1</sub><b>x</b> = [0.5 × 2 + 0 × (−1), 0 × 2 + (−0.5) × (−1)] = [1.0, 0.5].</li>
+        <li>ReLU keeps positive numbers and turns negative ones into 0: [1.0, 0.5].</li>
+        <li><b>W</b><sub>2</sub> times that: [0.1 × 1.0 + 0 × 0.5, 0.2 × 1.0 + 0.2 × 0.5] = [0.1, 0.3]. This is
+        <var>F</var>(<b>x</b>).</li>
+        <li>Add the input: <b>y</b> = [2, −1] + [0.1, 0.3] = [2.1, −0.7].</li>
+      </ol>
+      <p>The output is the input plus a small edit. With all weights 0, <var>F</var>(<b>x</b>) = [0, 0] and the
+      block outputs <b>x</b> itself.</p>
+    </div>
+    <p>The addition needs <var>F</var>(<b>x</b>) and <b>x</b> to have the same size, entry for entry. That is
+    why blocks with residual connections never change the number of entries in a vector.</p>
+  </section>
+
+  <section id="depth">
+    <h2>The skip path keeps the training signal alive through many layers</h2>
+    <p>Training changes each weight according to how much the final error changes when that weight changes (see
+    <a href="gradient-descent.html">gradient descent</a>). For a weight in an early layer, that effect must pass
+    through every later layer. In one dimension, each layer multiplies it by the layer's slope, its
+    <a href="derivative.html">derivative</a>. This is the <a href="chain-rule.html">chain rule</a>: the slope of a
+    chain of steps is the product of the steps' slopes.</p>
+    <p>A plain layer <var>y</var> = <var>f</var>(<var>x</var>) has slope <var>f</var>′(<var>x</var>). A residual
+    block <var>y</var> = <var>x</var> + <var>f</var>(<var>x</var>) has slope 1 + <var>f</var>′(<var>x</var>). The
+    "1" comes from the skip path. The table multiplies the slopes of stacked layers:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th class="r">Layers</th><th class="r">Plain, slope 0.5 each</th><th class="r">Residual, slope 1 + 0.05 each</th><th class="r">Residual, slope 1 − 0.05 each</th></tr></thead>
+        <tbody>
+          <tr><td class="r">1</td><td class="r">0.5</td><td class="r">1.05</td><td class="r">0.95</td></tr>
+          <tr><td class="r">10</td><td class="r">0.00098</td><td class="r">1.63</td><td class="r">0.60</td></tr>
+          <tr><td class="r">20</td><td class="r">0.00000095</td><td class="r">2.65</td><td class="r">0.36</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Twenty plain layers shrink the signal to about one millionth, so the early layers barely learn. This is called
+    a <dfn>vanishing gradient</dfn>. Twenty residual blocks with small edits keep it between about a third and three
+    times its size. At the start of training the edits are small, so the signal reaches every layer.</p>
+    <p>This mattered in practice. In 2015, He and colleagues reported that a plain 56-layer image network had a
+    higher training error than a plain 20-layer one, even though it could in principle copy the shallow network.
+    With residual connections they trained networks of 152 layers. Today every transformer wraps each of its
+    sublayers in a residual connection (see <a href="transformer-block.html">the transformer block</a>).</p>
+
+    <p class="code-cap">residual.py</p>
+<pre><code class="py">import numpy as np
+
+x = np.array([2.0, -1.0])
+W1 = np.array([[0.5, 0.0], [0.0, -0.5]])
+W2 = np.array([[0.1, 0.0], [0.2, 0.2]])
+
+F = W2 @ np.maximum(0, W1 @ x)    # the residual branch: a small MLP
+print(F, x + F)
+
+# Products of 20 slopes: plain layers, then residual blocks
+print(0.5 ** 20, round(1.05 ** 20, 2), round(0.95 ** 20, 2))
+</code></pre>
+<pre class="out">[0.1 0.3] [ 2.1 -0.7]
+9.5367431640625e-07 2.65 0.36</pre>
+
+    <div class="callout warn">
+      <span class="callout-title">The one-dimensional story hides two details</span>
+      <p>Real layers take vectors, so each slope is a matrix of slopes, and the products are products of matrices.
+      The skip path still contributes an identity matrix (the matrix version of "1") to each block. Researchers
+      still study the other reasons residual networks train well. Also, when <var>F</var> must change the vector's
+      size, the skip path carries <b>W</b><b>x</b> instead of <b>x</b>, with a learned matrix
+      <b>W</b> that makes the sizes match.</p>
+    </div>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>A residual block receives <b>x</b> = [1, 1], and its branch gives <var>F</var>(<b>x</b>) =
+      [0.2, −0.1]. What does the block output?</p>
+      <details><summary>Answer</summary><p><b>y</b> = [1 + 0.2, 1 − 0.1] = [1.2, 0.9].</p></details>
+    </li>
+    <li>
+      <p>A plain layer has slope 0.1. What is the slope of the same layer with a residual connection? Compare the
+      products over 10 such layers.</p>
+      <details><summary>Answer</summary><p>1 + 0.1 = 1.1. Over 10 layers: 0.1<sup>10</sup> = 0.0000000001 for the
+      plain stack against 1.1<sup>10</sup> ≈ 2.59 for the residual stack.</p></details>
+    </li>
+    <li>
+      <p>Why can't a residual block's branch turn a vector of 64 numbers into one of 128 numbers?</p>
+      <details><summary>Answer</summary><p>The block adds <b>x</b> to <var>F</var>(<b>x</b>), entry by entry,
+      and you cannot add vectors of different sizes. The skip path would need its own matrix to change
+      <b>x</b> to 128 numbers first.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://d2l.ai/chapter_convolutional-modern/resnet.html#function-classes">Dive into Deep Learning: "Residual Networks", sections "Function Classes" and "Residual Blocks"</a>
+        <span class="fl-src">Zhang, Lipton, Li and Smola</span>
+        <span class="fl-format">Textbook section</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Explains why adding a block that can output the identity never makes a network less capable,
+      with diagrams and code.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://arxiv.org/abs/1512.03385">Deep Residual Learning for Image Recognition</a>
+        <span class="fl-src">He, Zhang, Ren and Sun (2015)</span>
+        <span class="fl-format">Paper</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">The paper that introduced residual networks. Figure 1 shows the deeper plain network training
+      worse; Figure 2 is the residual block.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://jalammar.github.io/illustrated-transformer/#the-residuals">The Illustrated Transformer: "The Residuals"</a>
+        <span class="fl-src">Jay Alammar</span>
+        <span class="fl-format">Illustrated article</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">Shows where the residual connections sit inside a transformer, around attention and the
+      feed-forward network.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="transformer-block.html">The transformer block</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">8 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+</body>
+</html>

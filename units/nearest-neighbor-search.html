@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="nearest-neighbor-search">
+<meta name="unit-level" content="u1">
+<title>Nearest-neighbor search</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  #nn-svg { touch-action: none; cursor: crosshair; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Nearest-neighbor search</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="distance.html">Distance between two points</a> <span class="level-badge level-hs">High school</span> <span class="minutes">6 min</span></li>
+    <li><a href="numpy-arrays.html">Arrays in NumPy</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">9 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>Given a set of points and one new point, the <em>query</em>, nearest-neighbor search finds the point in the set
+  that is closest to the query. The simplest method measures the <a href="distance.html">distance</a> from the query
+  to every point and keeps the smallest. That method, called <em>brute force</em>, is always right. Its cost grows with
+  the number of points: twice the points, twice the work, for every query. With millions of points and millions of
+  queries, that becomes too slow, which is why faster methods such as <a href="kd-tree.html">KD-trees</a> exist.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+
+  <section id="brute-force">
+    <h2>Brute force measures every distance and keeps the smallest</h2>
+    <p>The <dfn>query</dfn> is the point you ask about. Its <dfn>nearest neighbor</dfn> is the point of the set with the
+    smallest distance to it. <dfn>Brute force</dfn>, also called linear search, computes all those distances and picks
+    the smallest. It needs no preparation, and it never misses.</p>
+
+    <figure id="fig-nn">
+      <div class="fig-title">The nearest point, found by checking every point</div>
+      <p class="small" style="margin-top:0">The five starting points are the ones in the worked example below. Drag the
+      query (the cross) until its nearest neighbor changes from B to C. Then add points and watch the count of
+      distances.</p>
+      <div class="controls">
+        <label>points in the set <input type="range" id="nn-n" min="5" max="400" step="5" value="5"> <output id="nn-n-out">5</output></label>
+      </div>
+      <svg id="nn-svg" width="560" height="350" viewBox="0 0 560 350" role="img" aria-label="Points scattered on a grid. A cross marks the query. A line joins the query to its nearest point, which is highlighted. Faint lines from the query reach every other point, one per distance computed."></svg>
+      <div class="readout-box"><output id="nn-out"></output></div>
+      <figcaption><b>One line per distance.</b> Brute force draws a line to every point, so the work grows in step with
+      the number of points.</figcaption>
+    </figure>
+
+    <div class="example">
+      <span class="example-title">Worked example: five points and one query</span>
+      <p>The points are A (1, 4), B (3, 3), C (5, 4), D (2, 0) and E (7, 1). The query is <var>q</var> = (4, 2).</p>
+      <ol>
+        <li>Square the gaps in x and in y, and add them. For A: (1 − 4)² + (4 − 2)² = 9 + 4 = 13.</li>
+        <li>The others: B gives 1 + 1 = 2, C gives 1 + 4 = 5, D gives 4 + 4 = 8, E gives 9 + 1 = 10.</li>
+        <li>The smallest is 2, so B is the nearest neighbor, at distance √2 ≈ 1.41.</li>
+        <li>Sorting all five gives the three nearest: B, C, D.</li>
+      </ol>
+      <p>Step 3 takes a square root only once, at the end. The square root never changes which number is smaller, so
+      comparing the <dfn>squared distances</dfn> picks the same point and saves work.</p>
+    </div>
+    <p class="code-cap">brute_force.py</p>
+<pre><code class="py">import numpy as np
+
+pts = np.array([[1.0, 4.0], [3.0, 3.0], [5.0, 4.0], [2.0, 0.0], [7.0, 1.0]])
+q = np.array([4.0, 2.0])
+
+d2 = ((pts - q) ** 2).sum(axis=1)   # squared distance to every point
+print(d2)
+print(d2.argmin())                  # index of the nearest point
+print(np.argsort(d2)[:3])           # the 3 nearest, closest first
+</code></pre>
+<pre class="out"><code>[13.  2.  5.  8. 10.]
+1
+[1 2 3]</code></pre>
+    <p><code>pts - q</code> subtracts the query from every row by <a href="broadcasting.html">broadcasting</a>.
+    <code>argmin</code> gives the position of the smallest value, and <code>argsort</code> lists positions from smallest to
+    largest.</p>
+    <p>Two variations come up often. The <dfn>k nearest neighbors</dfn> are the <var>k</var> closest points, here the
+    first <var>k</var> of the sorted list. A <dfn>radius search</dfn> returns every point within a given distance.</p>
+  </section>
+
+  <section id="cost">
+    <h2>The work grows with points times queries</h2>
+    <p>One query against <var>N</var> points costs <var>N</var> distances. Often every point is also a query, for example
+    to find each point's closest neighbor in its own cloud. Then <var>N</var> queries cost <var>N</var> × <var>N</var>
+    distances.</p>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th class="r">Points <var>N</var></th><th class="r">Distances for <var>N</var> queries</th><th class="r">Time at 10<sup>9</sup> distances per second</th></tr></thead>
+      <tbody>
+        <tr><td class="r">1,000</td><td class="r">10<sup>6</sup></td><td class="r">1 millisecond</td></tr>
+        <tr><td class="r">100,000</td><td class="r">10<sup>10</sup></td><td class="r">10 seconds</td></tr>
+        <tr><td class="r">1,000,000</td><td class="r">10<sup>12</sup></td><td class="r">about 17 minutes</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>Ten times the points means a hundred times the work. A <a href="kd-tree.html">KD-tree</a> sorts the points into
+    boxes once, so that each query can skip most of them.</p>
+
+    <div class="callout warn">
+      <span class="callout-title">What this page leaves out</span>
+      <p>Two points can be equally close; brute force then returns whichever comes first. The rate of a billion distances
+      per second is a round number for illustration: real speed depends on the machine and the code. For data with
+      hundreds of dimensions, libraries often use <em>approximate</em> search, which is much faster but can miss the true
+      nearest point. This page covers exact search only.</p>
+    </div>
+  </section>
+
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>Your turn: the points are (0, 0), (4, 1) and (2, 5), and the query is (3, 2). Which point is nearest? Use
+      squared distances.</p>
+      <details><summary>Answer</summary><p>(4, 1). The squared distances are 9 + 4 = 13, 1 + 1 = 2 and 1 + 9 = 10.</p></details>
+    </li>
+    <li>
+      <p>A brute-force search of 50,000 points takes 2 ms per query. About how long would it take with 200,000 points?</p>
+      <details><summary>Answer</summary><p>About 8 ms. Four times the points means four times the distances.</p></details>
+    </li>
+    <li>
+      <p>Why is it safe to compare squared distances instead of distances?</p>
+      <details><summary>Answer</summary><p>Distances are never negative, and for numbers that are not negative, a larger
+      number always has a larger square. So the order, and the smallest, stay the same.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://scikit-learn.org/stable/modules/neighbors.html#brute-force">Nearest Neighbors: Brute Force</a>
+        <span class="fl-src">scikit-learn user guide</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">A short, correct account of when brute force is fine and when tree methods win.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://en.wikipedia.org/wiki/Nearest_neighbor_search#Linear_search">Nearest neighbor search: Linear search</a>
+        <span class="fl-src">Wikipedia</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">The brute-force method in context, followed by an overview of faster exact and approximate methods.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="kd-tree.html">KD-trees: nearest neighbors fast</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">9 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  'use strict';
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.getElementById('nn-svg'), slider = document.getElementById('nn-n');
+  const nOut = document.getElementById('nn-n-out'), out = document.getElementById('nn-out');
+  const BASE = [[1, 4, 'A'], [3, 3, 'B'], [5, 4, 'C'], [2, 0, 'D'], [7, 1, 'E']];
+  // a fixed sequence of extra points (a small seeded generator), so the page looks the same each time
+  let seed = 7;
+  const rand = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+  const EXTRA = Array.from({ length: 395 }, () => [rand() * 8, rand() * 5]);
+  const X0 = 40, Y0 = 320, S = 60;            // 1 unit = 60 px; y grows upward
+  const px = x => X0 + x * S, py = y => Y0 - y * S;
+  let q = [4, 2];
+  function mk(tag, attrs, text) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    svg.appendChild(e); return e;
+  }
+  function draw() {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    const n = Number(slider.value);
+    nOut.textContent = n;
+    const pts = BASE.map(p => [p[0], p[1], p[2]]).concat(EXTRA.slice(0, n - 5).map(p => [p[0], p[1], '']));
+    // grid
+    for (let x = 0; x <= 8; x++) mk('line', { x1: px(x), y1: py(0), x2: px(x), y2: py(5), class: 'grid', 'stroke-width': 1 });
+    for (let y = 0; y <= 5; y++) mk('line', { x1: px(0), y1: py(y), x2: px(8), y2: py(y), class: 'grid', 'stroke-width': 1 });
+    for (let x = 0; x <= 8; x++) mk('text', { x: px(x), y: Y0 + 18, 'text-anchor': 'middle', class: 'muted' }, x);
+    for (let y = 1; y <= 5; y++) mk('text', { x: X0 - 10, y: py(y) + 4, 'text-anchor': 'end', class: 'muted' }, y);
+    // distances
+    let best = -1, bd = Infinity;
+    pts.forEach((p, i) => { const d = (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2; if (d < bd) { bd = d; best = i; } });
+    pts.forEach(p => mk('line', { x1: px(q[0]), y1: py(q[1]), x2: px(p[0]), y2: py(p[1]), stroke: 'var(--ink-3)', 'stroke-opacity': n > 60 ? 0.12 : 0.3 }));
+    const b = pts[best];
+    mk('circle', { cx: px(q[0]), cy: py(q[1]), r: Math.sqrt(bd) * S, fill: 'var(--s2)', 'fill-opacity': 0.07, stroke: 'var(--s2)', 'stroke-dasharray': '4 3' });
+    mk('line', { x1: px(q[0]), y1: py(q[1]), x2: px(b[0]), y2: py(b[1]), stroke: 'var(--s2)', 'stroke-width': 2.5 });
+    pts.forEach((p, i) => {
+      mk('circle', { cx: px(p[0]), cy: py(p[1]), r: i < 5 ? 6 : 3.5, class: i === best ? 'f-s2' : 'f-s1', stroke: 'var(--surface)', 'stroke-width': 1 });
+      if (p[2]) mk('text', { x: px(p[0]) + 9, y: py(p[1]) - 8, style: 'font-weight:600' }, p[2]);
+    });
+    // query cross, with a large invisible handle for dragging
+    const qx = px(q[0]), qy = py(q[1]);
+    mk('path', { d: `M${qx - 9} ${qy} H${qx + 9} M${qx} ${qy - 9} V${qy + 9}`, stroke: 'var(--ink)', 'stroke-width': 3 });
+    mk('circle', { cx: qx, cy: qy, r: 22, fill: 'transparent' });
+    const name = b[2] ? b[2] : 'an added point';
+    out.textContent = 'Query (' + q[0].toFixed(1) + ', ' + q[1].toFixed(1) + '). Nearest: ' + name + ', squared distance ' +
+      bd.toFixed(2) + '. Distances computed: ' + n + ' of ' + n + '.';
+  }
+  function toData(ev) {
+    const r = svg.getBoundingClientRect(), k = 560 / r.width;
+    const x = ((ev.clientX - r.left) * k - X0) / S, y = (Y0 - (ev.clientY - r.top) * k) / S;
+    return [Math.max(0, Math.min(8, x)), Math.max(0, Math.min(5, y))];
+  }
+  let dragging = false;
+  svg.addEventListener('pointerdown', ev => { dragging = true; svg.setPointerCapture(ev.pointerId); q = toData(ev); draw(); });
+  svg.addEventListener('pointermove', ev => { if (dragging) { q = toData(ev); draw(); } });
+  svg.addEventListener('pointerup', () => { dragging = false; });
+  slider.addEventListener('input', draw);
+  draw();
+})();
+</script>
+</body>
+</html>

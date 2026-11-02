@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="vectors">
+<meta name="unit-level" content="hs">
+<title>Vectors: arrows made of numbers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Vectors: arrows made of numbers</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-hs">High school</span> <span class="minutes">8 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Before you start</h2>
+  <p>You need nothing else first. This unit starts from scratch.</p>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A point on a map is a list of numbers: how far east and how far north it lies. A vector is the same kind of
+  list, read as an arrow: "go 3 east and 1 north." You add two vectors by putting one arrow after the other, which
+  means adding the lists number by number. You stretch a vector by multiplying every number by the same amount.
+  Computers store points, directions and many other things this way, in 2D, in 3D or with many more numbers.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="list-of-numbers">
+    <h2>A point is a list of numbers</h2>
+    <p>Pick a starting corner on a sheet of squared paper and call it the <dfn>origin</dfn>. Any other spot on the
+    sheet is then two numbers: how many squares to the right, and how many squares up. These numbers are the spot's
+    <dfn>coordinates</dfn>, written in brackets as (3, 1). The first number is called <var>x</var> and the second
+    <var>y</var>.</p>
+    <p>A room needs a third number for height, called <var>z</var>. So a point in 3D is a list of three numbers, such
+    as (1.5, −2, 4). Nothing changes in the rules below when the list gets longer.</p>
+  </section>
+
+  <section id="arrow">
+    <h2>A vector is an arrow that says how far to move</h2>
+    <p>A <dfn>vector</dfn> is a list of numbers read as a move: (3, 1) means "3 to the right and 1 up." You can draw
+    it as an arrow. The arrow's position on the page does not matter; only its length and direction do. Each number
+    in the list is a <dfn>component</dfn> of the vector.</p>
+    <p>A point and a vector look the same on paper. A point (3, 1) is where you end up if you start at the origin and
+    follow the arrow (3, 1).</p>
+
+    <figure id="fig-add">
+      <div class="fig-title">Adding two vectors puts one arrow after the other</div>
+      <div class="scroll-x">
+      <svg id="vec-svg" width="400" height="320" viewBox="0 0 400 320" role="img"
+           aria-label="A grid with two arrows a and b placed tip to tail, and their sum drawn from the origin to the tip of b"
+           style="touch-action:none">
+        <defs>
+          <marker id="ah-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--s1)"/></marker>
+          <marker id="ah-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--s2)"/></marker>
+          <marker id="ah-c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--s3)"/></marker>
+        </defs>
+        <g id="vec-grid"></g>
+        <line id="vec-sum" style="stroke:var(--s3);stroke-width:3;stroke-dasharray:7 4" marker-end="url(#ah-c)"/>
+        <line id="vec-a" style="stroke:var(--s1);stroke-width:3.5" marker-end="url(#ah-a)"/>
+        <line id="vec-b" style="stroke:var(--s2);stroke-width:3.5" marker-end="url(#ah-b)"/>
+        <text id="vec-la" style="fill:var(--s1);font-weight:700;font-size:15px">a</text>
+        <text id="vec-lb" style="fill:var(--s2);font-weight:700;font-size:15px">b</text>
+        <text id="vec-lc" style="fill:var(--s3);font-weight:700;font-size:15px">a + b</text>
+        <circle id="vec-ha" r="11" style="fill:var(--s1);fill-opacity:0.25;stroke:var(--s1);cursor:grab"/>
+        <circle id="vec-hb" r="11" style="fill:var(--s2);fill-opacity:0.25;stroke:var(--s2);cursor:grab"/>
+      </svg>
+      </div>
+      <div class="readout-box">
+        <span style="color:var(--s1);font-weight:700">a</span> = <output id="vec-oa">(3, 1)</output> &nbsp;
+        <span style="color:var(--s2);font-weight:700">b</span> = <output id="vec-ob">(1, 2)</output> &nbsp;
+        <span style="color:var(--s3);font-weight:700">a + b</span> = <output id="vec-oc">(4, 3)</output>
+      </div>
+      <figcaption><b>Try this.</b> Drag the round handles at the tips of <b>a</b> and <b>b</b>. Arrow <b>b</b> always
+      starts where <b>a</b> ends. Goal: make <b>a + b</b> land on (5, 5) while <b>a</b> stays at (3, 1). Predict
+      <b>b</b> first, then drag to check.</figcaption>
+    </figure>
+
+    <p>Adding vectors means walking one arrow and then the other. Put the tail of <b>b</b> at the tip of <b>a</b>. The
+    arrow from the start of <b>a</b> to the tip of <b>b</b> is the <dfn>sum</dfn> <b>a</b> + <b>b</b>. In numbers, you
+    add the matching components: the <var>x</var>'s together, the <var>y</var>'s together.</p>
+    <p class="math"><span class="vec">a</span> + <span class="vec">b</span> = (<var>a</var><sub>1</sub> + <var>b</var><sub>1</sub>, <var>a</var><sub>2</sub> + <var>b</var><sub>2</sub>)</p>
+    <p>Here <var>a</var><sub>1</sub> is the first component of <b>a</b> and <var>a</var><sub>2</sub> its second. A
+    bold letter stands for a whole vector. An italic letter with a small number stands for one of its
+    components.</p>
+  </section>
+
+  <section id="stretch">
+    <h2>Multiplying by a number stretches the arrow</h2>
+    <p>Multiply every component by the same number and the arrow keeps its direction but changes length. The number is
+    called a <dfn>scalar</dfn>, because it scales the arrow. Doubling (3, 1) gives (6, 2), an arrow twice as long. A
+    negative scalar also flips the arrow: −1 times (3, 1) is (−3, −1).</p>
+    <p>Subtracting is adding the flipped arrow. The arrow that leads from point <b>a</b> to point <b>b</b> is
+    <b>b</b> − <b>a</b>, because <b>a</b> + (<b>b</b> − <b>a</b>) = <b>b</b>.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example</span>
+      <p>Take <b>a</b> = (3, 1) and <b>b</b> = (1, 2).</p>
+      <ol>
+        <li>Add: (3 + 1, 1 + 2) = (4, 3).</li>
+        <li>Stretch: 2 × (3, 1) = (2 × 3, 2 × 1) = (6, 2).</li>
+        <li>The arrow from <b>a</b> to <b>b</b>: (1 − 3, 2 − 1) = (−2, 1). Check it: (3, 1) + (−2, 1) = (1, 2), which is
+        <b>b</b>.</li>
+      </ol>
+      <p><b>Your turn.</b> With <b>a</b> = (2, 5) and <b>b</b> = (−1, 3), find <b>a</b> + <b>b</b>, 3<b>a</b>, and the
+      arrow from <b>a</b> to <b>b</b>.</p>
+      <details><summary>Answer</summary><p>(1, 8); (6, 15); (−1 − 2, 3 − 5) = (−3, −2).</p></details>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-title">This is a simplification</span>
+      <p>This page treats a point and a vector as the same list of numbers, as most code does. Mathematicians keep
+      them apart: adding two vectors makes sense, but adding two points (two places) does not. Code will happily add
+      two points, so the meaning is up to you.</p>
+    </div>
+
+    <p class="code-cap">vectors.py: NumPy stores a vector as an array, and does the arithmetic component by component</p>
+<pre><code class="py">import numpy as np
+
+a = np.array([3, 1])
+b = np.array([1, 2])
+print(a + b)      # add: tip to tail
+print(2 * a)      # stretch
+print(b - a)      # the arrow from point a to point b
+
+p = np.array([1.5, -2.0, 4.0])  # a point in 3D
+print(p.shape)
+</code></pre>
+<pre class="out">[4 3]
+[6 2]
+[-2  1]
+(3,)</pre>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>What is (2, −1) + (−3, 4)? Sketch both arrows tip to tail and check that the sum points where you expect.</p>
+      <details><summary>Answer</summary><p>(2 − 3, −1 + 4) = (−1, 3): one square left and three up.</p></details>
+    </li>
+    <li>
+      <p>A drone starts at (1, 1, 0) and ends at (4, 5, 2). Which vector describes its trip?</p>
+      <details><summary>Answer</summary><p>End minus start: (4 − 1, 5 − 1, 2 − 0) = (3, 4, 2).</p></details>
+    </li>
+    <li>
+      <p>Which scalar turns (4, −2) into (−2, 1)? What does it do to the arrow?</p>
+      <details><summary>Answer</summary><p>−0.5. It halves the length and flips the arrow to point the opposite way.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://www.3blue1brown.com/lessons/vectors/">Vectors, what even are they?</a>
+        <span class="fl-src">3Blue1Brown, Essence of linear algebra, chapter 1</span>
+        <span class="fl-format">Video</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">The picture first and the numbers second, animated; the standard first look at vectors.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://phet.colorado.edu/en/simulations/vector-addition">Vector Addition</a>
+        <span class="fl-src">PhET, University of Colorado</span>
+        <span class="fl-format">Interactive page</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">Drag arrows and watch the sum and its components update; 2D only.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="distance.html">Distance between two points</a> <span class="level-badge level-hs">High school</span> <span class="minutes">6 min</span></li>
+    <li><a href="gradient.html">The gradient: the uphill direction</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+    <li><a href="normalizing-data.html">Normalizing data</a> <span class="level-badge level-hs">High school</span> <span class="minutes">6 min</span></li>
+    <li><a href="numpy-arrays.html">Arrays in NumPy</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">9 min</span></li>
+    <li><a href="point-clouds.html">Shapes as point clouds</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="voxels.html">3D images made of voxels</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+    <li><a href="embeddings.html">Embeddings: things as vectors</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="velocity-field.html">Velocity fields: an arrow at every point</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+    <li><a href="dot-product.html">The dot product: how much two vectors agree</a> <span class="level-badge level-hs">High school</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const svg = document.getElementById('vec-svg');
+  if (!svg) return;
+  const U = 40, OX = 60, OY = 260;            // 40 px per square; origin at (60, 260)
+  const X0 = -1, X1 = 8, Y0 = -1, Y1 = 6;     // grid range in squares
+  const sx = x => OX + U * x, sy = y => OY - U * y;
+  const NS = 'http://www.w3.org/2000/svg';
+  const g = document.getElementById('vec-grid');
+  for (let x = X0; x <= X1; x++) {
+    const l = document.createElementNS(NS, 'line');
+    l.setAttribute('x1', sx(x)); l.setAttribute('x2', sx(x)); l.setAttribute('y1', sy(Y0)); l.setAttribute('y2', sy(Y1));
+    l.setAttribute('style', x === 0 ? 'stroke:var(--ink-3);stroke-width:1.2' : 'stroke:var(--rule)');
+    g.appendChild(l);
+  }
+  for (let y = Y0; y <= Y1; y++) {
+    const l = document.createElementNS(NS, 'line');
+    l.setAttribute('y1', sy(y)); l.setAttribute('y2', sy(y)); l.setAttribute('x1', sx(X0)); l.setAttribute('x2', sx(X1));
+    l.setAttribute('style', y === 0 ? 'stroke:var(--ink-3);stroke-width:1.2' : 'stroke:var(--rule)');
+    g.appendChild(l);
+  }
+  const o = document.createElementNS(NS, 'text');
+  o.setAttribute('x', sx(0) - 14); o.setAttribute('y', sy(0) + 16); o.setAttribute('class', 'muted'); o.textContent = '0';
+  g.appendChild(o);
+
+  const st = { a: [3, 1], b: [1, 2] };
+  const $ = id => document.getElementById(id);
+  const fmt = v => '(' + v.map(n => String(n).replace('-', '−')).join(', ') + ')';
+  const setLine = (el, p, q) => { el.setAttribute('x1', sx(p[0])); el.setAttribute('y1', sy(p[1])); el.setAttribute('x2', sx(q[0])); el.setAttribute('y2', sy(q[1])); };
+  const place = (el, p, dx, dy) => { el.setAttribute('x', sx(p[0]) + dx); el.setAttribute('y', sy(p[1]) + dy); };
+  function draw() {
+    const a = st.a, c = [a[0] + st.b[0], a[1] + st.b[1]];
+    setLine($('vec-a'), [0, 0], a); setLine($('vec-b'), a, c); setLine($('vec-sum'), [0, 0], c);
+    $('vec-ha').setAttribute('cx', sx(a[0])); $('vec-ha').setAttribute('cy', sy(a[1]));
+    $('vec-hb').setAttribute('cx', sx(c[0])); $('vec-hb').setAttribute('cy', sy(c[1]));
+    place($('vec-la'), [a[0] / 2, a[1] / 2], 6, 18);
+    place($('vec-lb'), [a[0] + st.b[0] / 2, a[1] + st.b[1] / 2], 8, -6);
+    place($('vec-lc'), [c[0] / 2, c[1] / 2], -48, -8);
+    $('vec-oa').textContent = fmt(a); $('vec-ob').textContent = fmt(st.b); $('vec-oc').textContent = fmt(c);
+  }
+  function toGrid(e) {
+    const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY;
+    const q = p.matrixTransform(svg.getScreenCTM().inverse());
+    const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+    return [clamp(Math.round((q.x - OX) / U), X0, X1), clamp(Math.round((OY - q.y) / U), Y0, Y1)];
+  }
+  let drag = null;
+  for (const [id, key] of [['vec-ha', 'a'], ['vec-hb', 'b']]) {
+    $(id).addEventListener('pointerdown', e => { drag = key; $(id).setPointerCapture(e.pointerId); e.preventDefault(); });
+    $(id).addEventListener('pointermove', e => {
+      if (drag !== key) return;
+      const p = toGrid(e);
+      // b keeps its own components and its tail follows a, so stop a where the tip of b would leave the grid
+      if (key === 'a') st.a = [Math.max(X0 - st.b[0], Math.min(X1 - st.b[0], p[0])), Math.max(Y0 - st.b[1], Math.min(Y1 - st.b[1], p[1]))];
+      else st.b = [p[0] - st.a[0], p[1] - st.a[1]];
+      draw();
+    });
+    $(id).addEventListener('pointerup', () => { drag = null; });
+  }
+  draw();
+})();
+</script>
+</body>
+</html>

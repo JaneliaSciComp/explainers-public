@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="exponentials">
+<meta name="unit-level" content="hs">
+<title>Exponentials, undone by logarithms</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Exponentials, undone by logarithms</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-hs">High school</span> <span class="minutes">8 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Before you start</h2>
+  <p>You need nothing else first. This unit starts from scratch.</p>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>Exponential growth multiplies by the same factor at every step: 1, 2, 4, 8, 16. It starts slowly and then
+  outruns any growth that adds a fixed amount per step. The logarithm runs it backwards: it counts how many times
+  you multiplied. Because logarithms turn multiplying into adding, they shrink huge ranges of numbers: in base 10,
+  1, 1000 and 1,000,000 become 0, 3 and 6. The special base e ≈ 2.718 appears whenever growth is continuous, and code uses it by default.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="repeat-multiply">
+    <h2>An exponential multiplies by the same factor at every step</h2>
+    <p>Put one bacterium in a dish. Every hour each bacterium splits in two. After 1 hour there are 2, after 2 hours
+    4, then 8, 16, 32. After <var>n</var> hours there are 2<sup><var>n</var></sup>: 2 multiplied by itself
+    <var>n</var> times. The number on top, <var>n</var>, is the <dfn>exponent</dfn>, and 2 is the <dfn>base</dfn>.
+    Growth of this kind is called <dfn>exponential</dfn>.</p>
+    <p>Compare it with growth that adds the same amount each step. Adding 2 per hour gives 1, 3, 5, 7, 9, 11, which is
+    ahead at first. By hour 3, doubling has passed it (8 against 7), and by hour 10 it is at 1024 against 21.</p>
+    <p>The factor need not be 2. Money earning 10% a year is multiplied by 1.1 each year. A factor below 1 shrinks the
+    amount: multiplying by 0.5 each step halves it, which is <dfn>exponential decay</dfn>.</p>
+
+    <figure id="fig-growth">
+      <div class="fig-title">Multiplying overtakes adding, and a log scale turns it into a straight line</div>
+      <div class="controls">
+        <label>Growth per step <input id="ex-r" type="range" min="5" max="100" step="5" value="10"> <output id="ex-or">10%</output></label>
+        <label><input id="ex-log" type="checkbox"> log scale</label>
+      </div>
+      <div class="scroll-x">
+      <svg id="ex-svg" width="400" height="260" viewBox="0 0 400 260" role="img"
+           aria-label="Two curves over 20 steps starting at 100: one multiplies by a fixed factor each step, the other adds the first step's gain each step">
+        <g id="ex-plot"></g>
+      </svg>
+      </div>
+      <div class="legend"><span><i class="sw" style="background:var(--s2)"></i>multiply each step</span><span><i class="sw" style="background:var(--s1)"></i>add the first step's gain each step</span></div>
+      <figcaption><b>Try this.</b> Both lines start at 100 and gain the same amount in the first step. From step 2 on, the
+      orange line is ahead at every growth rate, but at first by very little: 121 against 120 at 10%. At 10%, find
+      the step at which the orange line is twice as high as the blue one. Then predict what shape the orange line takes on a log scale, where
+      each grid line is ten times the one below, and tick the box to check.</figcaption>
+    </figure>
+  </section>
+
+  <section id="logarithm">
+    <h2>The logarithm counts the multiplications back</h2>
+    <p>The <dfn>logarithm</dfn> answers the reverse question: how many times must you multiply the base to reach a
+    number? Since 2 × 2 × 2 = 8, the logarithm of 8 in base 2 is 3, written log<sub>2</sub> 8 = 3. In base 10,
+    log<sub>10</sub> 1000 = 3, because 10 × 10 × 10 = 1000.</p>
+    <p>The key property is that logarithms turn multiplying into adding:</p>
+    <p class="math">log(<var>a</var> × <var>b</var>) = log <var>a</var> + log <var>b</var></p>
+    <p>That is why the log scale in the figure works. Equal steps up a log scale are equal <em>factors</em>, so a
+    quantity that grows by the same factor each step climbs in a straight line. The logarithm also tames huge ranges:
+    the numbers 1, 1000 and 1,000,000 have base-10 logarithms 0, 3 and 6.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example</span>
+      <p>You put 100 in an account that grows 10% a year.</p>
+      <ol>
+        <li>After 3 years: 100 × 1.1 × 1.1 × 1.1 = 100 × 1.1<sup>3</sup> = 133.10.</li>
+        <li>When does it double? You need 1.1<sup><var>n</var></sup> = 2. Take logarithms of both sides:
+        <var>n</var> × log 1.1 = log 2.</li>
+        <li>So <var>n</var> = log 2 / log 1.1. In base 10, the "log" key on most calculators, this is
+        0.3010 / 0.0414 ≈ 7.27 years. Any base gives the same answer, as long as
+        you use it on both logarithms.</li>
+      </ol>
+      <p><b>Your turn.</b> A sample of 80 grams loses half its mass every hour. How much is left after 3 hours, and
+      after how many hours is 5 grams left?</p>
+      <details><summary>Answer</summary><p>80 × 0.5<sup>3</sup> = 10 grams. 5 grams is 80 halved 4 times (80, 40, 20, 10,
+      5), so after 4 hours: log<sub>2</sub>(80 / 5) = log<sub>2</sub> 16 = 4.</p></details>
+    </div>
+  </section>
+
+  <section id="e">
+    <h2>The base e is the one code uses by default</h2>
+    <p>One base has a special role: <dfn>e</dfn> ≈ 2.718. It is what 1 grows to in one unit of time if it grows at a
+    rate of 100% compounded continuously, in ever-smaller steps. The function e<sup><var>x</var></sup> is often
+    written exp(<var>x</var>), and its slope at every point equals its own value. The logarithm in base e is the
+    <dfn>natural logarithm</dfn>, written ln or simply log. In NumPy, <code>np.exp</code> and <code>np.log</code> use
+    base e; <code>np.log2</code> and <code>np.log10</code> use bases 2 and 10.</p>
+
+    <div class="callout warn">
+      <span class="callout-title">This is a simplification</span>
+      <p>The logarithm is defined only for positive numbers: no number of multiplications turns 2 into 0 or into −5. In
+      code, <code>np.log(0)</code> gives minus infinity and a warning. Exponentials also overflow fast: in ordinary
+      floating-point numbers, <code>np.exp(710)</code> is already too large and becomes infinity. Code that works with
+      chances often stores their logarithms instead, to avoid both problems.</p>
+    </div>
+
+    <p class="code-cap">exps.py: growth, logarithms and e in NumPy</p>
+<pre><code class="py">import numpy as np
+
+print(100 * 1.1 ** np.arange(5))    # 10% growth, years 0 to 4
+print(np.log2(8), np.log10(1000))   # count the multiplications back
+print(np.log(2) / np.log(1.1))      # years for 10% growth to double
+print(np.exp(1), np.log(np.exp(4)))
+</code></pre>
+<pre class="out">[100.   110.   121.   133.1  146.41]
+3.0 3.0
+7.272540897341713
+2.718281828459045 4.0</pre>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>What is log<sub>2</sub> 32? What is log<sub>10</sub> 0.01?</p>
+      <details><summary>Answer</summary><p>5, because 2<sup>5</sup> = 32. And −2, because 0.01 is 1 divided by 10
+      twice: 10<sup>−2</sup> = 0.01.</p></details>
+    </li>
+    <li>
+      <p>What is ln(e<sup>4</sup>)? What is e<sup>ln 7</sup>?</p>
+      <details><summary>Answer</summary><p>4 and 7. The exponential and the natural logarithm undo each other.</p></details>
+    </li>
+    <li>
+      <p>A value is multiplied by 3 at every step. On a log scale, what does its graph look like?</p>
+      <details><summary>Answer</summary><p>A straight line going up. Each step adds the same amount, log 3, to its
+      logarithm.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://www.mathsisfun.com/algebra/logarithms.html">Introduction to logarithms</a>
+        <span class="fl-src">Math Is Fun</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">"How many of one number multiply to make another," with many small examples.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://betterexplained.com/articles/an-intuitive-guide-to-exponential-functions-e/">An intuitive guide to exponential functions and e</a>
+        <span class="fl-src">BetterExplained</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">Where e comes from, through growth compounded in smaller and smaller steps.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://www.3blue1brown.com/lessons/eulers-number/">What's so special about Euler's number e?</a>
+        <span class="fl-src">3Blue1Brown, Essence of calculus, chapter 5</span>
+        <span class="fl-format">Video</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Why e<sup><var>x</var></sup> is its own slope; uses derivatives.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="sigmoid.html">The sigmoid: from score to probability</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+    <li><a href="softmax.html">Softmax: probabilities over many choices</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+    <li><a href="euler-steps.html">Euler&#x27;s method: small steps along a field</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const svg = document.getElementById('ex-svg');
+  if (!svg) return;
+  const NS = 'http://www.w3.org/2000/svg', $ = id => document.getElementById(id);
+  const N = 20, L = 58, R = 388, T = 12, B = 222;
+  const sx = n => L + n / N * (R - L);
+  const fmtN = v => v >= 1e6 ? (v / 1e6).toFixed(v >= 1e7 ? 0 : 1) + 'M' : v >= 1e3 ? Math.round(v / 1e3) + 'k' : String(Math.round(v));
+  function draw() {
+    const r = Number($('ex-r').value) / 100, logs = $('ex-log').checked;
+    const mult = [], add = [];
+    for (let n = 0; n <= N; n++) { mult.push(100 * (1 + r) ** n); add.push(100 + 100 * r * n); }
+    const top = Math.max(mult[N], add[N]);
+    let sy, ticks;
+    if (logs) {
+      const lo = Math.log10(100), hi = Math.ceil(Math.log10(top) + 1e-9);
+      sy = v => B - (Math.log10(v) - lo) / (hi - lo) * (B - T);
+      ticks = []; for (let k = 2; k <= hi; k++) ticks.push(10 ** k);
+    } else {
+      sy = v => B - v / top * (B - T);
+      const step = 10 ** Math.floor(Math.log10(top / 4)), s = top / step > 20 ? step * 5 : top / step > 8 ? step * 2 : step;
+      ticks = []; for (let v = 0; v <= top; v += s) ticks.push(v);
+    }
+    const g = $('ex-plot'); g.textContent = '';
+    const el = (tag, a, text) => { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); if (text !== undefined) e.textContent = text; g.appendChild(e); return e; };
+    for (const v of ticks) {
+      el('line', { x1: L, x2: R, y1: sy(v), y2: sy(v), style: 'stroke:var(--grid)' });
+      el('text', { x: L - 6, y: sy(v) + 4, 'text-anchor': 'end', class: 'muted', style: 'font-size:11px' }, fmtN(v));
+    }
+    el('line', { x1: L, x2: R, y1: B, y2: B, style: 'stroke:var(--ink-3)' });
+    for (let n = 0; n <= N; n += 5) el('text', { x: sx(n), y: B + 18, 'text-anchor': 'middle', class: 'muted', style: 'font-size:11px' }, String(n));
+    el('text', { x: (L + R) / 2, y: B + 34, 'text-anchor': 'middle', class: 'muted', style: 'font-size:11px' }, 'step');
+    const path = (vals, c) => el('path', { d: vals.map((v, n) => (n ? 'L' : 'M') + sx(n).toFixed(1) + ',' + sy(v).toFixed(1)).join(''), style: `fill:none;stroke:var(--${c});stroke-width:2.5` });
+    path(add, 's1'); path(mult, 's2');
+    for (let n = 0; n <= N; n++) el('circle', { cx: sx(n), cy: sy(mult[n]), r: 2.5, style: 'fill:var(--s2)' });
+    $('ex-or').textContent = Math.round(r * 100) + '%';
+  }
+  $('ex-r').addEventListener('input', draw);
+  $('ex-log').addEventListener('change', draw);
+  draw();
+})();
+</script>
+</body>
+</html>

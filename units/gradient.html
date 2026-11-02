@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="gradient">
+<meta name="unit-level" content="u1">
+<title>The gradient: the uphill direction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>The gradient: the uphill direction</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="derivative.html">The derivative: slope at a point</a> <span class="level-badge level-hs">High school</span> <span class="minutes">8 min</span></li>
+    <li><a href="vectors.html">Vectors: arrows made of numbers</a> <span class="level-badge level-hs">High school</span> <span class="minutes">8 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A function with several inputs is like a landscape: the inputs say where you stand and the output is the
+  height. At any spot you can ask for the slope in each input's direction, holding the other inputs still. Put those
+  slopes together in a vector and you have the gradient. It points in the direction that climbs fastest, and its
+  length says how steep that climb is. Its opposite points downhill fastest, which is how many programs search for
+  the lowest point.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="partial">
+    <h2>One slope per input, holding the others still</h2>
+    <p>Picture a valley. Your position is two numbers, <var>x</var> (east) and <var>y</var> (north), and the height of
+    the ground is <var>f</var>(<var>x</var>, <var>y</var>) = <var>x</var><sup>2</sup> + 3<var>y</var><sup>2</sup>. The
+    bottom is at (0, 0), and the valley is steeper going north than going east.</p>
+    <p>Stand somewhere and take a small step due east. Only <var>x</var> changes, so the height behaves like a
+    one-input curve, and its slope is an ordinary <a href="derivative.html#slope">derivative</a>. That slope is the
+    <dfn>partial derivative</dfn> with respect to <var>x</var>, written ∂<var>f</var>/∂<var>x</var> (the curly ∂ says
+    "the other inputs are held still"). Do the same due north to get ∂<var>f</var>/∂<var>y</var>.</p>
+    <p>For this valley, holding <var>y</var> still makes 3<var>y</var><sup>2</sup> a constant, so
+    ∂<var>f</var>/∂<var>x</var> = 2<var>x</var>. Holding <var>x</var> still gives ∂<var>f</var>/∂<var>y</var> =
+    6<var>y</var>.</p>
+    <p>The <dfn>gradient</dfn> is the <a href="vectors.html">vector</a> of these slopes, one per input. It is written
+    ∇<var>f</var> (say "grad <var>f</var>"):</p>
+    <p class="math">∇<var>f</var>(<var>x</var>, <var>y</var>) = (∂<var>f</var>/∂<var>x</var>, ∂<var>f</var>/∂<var>y</var>) = (2<var>x</var>, 6<var>y</var>)</p>
+
+    <div class="example">
+      <span class="example-title">Worked example</span>
+      <p>Find the gradient of <var>f</var>(<var>x</var>, <var>y</var>) = <var>x</var><sup>2</sup> + 3<var>y</var><sup>2</sup>
+      at the point (1, 1).</p>
+      <ol>
+        <li>East slope: 2<var>x</var> = 2 × 1 = 2.</li>
+        <li>North slope: 6<var>y</var> = 6 × 1 = 6.</li>
+        <li>So ∇<var>f</var>(1, 1) = (2, 6). Uphill is mostly north, because the valley wall is steeper that way.</li>
+        <li>Check the east slope with a small step: <var>f</var>(1.01, 1) = 1.0201 + 3 = 4.0201, and
+        <var>f</var>(1, 1) = 4. The change 0.0201 divided by 0.01 is 2.01, close to 2.</li>
+      </ol>
+      <p><b>Your turn.</b> Find the gradient of the same function at (−2, 0.5). Which way is downhill?</p>
+      <details><summary>Answer</summary><p>(2 × (−2), 6 × 0.5) = (−4, 3). Downhill fastest is the opposite arrow,
+      (4, −3): east and south, more east than south. It does not point straight at the bottom, (0, 0). This valley
+      is steeper from north to south than from east to west, so the steepest way down leans more to the south than
+      the straight line to the bottom does.</p></details>
+    </div>
+  </section>
+
+  <section id="uphill">
+    <h2>The gradient points uphill and crosses the height lines at right angles</h2>
+    <p>A map can show a landscape with <dfn>contour lines</dfn>: each line joins points of the same height. Walking
+    along a contour line, you neither climb nor descend. The steepest way up is straight across the lines, and that is
+    the direction the gradient points.</p>
+
+    <figure id="fig-grad">
+      <div class="fig-title">The gradient arrow points straight up the slope, across the contour lines</div>
+      <div class="scroll-x">
+      <svg id="gr-svg" width="400" height="290" viewBox="0 0 400 290" role="img"
+           aria-label="Oval contour lines of a valley centered on the origin, with a draggable point showing the gradient arrow pointing uphill and the opposite arrow pointing downhill"
+           style="touch-action:none">
+        <defs>
+          <marker id="gah-1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--s2)"/></marker>
+          <marker id="gah-2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--s1)"/></marker>
+        </defs>
+        <g id="gr-map"></g>
+        <line id="gr-down" style="stroke:var(--s1);stroke-width:2.5;stroke-dasharray:5 3" marker-end="url(#gah-2)"/>
+        <line id="gr-up" style="stroke:var(--s2);stroke-width:3.5" marker-end="url(#gah-1)"/>
+        <circle id="gr-h" r="10" style="fill:var(--ink);fill-opacity:0.2;stroke:var(--ink);cursor:grab"/>
+      </svg>
+      </div>
+      <div class="readout-box">
+        Point <output id="gr-op">(1.0, 1.0)</output>, height <output id="gr-of">4.00</output><br>
+        <span style="color:var(--s2);font-weight:700">gradient</span> = <output id="gr-og">(2.0, 6.0)</output>,
+        steepness <output id="gr-on">6.32</output>
+      </div>
+      <figcaption><b>Try this.</b> Each oval joins points of equal height; the outer ones are higher. The orange arrow
+      is the gradient, drawn at a fifth of its length. The dashed blue arrow points the opposite way, downhill. Drag
+      the point. Goal: find the one spot where the gradient vanishes, and check that the arrow always crosses the
+      ovals at a right angle.</figcaption>
+    </figure>
+
+    <p>The length of the gradient tells you how steep the steepest climb is. Near the bottom of the valley, the ground
+    is nearly flat and the gradient is short. At the very bottom it is (0, 0): there is no uphill direction. A program
+    that wants the lowest point can take small steps against the gradient, one after another. That method is
+    <a href="gradient-descent.html">gradient descent</a>.</p>
+
+    <div class="callout warn">
+      <span class="callout-title">This is a simplification</span>
+      <p>The gradient describes the ground right under your feet. "Uphill fastest" is exact only for a very small step.
+      A long step along the gradient can overshoot and land higher or lower than you meant. A gradient of zero also
+      does not prove you are at the bottom: the top of a hill and a saddle between two hills are flat too.</p>
+    </div>
+
+    <p class="code-cap">grad.py: estimate each partial derivative with a small step on each side</p>
+<pre><code class="py">import numpy as np
+
+def f(p):
+    x, y = p
+    return x ** 2 + 3 * y ** 2
+
+def numerical_gradient(f, p, h=1e-6):
+    g = np.zeros(len(p))
+    for i in range(len(p)):
+        step = np.zeros(len(p))
+        step[i] = h
+        g[i] = (f(p + step) - f(p - step)) / (2 * h)
+    return g
+
+p = np.array([1.0, 1.0])
+print(np.round(numerical_gradient(f, p), 4))   # exact answer: [2, 6]
+</code></pre>
+<pre class="out">[2. 6.]</pre>
+    <p>This takes two function evaluations per input. A function with a million inputs would need two million, which
+    is why real programs compute gradients exactly with the <a href="chain-rule.html">chain rule</a> instead.</p>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>For <var>f</var>(<var>x</var>, <var>y</var>) = <var>x</var><sup>2</sup> + <var>y</var><sup>2</sup>, what is
+      the gradient at (3, 4)? Which direction is downhill fastest?</p>
+      <details><summary>Answer</summary><p>(6, 8). Downhill fastest is (−6, −8), straight back toward the origin.</p></details>
+    </li>
+    <li>
+      <p>What is the gradient of <var>f</var>(<var>x</var>, <var>y</var>) = 2<var>x</var> + 5<var>y</var>? Why does it
+      not depend on the point?</p>
+      <details><summary>Answer</summary><p>(2, 5) everywhere. The surface is a flat tilted plane, so its slope is the
+      same at every spot.</p></details>
+    </li>
+    <li>
+      <p>You walk along a contour line. What angle does your direction make with the gradient?</p>
+      <details><summary>Answer</summary><p>A right angle. You neither climb nor descend, so your step has no part
+      along the uphill direction.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://www.khanacademy.org/math/multivariable-calculus/multivariable-derivatives/partial-derivative-and-gradient-articles/a/the-gradient">The gradient</a>
+        <span class="fl-src">Khan Academy, Multivariable calculus</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">A short article with worked examples; the neighboring article introduces partial derivatives.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://www.3blue1brown.com/lessons/gradient-descent/">Gradient descent, how neural networks learn</a>
+        <span class="fl-src">3Blue1Brown, Neural networks, chapter 2</span>
+        <span class="fl-format">Video</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">Shows why "downhill on a landscape" is the picture behind training a network.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="gradient-descent.html">Gradient descent</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const svg = document.getElementById('gr-svg');
+  if (!svg) return;
+  const U = 60, OX = 200, OY = 145, X0 = -3.2, X1 = 3.2, Y0 = -2.3, Y1 = 2.3;
+  const sx = x => OX + U * x, sy = y => OY - U * y;
+  const NS = 'http://www.w3.org/2000/svg', $ = id => document.getElementById(id);
+  const g = $('gr-map');
+  const add = (tag, attrs, text) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text !== undefined) e.textContent = text; g.appendChild(e); };
+  add('line', { x1: sx(X0), x2: sx(X1), y1: sy(0), y2: sy(0), style: 'stroke:var(--rule)' });
+  add('line', { x1: sx(0), x2: sx(0), y1: sy(Y0), y2: sy(Y1), style: 'stroke:var(--rule)' });
+  for (const c of [0.5, 1, 2, 4, 6, 9, 12]) {
+    add('ellipse', { cx: sx(0), cy: sy(0), rx: U * Math.sqrt(c), ry: U * Math.sqrt(c / 3), style: 'fill:none;stroke:var(--s3);stroke-opacity:0.7' });
+    add('text', { x: sx(0) + 4, y: sy(Math.sqrt(c / 3)) - 3, class: 'muted', style: 'font-size:10px' }, String(c));
+  }
+  add('text', { x: sx(X1) - 4, y: sy(0) - 6, 'text-anchor': 'end', class: 'muted' }, 'x');
+  add('text', { x: sx(0) - 8, y: sy(Y1) + 12, class: 'muted' }, 'y');
+  let P = [1, 1];
+  const S = 0.2;   // draw the gradient at a fifth of its length
+  const set = (el, a) => { for (const k in a) el.setAttribute(k, a[k]); };
+  const fmt = (v, n) => v.toFixed(n).replace('-', '−');
+  function draw() {
+    const [x, y] = P, gx = 2 * x, gy = 6 * y, n = Math.hypot(gx, gy);
+    set($('gr-h'), { cx: sx(x), cy: sy(y) });
+    const show = n > 0.05 ? '' : 'none';
+    $('gr-up').style.display = show; $('gr-down').style.display = show;
+    set($('gr-up'), { x1: sx(x), y1: sy(y), x2: sx(x + S * gx), y2: sy(y + S * gy) });
+    set($('gr-down'), { x1: sx(x), y1: sy(y), x2: sx(x - S * gx), y2: sy(y - S * gy) });
+    $('gr-op').textContent = '(' + fmt(x, 1) + ', ' + fmt(y, 1) + ')';
+    $('gr-of').textContent = fmt(x * x + 3 * y * y, 2);
+    $('gr-og').textContent = '(' + fmt(gx, 1) + ', ' + fmt(gy, 1) + ')';
+    $('gr-on').textContent = fmt(n, 2);
+  }
+  let drag = false;
+  const h = $('gr-h');
+  h.addEventListener('pointerdown', e => { drag = true; h.setPointerCapture(e.pointerId); e.preventDefault(); });
+  h.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY;
+    const q = p.matrixTransform(svg.getScreenCTM().inverse());
+    const c = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+    P = [c(Math.round((q.x - OX) / U * 10) / 10, -3, 3), c(Math.round((OY - q.y) / U * 10) / 10, -2.2, 2.2)];
+    draw();
+  });
+  h.addEventListener('pointerup', () => { drag = false; });
+  draw();
+})();
+</script>
+</body>
+</html>

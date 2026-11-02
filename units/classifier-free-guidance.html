@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="classifier-free-guidance">
+<meta name="unit-level" content="u2">
+<title>Classifier-free guidance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  .wstrip { width: 100%; max-width: 520px; height: auto; aspect-ratio: 3 / 1; margin: 0 auto 0.6rem; }
+  .wcanvas { width: 100%; max-width: 520px; height: auto; aspect-ratio: 4 / 3; margin: 0 auto; }
+  .panel-label { font-size: 0.85rem; color: var(--ink-2); text-align: center; margin: 0.2rem 0; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Classifier-free guidance</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">7 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="conditional-generation.html">Conditional generation: generating from a hint</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+    <li><a href="flow-matching.html">Flow matching: turning noise into shapes</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">10 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>Classifier-free guidance makes a conditional generative model follow its condition more strongly. At each
+  generation step, the network makes two predictions: one with the condition and one without. The guided prediction
+  starts from the one without and moves a chosen scale <var>s</var> times the difference between them. A scale of 1
+  gives plain conditional generation. Above 1, it overshoots the conditional prediction, so samples show the condition
+  more clearly but vary less. One network can make both predictions, because training sometimes hides the
+  condition.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <div class="callout">
+    <span class="callout-title">The convention on this page</span>
+    <p>Predictions are velocities, as in <a href="flow-matching.html">flow matching</a>, with time <var>t</var> from 0
+    (pure noise) to 1 (data). Diffusion models apply the same formula to their noise predictions.</p>
+  </div>
+
+  <section id="formula">
+    <h2>Two predictions, then a step past the conditional one</h2>
+    <p>Write <var>v</var>(<var>x</var>, <var>t</var>, <var>c</var>) for the velocity the network predicts with the
+    condition <var>c</var>, and <var>v</var>(<var>x</var>, <var>t</var>, ∅) for its prediction with no condition. The
+    symbol ∅ stands for a special "no condition" input. The guided velocity is</p>
+    <p class="math"><var>v</var><sub>guided</sub> = <var>v</var>(<var>x</var>, <var>t</var>, ∅) + <var>s</var> · ( <var>v</var>(<var>x</var>, <var>t</var>, <var>c</var>) − <var>v</var>(<var>x</var>, <var>t</var>, ∅) ).</p>
+    <ul>
+      <li><var>s</var> = 0 gives the unconditional prediction.</li>
+      <li><var>s</var> = 1 gives the conditional prediction.</li>
+      <li><var>s</var> between 0 and 1 lands between the two.</li>
+      <li><var>s</var> above 1 <dfn>extrapolates</dfn>: it goes past the conditional prediction, further in the
+      direction that leads from "no condition" to "condition".</li>
+    </ul>
+    <p>Generation then follows <var>v</var><sub>guided</sub> with <a href="euler-steps.html">Euler steps</a>, exactly
+    as it would follow the plain prediction.</p>
+    <div class="example">
+      <span class="example-title">Worked example: one guided velocity</span>
+      <p>At some point and time, the network predicts <var>v</var>(<var>x</var>, <var>t</var>, ∅) = (1, 0) and
+      <var>v</var>(<var>x</var>, <var>t</var>, <var>c</var>) = (2, 1).</p>
+      <ol>
+        <li>The difference is (2, 1) − (1, 0) = (1, 1).</li>
+        <li>With <var>s</var> = 1: (1, 0) + 1 × (1, 1) = (2, 1), the conditional prediction.</li>
+        <li>With <var>s</var> = 3: (1, 0) + 3 × (1, 1) = (4, 3), twice as far again beyond it.</li>
+      </ol>
+    </div>
+    <figure id="fig-extrapolate" class="plain">
+      <svg width="420" height="280" viewBox="0 0 300 200" role="img" aria-label="Arrows from one point: the unconditional prediction (1, 0), the conditional (2, 1) and the guided (4, 3), whose tips lie on one dashed line">
+        <line x1="61" y1="192" x2="201" y2="52" stroke="var(--ink-3)" stroke-dasharray="4 4"/>
+        <g stroke-width="2.5" fill="none">
+          <line x1="40" y1="178" x2="66" y2="178" stroke="var(--ink-2)"/>
+          <line x1="40" y1="178" x2="101" y2="147.5" class="st-s1"/>
+          <line x1="40" y1="178" x2="172" y2="79" class="st-s2"/>
+        </g>
+        <path d="M75 178 l-9 -5 v10 z" fill="var(--ink-2)"/>
+        <path d="M110 143 L103.1 151.5 L99.1 143.5 Z" class="f-s1"/>
+        <path d="M180 73 L174.7 82.6 L169.3 75.4 Z" class="f-s2"/>
+        <circle cx="145" cy="108" r="3.5" fill="var(--ink-3)"/>
+        <circle cx="40" cy="178" r="4" fill="var(--ink)"/>
+        <text x="84" y="195" class="ink2">s = 0: (1, 0)</text>
+        <text x="118" y="152">s = 1: (2, 1)</text>
+        <text x="153" y="113" class="muted">s = 2</text>
+        <text x="188" y="78">s = 3: (4, 3)</text>
+      </svg>
+      <figcaption><b>What to notice.</b> All guided velocities lie on one line through the unconditional and conditional
+      predictions. The scale only says how far along that line to go.</figcaption>
+    </figure>
+    <p><b>Your turn.</b> With the same two predictions, what are the guided velocities for <var>s</var> = 2 and
+    <var>s</var> = 0.5?</p>
+    <details><summary>Answer</summary><p><var>s</var> = 2: (1, 0) + 2 × (1, 1) = (3, 2). <var>s</var> = 0.5: (1, 0) +
+    0.5 × (1, 1) = (1.5, 0.5), halfway between the two predictions.</p></details>
+  </section>
+
+  <section id="dropout">
+    <h2>Training hides the condition now and then, so one network learns both</h2>
+    <p>Guidance needs both predictions from the same network. Training gets them with <dfn>condition dropout</dfn>:</p>
+    <ol>
+      <li>For each training example, draw a random number.</li>
+      <li>With a small probability, often 10%, replace the example's condition with the "no condition" input ∅.</li>
+      <li>Train exactly as usual on the result.</li>
+    </ol>
+    <p>The network then learns the conditional velocity from examples that keep their condition. It learns the
+    unconditional velocity from examples whose condition was hidden. Nothing else in training changes. At generation
+    time, each step runs the network twice, once with <var>c</var> and once with ∅, often as one batch of two.</p>
+    <p>The name comes from history. An earlier method, <i>classifier guidance</i>, steered a diffusion model with a
+    separate classifier trained on noisy examples. Classifier-free guidance gets the same kind of steering from the
+    generative network alone, with no classifier.</p>
+  </section>
+
+  <section id="toy">
+    <h2>On a toy, a larger scale pushes samples away from the other class</h2>
+    <p>Take two classes of 2D points. Class A is a bell curve around (−1, 0), class B one around (1, 0), each with spread
+    0.5. Without a condition, the data mix both classes equally. For this toy, the exact flow-matching velocities can be
+    computed, so they stand in for a trained network. The condition is "class A".</p>
+    <figure id="fig-guidance">
+      <div class="fig-title">Guidance on a two-class toy</div>
+      <p class="panel-label">Velocities at one point, at <var>t</var> = 0.5</p>
+      <canvas id="cfg-arrows" class="wstrip" role="img" aria-label="Three arrows from one point: unconditional in grey, conditional in blue, guided in orange"></canvas>
+      <p class="panel-label">Samples for class A at <var>t</var> = 1 (solid dots), over the two classes' data (faint)</p>
+      <canvas id="cfg-samples" class="wcanvas" role="img" aria-label="Faint blue and orange clouds for classes A and B; solid samples generated for class A with the chosen guidance scale"></canvas>
+      <div class="controls">
+        <label>guidance scale <var>s</var> <input type="range" id="cfg-s" min="0" max="5" step="0.25" value="1"> <output id="cfg-s-out">1.00</output></label>
+      </div>
+      <p class="readout-box" id="cfg-read">…</p>
+      <figcaption><b>Try this.</b> Predict first: as you raise the scale above 1, will the samples for class A move toward
+      class B, stay where they are, or move away? Then find the scale at which their average <var>x</var> passes −1.5.
+      Watch the spread from left to right and from top to bottom as you go.</figcaption>
+    </figure>
+    <details><summary>What you should find</summary><p>At <var>s</var> = 0 the samples cover both classes. At
+    <var>s</var> = 1 they match class A. Above 1 they move away from class B, past A's own center, and their average
+    passes −1.5 near <var>s</var> = 3. Their left-to-right spread shrinks, but their top-to-bottom spread stays the same,
+    because the classes do not differ from top to bottom.</p></details>
+    <p>The program below runs the same toy with 4,000 samples and 100 Euler steps.</p>
+    <p class="code-cap">guidance_toy.py</p>
+<pre><code class="py">import numpy as np
+
+rng = np.random.default_rng(0)
+CENTERS = {"A": np.array([-1.0, 0.0]), "B": np.array([1.0, 0.0])}
+SPREAD = 0.5                                  # each class: a bell curve with this spread
+
+def velocity(x, t, classes):
+    """Exact flow-matching velocity when the data are an equal mix of the listed
+    classes. It stands in for a trained network on this toy."""
+    s2 = t**2 * SPREAD**2 + (1 - t)**2        # squared spread of x_t within a class
+    k = (t * SPREAD**2 - (1 - t)) / s2
+    vs = [CENTERS[c] + k * (x - t * CENTERS[c]) for c in classes]
+    logw = np.stack([-((x - t * CENTERS[c])**2).sum(1) / (2 * s2) for c in classes], 1)
+    w = np.exp(logw - logw.max(1, keepdims=True))
+    w /= w.sum(1, keepdims=True)              # how likely each class is, given x
+    return sum(w[:, [i]] * v for i, v in enumerate(vs))
+
+def generate(scale, n=4000, steps=100):
+    x = rng.standard_normal((n, 2))           # noise at t = 0
+    for k in range(steps):
+        t = k / steps
+        v_u = velocity(x, t, ["A", "B"])      # without the condition
+        v_c = velocity(x, t, ["A"])           # with the condition "class A"
+        x = x + (v_u + scale * (v_c - v_u)) / steps
+    return x
+
+for scale in [0, 1, 3]:
+    x = generate(scale)
+    print(f"scale {scale}: mean x {x[:, 0].mean():+.2f}, "
+          f"spread x {x[:, 0].std():.2f}, spread y {x[:, 1].std():.2f}")
+</code></pre>
+<pre class="out">scale 0: mean x -0.01, spread x 1.12, spread y 0.49
+scale 1: mean x -0.99, spread x 0.49, spread y 0.49
+scale 3: mean x -1.53, spread x 0.30, spread y 0.49</pre>
+    <p>Scale 1 reproduces class A: mean −0.99, spread 0.49. Scale 3 pushes the samples past A's center, away from B,
+    and narrows them from left to right. In real models, a scale above 1 often makes samples match their condition more
+    clearly, at the cost of variety. Too large a scale distorts them.</p>
+  </section>
+
+  <section id="why">
+    <h2>Why it works: the difference points toward "more like the condition"</h2>
+    <p>The difference <var>v</var>(<var>x</var>, <var>t</var>, <var>c</var>) − <var>v</var>(<var>x</var>, <var>t</var>,
+    ∅) is the part of the velocity that the condition adds. Scaling it up exaggerates what makes examples of
+    <var>c</var> differ from examples in general. In the toy, A differs from the mix only from left to right, so guidance
+    acts only from left to right.</p>
+    <p>In terms of probability, guidance with scale <var>s</var> changes the distribution at each noise level. It starts
+    from the unconditional distribution <var>p</var>(<var>x</var>) and weights each point <var>x</var> by
+    <var>p</var>(<var>c</var> | <var>x</var>)<sup><var>s</var></sup>. Here <var>p</var>(<var>c</var> | <var>x</var>)
+    is the probability that a classifier of noisy inputs gives to <var>c</var>. At <var>s</var> = 1 the result,
+    <var>p</var>(<var>x</var>) · <var>p</var>(<var>c</var> | <var>x</var>), is proportional to the conditional
+    distribution <var>p</var>(<var>x</var> | <var>c</var>) by Bayes' rule. A larger <var>s</var> favors points that the
+    classifier is surer about.</p>
+    <div class="callout warn">
+      <span class="callout-title">An intuition, not an exact law</span>
+      <p>The probability statement holds at each noise level separately. The sampler chains all the levels, and the
+      chain does not in general draw exactly from the tilted distribution of the data. Papers also write the formula
+      differently. The original paper uses (1 + <var>w</var>) × conditional − <var>w</var> × unconditional, so its
+      <var>w</var> equals <var>s</var> − 1 here, and its <var>w</var> = 0 is plain conditional generation.</p>
+    </div>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>The unconditional prediction is (0, 2) and the conditional one is (1, 1). What is the guided velocity with
+      <var>s</var> = 4?</p>
+      <details><summary>Answer</summary><p>The difference is (1, −1), so (0, 2) + 4 × (1, −1) = (4, −2).</p></details>
+    </li>
+    <li>
+      <p>A model was trained without condition dropout. Why can you not use classifier-free guidance with it?</p>
+      <details><summary>Answer</summary><p>The network never saw the "no condition" input, so its unconditional
+      prediction was never trained. Guidance needs that prediction. You would need a second, unconditional model.</p></details>
+    </li>
+    <li>
+      <p>Why do samples vary less as the scale grows above 1?</p>
+      <details><summary>Answer</summary><p>Guidance pushes every sample further in the direction that separates the
+      condition from the rest. That squeezes the samples toward the most clearly "condition-like" region. In the toy,
+      the left-to-right spread falls from 0.49 at <var>s</var> = 1 to 0.30 at <var>s</var> = 3.</p></details>
+    </li>
+    <li>
+      <p>A generator takes 30 Euler steps with guidance. How many network runs does one sample need?</p>
+      <details><summary>Answer</summary><p>60: two runs per step, one with the condition and one without.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers with more time.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://sander.ai/2022/05/26/guidance.html#-classifier-free-guidance">Guidance: a cheat code for diffusion models</a>
+        <span class="fl-src">Sander Dieleman</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">The clearest account of why guidance works, including the probability view.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://poloclub.github.io/diffusion-explainer/">Diffusion Explainer</a>
+        <span class="fl-src">Polo Club, Georgia Tech</span>
+        <span class="fl-format">Interactive page</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Move its guidance-scale slider and watch an image model follow the text more closely, then
+      exaggerate it.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://arxiv.org/abs/2207.12598">Classifier-Free Diffusion Guidance</a>
+        <span class="fl-src">Ho and Salimans</span>
+        <span class="fl-format">Paper</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">The original method, with condition dropout and the trade between quality and variety.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <p>No unit or explanation builds on this one yet.</p>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  'use strict';
+  const root = document.documentElement;
+  const css = n => getComputedStyle(root).getPropertyValue(n).trim();
+  const fit = cv => {
+    const dpr = window.devicePixelRatio || 1;
+    const w = Math.max(1, Math.round(cv.clientWidth)), h = Math.max(1, Math.round(cv.clientHeight));
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
+      cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    }
+    const ctx = cv.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    return { ctx, w, h };
+  };
+  const rand = seed => () => {
+    seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const gauss = r => { let u = 0; while (u === 0) u = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * r()); };
+
+  const cvA = document.getElementById('cfg-arrows'), cvS = document.getElementById('cfg-samples');
+  if (!cvA || !cvS) return;
+  const sIn = document.getElementById('cfg-s'), sOut = document.getElementById('cfg-s-out'), read = document.getElementById('cfg-read');
+  const MU = { A: [-1, 0], B: [1, 0] }, SIG = 0.5, N = 600, STEPS = 50;
+  // exact flow-matching velocity for an equal mix of the listed classes (same formula as the Python above)
+  const velocity = (x, t, classes) => {
+    const s2 = t * t * SIG * SIG + (1 - t) * (1 - t), k = (t * SIG * SIG - (1 - t)) / s2;
+    const lw = classes.map(c => -((x[0] - t * MU[c][0]) ** 2 + (x[1] - t * MU[c][1]) ** 2) / (2 * s2));
+    const m = Math.max(...lw), w = lw.map(v => Math.exp(v - m)), sw = w.reduce((a, b) => a + b, 0);
+    let vx = 0, vy = 0;
+    classes.forEach((c, i) => {
+      vx += w[i] / sw * (MU[c][0] + k * (x[0] - t * MU[c][0]));
+      vy += w[i] / sw * (MU[c][1] + k * (x[1] - t * MU[c][1]));
+    });
+    return [vx, vy];
+  };
+  const r0 = rand(9);
+  const noise = Array.from({ length: N }, () => [gauss(r0), gauss(r0)]);
+  const data = [];
+  for (let i = 0; i < 250; i++) for (const c of ['A', 'B']) data.push({ c, p: [MU[c][0] + SIG * gauss(r0), MU[c][1] + SIG * gauss(r0)] });
+  const PROBE = [-0.3, 0.4], TP = 0.5;
+  let samples = [];
+  const simulate = s => {
+    samples = noise.map(z => {
+      let x = z.slice();
+      for (let k = 0; k < STEPS; k++) {
+        const t = k / STEPS, vu = velocity(x, t, ['A', 'B']), vc = velocity(x, t, ['A']);
+        x = [x[0] + (vu[0] + s * (vc[0] - vu[0])) / STEPS, x[1] + (vu[1] + s * (vc[1] - vu[1])) / STEPS];
+      }
+      return x;
+    });
+  };
+  const arrow = (ctx, x0, y0, x1, y1) => {
+    const dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy);
+    if (L < 1e-6) return;
+    const ux = dx / L, uy = dy / L, hh = Math.min(9, L * 0.5);
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x1, y1);
+    ctx.lineTo(x1 - ux * hh - uy * hh * 0.5, y1 - uy * hh + ux * hh * 0.5);
+    ctx.lineTo(x1 - ux * hh + uy * hh * 0.5, y1 - uy * hh - ux * hh * 0.5);
+    ctx.closePath(); ctx.fill();
+  };
+  function paintArrows(s) {
+    const { ctx, w, h } = fit(cvA);
+    const X0 = -5.2, X1 = 1.0, S = w / (X1 - X0), X = x => (x - X0) * S, Y = y => h / 2 - y * S;
+    const vu = velocity(PROBE, TP, ['A', 'B']), vc = velocity(PROBE, TP, ['A']);
+    const vg = [vu[0] + s * (vc[0] - vu[0]), vu[1] + s * (vc[1] - vu[1])];
+    const ox = 0.2, oy = 0.3;
+    ctx.strokeStyle = css('--ink-3'); ctx.setLineDash([4, 4]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(X(ox + vu[0] + 0.4 * (vu[0] - vc[0])), Y(oy + vu[1])); ctx.lineTo(X(X0), Y(oy + vu[1])); ctx.stroke(); ctx.setLineDash([]);
+    ctx.lineWidth = 2.5;
+    for (const [v, col] of [[vg, '--s2'], [vc, '--s1'], [vu, '--ink-2']]) {
+      ctx.strokeStyle = css(col); ctx.fillStyle = css(col);
+      arrow(ctx, X(ox), Y(oy), X(ox + v[0]), Y(oy + v[1]));
+    }
+    ctx.fillStyle = css('--ink'); ctx.beginPath(); ctx.arc(X(ox), Y(oy), 4, 0, 2 * Math.PI); ctx.fill();
+    ctx.font = '12px ' + css('--font-body');
+    ctx.fillStyle = css('--ink-2'); ctx.fillText('no condition', X(ox + vu[0]) - 10, Y(oy + vu[1]) + 22);
+    ctx.fillStyle = css('--s1'); ctx.fillText('class A', X(ox + vc[0]) - 18, Y(oy) - 10);
+    ctx.fillStyle = css('--s2'); ctx.textAlign = 'left';
+    const gx = Math.max(X(X0) + 4, Math.min(X(ox + vg[0]) - 20, w - 70));
+    ctx.fillText('guided', gx, Y(oy + vg[1]) + 22);
+  }
+  function paintSamples() {
+    const { ctx, w, h } = fit(cvS);
+    const RX = 2.9, S = w / (2 * RX), X = x => w / 2 + x * S, Y = y => h / 2 - y * S;
+    ctx.strokeStyle = css('--rule'); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, Y(0)); ctx.lineTo(w, Y(0)); ctx.stroke();
+    ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(X(0), 0); ctx.lineTo(X(0), h); ctx.stroke(); ctx.setLineDash([]);
+    ctx.globalAlpha = 0.2;
+    for (const d of data) { ctx.fillStyle = css(d.c === 'A' ? '--s1' : '--s2'); ctx.beginPath(); ctx.arc(X(d.p[0]), Y(d.p[1]), 2.2, 0, 2 * Math.PI); ctx.fill(); }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = css('--accent');
+    for (const p of samples) { ctx.beginPath(); ctx.arc(X(p[0]), Y(p[1]), 2.3, 0, 2 * Math.PI); ctx.fill(); }
+    const mx = samples.reduce((a, p) => a + p[0], 0) / N;
+    ctx.strokeStyle = css('--ink'); ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(X(mx), Y(0) - 10); ctx.lineTo(X(mx), Y(0) + 10); ctx.stroke();
+    ctx.font = '12px ' + css('--font-body'); ctx.fillStyle = css('--ink-2');
+    ctx.fillText('A at (−1, 0)', X(-1) - 34, Y(-1.75));
+    ctx.fillText('B at (1, 0)', X(1) - 30, Y(-1.75));
+  }
+  function update() {
+    const s = Number(sIn.value);
+    sOut.textContent = s.toFixed(2);
+    simulate(s);
+    paintArrows(s); paintSamples();
+    const mx = samples.reduce((a, p) => a + p[0], 0) / N, my = samples.reduce((a, p) => a + p[1], 0) / N;
+    const sx = Math.sqrt(samples.reduce((a, p) => a + (p[0] - mx) ** 2, 0) / N);
+    const sy = Math.sqrt(samples.reduce((a, p) => a + (p[1] - my) ** 2, 0) / N);
+    const onB = samples.filter(p => p[0] > 0).length / N;
+    read.textContent = `scale ${s.toFixed(2)}: average x ${mx.toFixed(2)} (the tick on the axis), spread left to right ${sx.toFixed(2)}, ` +
+      `spread top to bottom ${sy.toFixed(2)}, share on B's side of the dashed line ${Math.round(100 * onB)}%`;
+  }
+  const repaint = () => { paintArrows(Number(sIn.value)); paintSamples(); };
+  sIn.addEventListener('input', update);
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', repaint);
+  new MutationObserver(repaint).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+  window.addEventListener('resize', repaint);
+  update();
+})();
+</script>
+</body>
+</html>

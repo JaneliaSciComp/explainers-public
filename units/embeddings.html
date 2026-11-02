@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="embeddings">
+<meta name="unit-level" content="u1">
+<title>Embeddings: things as vectors</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Embeddings: things as vectors</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="vectors.html">Vectors: arrows made of numbers</a> <span class="level-badge level-hs">High school</span> <span class="minutes">8 min</span></li>
+    <li><a href="linear-layer.html">A linear layer: weighted sums</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A neural network computes only with numbers. An <dfn>embedding</dfn> gives each item the network reads, such
+  as a word, a category or a 3D point, a vector of <var>d</var> numbers. The network learns these vectors during
+  training, like its other weights. For items from a fixed list, the embedding is a table with one learned row per
+  item. For items that are already numbers, such as a point's coordinates, a linear layer turns them into the
+  vector. Picture every item as a dot in a space of <var>d</var> dimensions, placed where it helps the task.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="why-not-labels">
+    <h2>A label number would invent an order that is not there</h2>
+    <p>Say a network must read one of four kinds of object: cat, dog, car and truck. The simplest idea is to number
+    them 0, 1, 2 and 3 and feed in that number. This misleads the network. A <a href="linear-layer.html">linear
+    layer</a> multiplies its input by weights, so it would treat "truck" as three times "dog", and "car" as halfway
+    between "dog" and "truck". None of that is true.</p>
+    <p>An embedding avoids the problem. Each item gets its own vector, and no item's vector depends on another
+    item's number. The network can then place cat near dog and car near truck, if that helps it.</p>
+  </section>
+
+  <section id="table">
+    <h2>An embedding table holds one learned row per item</h2>
+    <p>An <dfn>embedding table</dfn> has one row for each item in the list and <var>d</var> columns. The number
+    <var>d</var> is the <dfn>embedding size</dfn>. To embed an item, the network looks up its row. Real tables are
+    large: for example, 50,000 words with <var>d</var> = 512. The figure uses four items and <var>d</var> = 2, so
+    each row is a point you can draw.</p>
+
+    <figure id="fig-table">
+      <div class="fig-title">A table with one row per item, drawn as points in the plane</div>
+      <svg width="420" height="200" viewBox="0 0 420 200" role="img"
+           aria-label="Left: a table with four rows, cat 0.9 0.2, dog 0.8 0.3, car minus 0.7 0.6, truck minus 0.8 0.5. Right: the four rows drawn as points; cat and dog sit together on the right, car and truck together on the left.">
+        <text x="8" y="16" class="ink2">Embedding table (<tspan font-style="italic">d</tspan> = 2)</text>
+        <text x="100" y="40" class="muted" text-anchor="middle">column 1</text>
+        <text x="160" y="40" class="muted" text-anchor="middle">column 2</text>
+        <g>
+          <rect x="68" y="48" width="124" height="28" fill="var(--accent-soft)" stroke="var(--rule)"/>
+          <rect x="68" y="76" width="124" height="28" fill="var(--accent-soft)" stroke="var(--rule)"/>
+          <rect x="68" y="104" width="124" height="28" fill="var(--accent-soft)" stroke="var(--rule)"/>
+          <rect x="68" y="132" width="124" height="28" fill="var(--accent-soft)" stroke="var(--rule)"/>
+          <line x1="130" y1="48" x2="130" y2="160" stroke="var(--rule)"/>
+          <text x="60" y="67" text-anchor="end" font-weight="700" class="f-s1">cat</text>
+          <text x="60" y="95" text-anchor="end" font-weight="700" class="f-s1">dog</text>
+          <text x="60" y="123" text-anchor="end" font-weight="700" class="f-s2">car</text>
+          <text x="60" y="151" text-anchor="end" font-weight="700" class="f-s2">truck</text>
+          <text x="100" y="67" text-anchor="middle">0.9</text><text x="160" y="67" text-anchor="middle">0.2</text>
+          <text x="100" y="95" text-anchor="middle">0.8</text><text x="160" y="95" text-anchor="middle">0.3</text>
+          <text x="100" y="123" text-anchor="middle">−0.7</text><text x="160" y="123" text-anchor="middle">0.6</text>
+          <text x="100" y="151" text-anchor="middle">−0.8</text><text x="160" y="151" text-anchor="middle">0.5</text>
+          <text x="8" y="186" class="muted">row = one item's vector</text>
+        </g>
+        <g transform="translate(312,110)">
+          <line x1="-90" y1="0" x2="90" y2="0" style="stroke:var(--ink-3)"/>
+          <line x1="0" y1="-90" x2="0" y2="80" style="stroke:var(--ink-3)"/>
+          <text x="92" y="30" class="muted" text-anchor="end">column 1</text>
+          <text x="5" y="-80" class="muted">column 2</text>
+          <text x="80" y="15" class="muted" text-anchor="middle">1</text>
+          <text x="-80" y="15" class="muted" text-anchor="middle">−1</text>
+          <line x1="80" y1="-3" x2="80" y2="3" style="stroke:var(--ink-3)"/>
+          <line x1="-80" y1="-3" x2="-80" y2="3" style="stroke:var(--ink-3)"/>
+          <circle cx="72" cy="-16" r="5" class="f-s1"/><text x="80" y="-11" text-anchor="start">cat</text>
+          <circle cx="64" cy="-24" r="5" class="f-s1"/><text x="56" y="-31" text-anchor="end">dog</text>
+          <circle cx="-56" cy="-48" r="5" class="f-s2"/><text x="-48" y="-56" text-anchor="start">car</text>
+          <circle cx="-64" cy="-40" r="5" class="f-s2"/><text x="-70" y="-28" text-anchor="end">truck</text>
+        </g>
+      </svg>
+      <figcaption><b>What to notice.</b> Each row of the table is one point. In this made-up table, training has put
+      the two animals close together and the two vehicles close together, far from the animals.</figcaption>
+    </figure>
+
+    <p><b>Predict first.</b> Is "cat" closer to "dog" or to "truck"? Guess from the picture, then check with numbers.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: look up and compare</span>
+      <ol>
+        <li>Embed "dog": look up its row, [0.8, 0.3].</li>
+        <li>Measure the <a href="distance.html">distance</a> from cat to dog:
+        √((0.9 − 0.8)<sup>2</sup> + (0.2 − 0.3)<sup>2</sup>) = √0.02 ≈ 0.141.</li>
+        <li>Measure the distance from cat to truck:
+        √((0.9 − (−0.8))<sup>2</sup> + (0.2 − 0.5)<sup>2</sup>) = √2.98 ≈ 1.726.</li>
+      </ol>
+      <p>Cat is twelve times closer to dog than to truck. A later layer that reads these vectors will tend to treat
+      cat and dog alike, which the label numbers 0 and 1 could never arrange on their own.</p>
+    </div>
+
+    <p>Looking up a row is the same as a linear layer without a bias applied to a <dfn>one-hot vector</dfn>: a
+    vector with a 1 in the item's place and 0 everywhere else. For dog, the one-hot vector is [0, 1, 0, 0]. Each
+    output is a weighted sum in which only dog's weight survives, so the result is dog's row. Libraries skip the
+    multiplication and look the row up directly; PyTorch calls the table <code>torch.nn.Embedding</code>.</p>
+  </section>
+
+  <section id="points">
+    <h2>A point already has numbers, and a linear layer lifts them to d numbers</h2>
+    <p>A 3D point <b>p</b> = (<var>x</var>, <var>y</var>, <var>z</var>) is already a vector, but only of 3
+    numbers. Networks usually want longer vectors, such as 64 or 256 numbers, so that later layers have room to store
+    what they learn about the point. A linear layer with weights <b>W</b> (<var>d</var> rows, 3 columns) and a
+    bias <b>b</b> makes the embedding <b>W</b><b>p</b> + <b>b</b>.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: embed the point (1, 2, −1) with d = 4</span>
+      <p>Take these learned weights and bias:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Output</th><th class="r">weight on <var>x</var></th><th class="r">on <var>y</var></th><th class="r">on <var>z</var></th><th class="r">bias</th><th class="r">result</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td class="r">0.5</td><td class="r">−0.2</td><td class="r">0.1</td><td class="r">0.1</td><td class="r">0.5 − 0.4 − 0.1 + 0.1 = 0.1</td></tr>
+            <tr><td>2</td><td class="r">0.0</td><td class="r">0.3</td><td class="r">0.8</td><td class="r">0.0</td><td class="r">0 + 0.6 − 0.8 + 0 = −0.2</td></tr>
+            <tr><td>3</td><td class="r">−0.4</td><td class="r">0.6</td><td class="r">0.2</td><td class="r">−0.2</td><td class="r">−0.4 + 1.2 − 0.2 − 0.2 = 0.4</td></tr>
+            <tr><td>4</td><td class="r">0.7</td><td class="r">0.1</td><td class="r">−0.5</td><td class="r">0.3</td><td class="r">0.7 + 0.2 + 0.5 + 0.3 = 1.7</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The point's embedding is [0.1, −0.2, 0.4, 1.7]. Every point in a cloud goes through the same layer, with the
+      same weights.</p>
+    </div>
+
+    <p>Once every item has a vector of the same size <var>d</var>, the network treats them all alike. Each such
+    vector is called a <dfn>token</dfn>. A model of a point cloud often makes one token per point, or one per small
+    group of nearby points.</p>
+    <p>A linear layer gives nearby points nearby embeddings. The layers after it then find fine detail, such as a
+    sharp change between two close points, slow to learn. Many models therefore first expand each coordinate into
+    waves of several frequencies, called <a href="fourier-features.html">Fourier features</a>, and embed those
+    instead.</p>
+  </section>
+
+  <section id="learned">
+    <h2>Training moves the vectors to where they help</h2>
+    <p>At the start of training, the table and the weights hold small random numbers, so cat and truck are as close
+    as cat and dog. Each training step nudges every weight that took part, table rows included, in the direction
+    that lowers the error (see <a href="gradient-descent.html">gradient descent</a>). Items that the task treats
+    alike tend to drift together.</p>
+
+    <div class="callout warn">
+      <span class="callout-title">The flat picture is a cartoon</span>
+      <p>Real embeddings have tens to thousands of numbers, not 2. Their single numbers rarely have a meaning a
+      person could name. "Similar items end up close" is a common result of training, not a guarantee: it happens
+      only where the task rewards it. A row for an item that never appears in training keeps its random starting
+      values.</p>
+    </div>
+
+    <p class="code-cap">embed.py</p>
+<pre><code class="py">import numpy as np
+
+E = np.array([[ 0.9, 0.2],    # cat
+              [ 0.8, 0.3],    # dog
+              [-0.7, 0.6],    # car
+              [-0.8, 0.5]])   # truck
+
+one_hot = np.array([0, 1, 0, 0])
+print(E[1], one_hot @ E)      # look up dog's row, two ways
+
+def dist(a, b):
+    return np.linalg.norm(E[a] - E[b])
+print(round(dist(0, 1), 3), round(dist(0, 3), 3))
+
+W = np.array([[0.5, -0.2, 0.1], [0.0, 0.3, 0.8],
+              [-0.4, 0.6, 0.2], [0.7, 0.1, -0.5]])
+b = np.array([0.1, 0.0, -0.2, 0.3])
+print(W @ np.array([1.0, 2.0, -1.0]) + b)   # embed a 3D point
+</code></pre>
+<pre class="out">[0.8 0.3] [0.8 0.3]
+0.141 1.726
+[ 0.1 -0.2  0.4  1.7]</pre>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>An embedding table covers 50,000 words with <var>d</var> = 512. How many numbers does training have to
+      learn for it?</p>
+      <details><summary>Answer</summary><p>50,000 × 512 = 25,600,000: one learned number for each cell of the
+      table.</p></details>
+    </li>
+    <li>
+      <p>Work a similar problem. Using the weights and bias of the worked example, embed the point (0, 1, 0).</p>
+      <details><summary>Answer</summary><p>Only the weights on <var>y</var> count: [−0.2, 0.3, 0.6, 0.1]. Add the
+      bias [0.1, 0.0, −0.2, 0.3] to get [−0.1, 0.3, 0.4, 0.4].</p></details>
+    </li>
+    <li>
+      <p>Why is feeding the item numbers 0, 1, 2, 3 into a linear layer a poor idea, while a one-hot vector works?</p>
+      <details><summary>Answer</summary><p>A single number forces an order and a spacing: the layer's output changes
+      by the same step from item 0 to 1 as from 1 to 2. A one-hot vector gives each item its own input, so each item
+      gets its own learned weights, which is exactly a row of an embedding table.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://developers.google.com/machine-learning/crash-course/embeddings/obtaining-embeddings#training_an_embedding_as_part_of_a_neural_network">Embeddings: training an embedding as part of a neural network</a>
+        <span class="fl-src">Google Machine Learning Crash Course</span>
+        <span class="fl-format">Course page</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Shows the embedding table as the first layer of a network, fed with one-hot vectors, with
+      diagrams and a short quiz.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://www.3blue1brown.com/lessons/gpt#embedding">Transformers, the tech behind LLMs: "Embedding"</a>
+        <span class="fl-src">3Blue1Brown</span>
+        <span class="fl-format">Video and page</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Animates word embeddings as directions in a high-dimensional space, and why directions can
+      carry meaning.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://jalammar.github.io/illustrated-word2vec/#personality-embeddings-what-are-you-like">The Illustrated Word2vec: "Personality Embeddings"</a>
+        <span class="fl-src">Jay Alammar</span>
+        <span class="fl-format">Illustrated article</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Builds the idea of describing a thing by a vector from a personality test, before moving to
+      words.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="fourier-features.html">Fourier features: positions as waves</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">8 min</span></li>
+    <li><a href="attention.html">Attention: queries, keys, values</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">10 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+</body>
+</html>

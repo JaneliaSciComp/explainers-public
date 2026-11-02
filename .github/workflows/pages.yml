@@ -1,0 +1,57 @@
+# Publish the site with GitHub Pages: https://janeliascicomp.github.io/explainers-public/
+# The site mirrors the repo's paths: index.html at the root, and units/ beside it.
+name: pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true        # the video is in Git LFS; without this the site would serve its pointer
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Build check
+        run: python3 -I -B scripts/build_units.py --check --require-all
+      - name: Links on the front page
+        run: python3 -I -B scripts/build_units.py --check-links index.html
+      - name: Leak scan, built-in patterns
+        run: python3 -I -B scripts/scan_public.py --all --builtin-only
+      - name: Assemble the site
+        run: |
+          mkdir _site
+          cp index.html _site/
+          cp -R units _site/
+          if head -c 200 _site/units/media/flow-matching.mp4 | grep -q 'git-lfs'; then
+            echo "flow-matching.mp4 is an LFS pointer, not the video"; exit 1
+          fi
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

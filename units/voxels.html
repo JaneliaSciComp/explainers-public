@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="voxels">
+<meta name="unit-level" content="u1">
+<title>3D images made of voxels</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>3D images made of voxels</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="vectors.html">Vectors: arrows made of numbers</a> <span class="level-badge level-hs">High school</span> <span class="minutes">8 min</span></li>
+    <li><a href="distance.html">Distance between two points</a> <span class="level-badge level-hs">High school</span> <span class="minutes">6 min</span></li>
+    <li><a href="numpy-arrays.html">Arrays in NumPy</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">9 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A 3D image is a stack of flat images. It forms a grid of tiny boxes called voxels, and each voxel holds one
+  number, such as a brightness. A voxel is named by its three grid indices. Its size says how much real space it
+  covers, and that size can differ between axes: a voxel might be 8 nm wide but 40 nm deep. So a count of voxel
+  steps is not a length. To measure real distances, multiply each index step by the voxel size along that axis
+  first.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="stack">
+    <h2>A 3D image is a stack of 2D images</h2>
+    <p>A photo on a screen is a grid of small squares called <dfn>pixels</dfn>. Each pixel holds a number for its
+    brightness, for example from 0 (black) to 255 (white). Now take many photos of thin slices of an object, one
+    under the next, and stack them. The stack is a <dfn>3D image</dfn>, also called a <dfn>volume</dfn>.</p>
+    <p>Each small box in the stack is a <dfn>voxel</dfn>, short for "volume pixel." A voxel has three whole-number
+    <dfn>indices</dfn> that say where it sits in the grid: column <var>x</var>, row <var>y</var>, and slice
+    <var>z</var>. It holds one value, the brightness of the material inside that box.</p>
+
+    <figure id="fig-stack">
+      <div class="fig-title">Three slices stacked into a 3D image; one voxel is highlighted</div>
+      <div class="scroll-x">
+      <svg width="560" height="250" viewBox="0 0 560 250" role="img"
+        aria-label="Three flat grids of squares stacked with a gap between them. One box in the top grid is highlighted and labeled 8 nm by 8 nm by 40 nm.">
+        <defs>
+          <pattern id="vx-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+            <path d="M20 0 L0 0 0 20" fill="none" stroke="var(--ink-3)" stroke-width="0.7"/>
+          </pattern>
+        </defs>
+        <!-- each slice is a skewed square: a parallelogram -->
+        <g transform="translate(60,170) skewX(-40) scale(1,0.5)">
+          <rect x="0" y="0" width="200" height="120" fill="var(--grid)" stroke="var(--ink-3)"/>
+          <rect x="0" y="0" width="200" height="120" fill="url(#vx-grid)"/>
+        </g>
+        <g transform="translate(60,110) skewX(-40) scale(1,0.5)">
+          <rect x="0" y="0" width="200" height="120" fill="var(--grid)" stroke="var(--ink-3)"/>
+          <rect x="0" y="0" width="200" height="120" fill="url(#vx-grid)"/>
+        </g>
+        <g transform="translate(60,50) skewX(-40) scale(1,0.5)">
+          <rect x="0" y="0" width="200" height="120" fill="var(--grid)" stroke="var(--ink-3)"/>
+          <rect x="0" y="0" width="200" height="120" fill="url(#vx-grid)"/>
+          <rect x="80" y="40" width="20" height="20" class="f-s2"/>
+        </g>
+        <text x="270" y="82" class="ink2">slice z = 2</text>
+        <text x="270" y="142" class="ink2">slice z = 1</text>
+        <text x="270" y="202" class="ink2">slice z = 0</text>
+        <!-- callout for the highlighted voxel -->
+        <line x1="128" y1="75" x2="390" y2="40" stroke="var(--s2)" stroke-width="1.2"/>
+        <text x="395" y="36">one voxel</text>
+        <text x="395" y="54" class="ink2">8 nm wide (x)</text>
+        <text x="395" y="70" class="ink2">8 nm tall (y)</text>
+        <text x="395" y="86" class="ink2">40 nm deep (z)</text>
+        <text x="395" y="120" class="muted">The gap between slices</text>
+        <text x="395" y="136" class="muted">is drawn only to show</text>
+        <text x="395" y="152" class="muted">the stacking; real slices</text>
+        <text x="395" y="168" class="muted">touch.</text>
+      </svg>
+      </div>
+      <figcaption><b>What to notice.</b> Each slice is a grid of squares. Stacking the slices turns each square into a
+      box, a voxel. Here a box is 5 times deeper than it is wide.</figcaption>
+    </figure>
+  </section>
+
+  <section id="size">
+    <h2>A voxel's size can differ between axes</h2>
+    <p>The <dfn>voxel size</dfn> gives the real width, height and depth of one voxel. Microscope images of cells use
+    the <dfn>nanometer</dfn> (nm), one billionth of a meter. A thousand nanometers make one micrometer (µm), and a
+    human hair is about 70 µm wide.</p>
+    <p>When a voxel has the same size on all three axes, the image is <dfn>isotropic</dfn>. Often it is not. Some
+    electron microscopes see each slice at 8 nm per pixel, but the slices themselves are cut 40 nm thick. Then
+    each voxel is 8 × 8 × 40 nm, and the image is <dfn>anisotropic</dfn>: its voxel size depends on the
+    direction.</p>
+    <p>The grid hides this. In the array, a step of one voxel along <var>z</var> looks just like a step of one
+    voxel along <var>x</var>. In real space, the <var>z</var> step is 5 times longer.</p>
+  </section>
+
+  <section id="distance">
+    <h2>Distances need physical units</h2>
+    <p>To find the real position of a voxel, multiply each index by the voxel size along that axis. Then use the
+    usual distance formula (see <a href="distance.html">distance between two points</a>) on those positions. If you
+    skip the multiplication, you get a count of voxel steps, which mixes 8 nm steps with 40 nm steps.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: two voxels 8 × 8 × 40 nm in size</span>
+      <p>Voxel A has indices (10, 20, 5). Voxel B has indices (13, 24, 8).</p>
+      <ol>
+        <li>The steps between them are (13 − 10, 24 − 20, 8 − 5) = (3, 4, 3) voxels.</li>
+        <li>Counting in voxel steps gives √(3² + 4² + 3²) = √34 ≈ 5.83. This number has no real unit.</li>
+        <li>In nanometers, the steps are (3 × 8, 4 × 8, 3 × 40) = (24, 32, 120) nm.</li>
+        <li>The distance is √(24² + 32² + 120²) = √(576 + 1,024 + 14,400) = √16,000 ≈ 126.5 nm.</li>
+      </ol>
+      <p>In voxels, the <var>z</var> step is no bigger than the others. In nanometers it is 120 nm, most of the
+      126.5 nm distance.</p>
+    </div>
+
+    <p>Skipping the conversion can even change which point is nearer. Before you use the figure, predict: point C
+    is 4 voxels from A along <var>x</var>, and point D is 1 voxel from A along <var>z</var>. Which is nearer?</p>
+
+    <figure id="fig-aniso">
+      <div class="fig-title">A side view of the grid, drawn to real scale</div>
+      <div class="scroll-x">
+      <svg id="ani-svg" width="200" height="270" viewBox="0 0 200 270" role="img"
+        aria-label="A side view of voxels, x across and z down. Point A, point C four voxels to the right, and point D one voxel below. Lines join A to C and A to D.">
+        <g id="ani-grid"></g>
+        <g id="ani-marks"></g>
+      </svg>
+      </div>
+      <div class="controls">
+        <label>Voxel depth along z <input type="range" id="ani-z" min="8" max="40" step="1" value="40"> <output id="ani-z-out">40 nm</output></label>
+      </div>
+      <div class="readout-box" id="ani-read" aria-live="polite"></div>
+      <figcaption><b>Goal:</b> start at 40 nm, where C is nearer than D. Drag the depth down until C and D are equally
+      far from A. In voxel steps, D always looks nearer (1 step against 4), whatever the depth.</figcaption>
+    </figure>
+
+    <p>The two lengths match at a depth of 32 nm, because C is 4 × 8 = 32 nm from A. At the real depth of 40 nm, C
+    is nearer. Any program that finds nearest points, measures lengths or compares shapes must first turn voxel
+    indices into physical units.</p>
+
+    <div class="callout warn">
+      <span class="callout-title">Two details this unit skips</span>
+      <p><b>Axis order.</b> Many programs store a volume as <code>array[z, y, x]</code>, with <var>z</var> first.
+      Others use <code>[x, y, z]</code>. Check the order before you multiply by a voxel size, or you will scale the
+      wrong axis.</p>
+      <p><b>Where a voxel sits.</b> A voxel covers a box, but a single position must stand for it. Some tools use the
+      box's corner and some its center, which differ by half a voxel. A volume may also start at an offset from
+      the origin. Real positions are index × voxel size, plus that offset.</p>
+    </div>
+  </section>
+
+  <section id="code">
+    <h2>In NumPy, scale the index steps, then measure</h2>
+    <p class="code-cap">voxels.py</p>
+<pre><code class="py" data-hl="10,11">import numpy as np
+
+voxel_size = np.array([8.0, 8.0, 40.0])   # nm per voxel along x, y, z
+
+a = np.array([10, 20, 5])   # voxel indices (x, y, z)
+b = np.array([13, 24, 8])
+print(round(np.linalg.norm(b - a), 2))                 # voxel steps: not a real length
+print(round(np.linalg.norm((b - a) * voxel_size), 2))  # nanometers
+
+c = np.array([14, 20, 5])   # 4 voxels from a along x
+d = np.array([10, 20, 6])   # 1 voxel from a along z
+for p in (c, d):
+    print(np.linalg.norm(p - a), np.linalg.norm((p - a) * voxel_size))
+</code></pre>
+<pre class="out"><code>5.83
+126.49
+4.0 32.0
+1.0 40.0</code></pre>
+    <p>Lines 10 and 11 set up C and D. In voxel steps D is nearer (1 against 4). In nanometers C is nearer (32
+    against 40).</p>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>What is the volume of one 8 × 8 × 40 nm voxel? How many such voxels fit along 1 µm in <var>x</var>, and how
+      many along 1 µm in <var>z</var>?</p>
+      <details><summary>Answer</summary><p>The volume is 8 × 8 × 40 = 2,560 nm³. One µm is 1,000 nm, so 1,000 ÷ 8 = 125
+      voxels fit along <var>x</var>, and 1,000 ÷ 40 = 25 along <var>z</var>.</p></details>
+    </li>
+    <li>
+      <p>With voxels of 8 × 8 × 40 nm, voxel P has indices (0, 0, 0) and voxel Q has indices (5, 0, 1). How far apart
+      are they in nanometers?</p>
+      <details><summary>Answer</summary><p>The steps are (5, 0, 1) voxels, which is (40, 0, 40) nm. The distance is
+      √(40² + 40²) = √3,200 ≈ 56.6 nm. In voxel steps it would wrongly be √26 ≈ 5.1.</p></details>
+    </li>
+    <li>
+      <p>A program stores a volume as <code>array[z, y, x]</code> and uses the voxel size (8, 8, 40) in that same
+      order. What goes wrong?</p>
+      <details><summary>Answer</summary><p>It multiplies the <var>z</var> steps by 8 and the <var>x</var> steps by 40.
+      Depth looks 5 times too short and width 5 times too long. The voxel size must be listed in the same axis order
+      as the array, here (40, 8, 8).</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background. This unit covers what you need here.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://scikit-image.org/docs/stable/auto_examples/applications/plot_3d_image_processing.html">Explore 3D images (of cells)</a>
+        <span class="fl-src">scikit-image gallery</span>
+        <span class="fl-format">Tutorial</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Loads a real microscope volume whose voxels are deeper than wide; the opening section shows how to record and use that "spacing."</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://en.wikipedia.org/wiki/Voxel#Data">Voxel: Data</a>
+        <span class="fl-src">Wikipedia</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">A short definition, with the other uses of voxels in medical scans and games.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="segmentation.html">Segmentation: a label for every voxel</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  'use strict';
+  const svg = document.getElementById('ani-svg');
+  const zIn = document.getElementById('ani-z'), zOut = document.getElementById('ani-z-out');
+  const read = document.getElementById('ani-read');
+  if (!svg || !zIn) return;
+  const NS = 'http://www.w3.org/2000/svg';
+  const grid = document.getElementById('ani-grid'), marks = document.getElementById('ani-marks');
+  const PX = 2.8;                 // screen pixels per nanometer
+  const VX = 8, COLS = 6, ROWS = 2, X0 = 30, Y0 = 30;
+  const el = (tag, attrs, parent, text) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text !== undefined) e.textContent = text;
+    parent.appendChild(e); return e;
+  };
+  function draw() {
+    const vz = Number(zIn.value);
+    grid.replaceChildren(); marks.replaceChildren();
+    const w = VX * PX, h = vz * PX;
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+      el('rect', { x: X0 + c * w, y: Y0 + r * h, width: w, height: h, fill: 'var(--grid)', stroke: 'var(--ink-3)', 'stroke-width': 0.8 }, grid);
+    }
+    const ctr = (c, r) => [X0 + (c + 0.5) * w, Y0 + (r + 0.5) * h];
+    const A = ctr(0, 0), C = ctr(4, 0), D = ctr(0, 1);
+    el('line', { x1: A[0], y1: A[1], x2: C[0], y2: C[1], stroke: 'var(--s3)', 'stroke-width': 2.5 }, marks);
+    el('line', { x1: A[0], y1: A[1], x2: D[0], y2: D[1], stroke: 'var(--s2)', 'stroke-width': 2.5 }, marks);
+    [[A, 'A', 'var(--ink)'], [C, 'C', 'var(--s3)'], [D, 'D', 'var(--s2)']].forEach(([p, name, col]) => {
+      el('circle', { cx: p[0], cy: p[1], r: 6, fill: col }, marks);
+      el('text', { x: p[0] + 9, y: p[1] - 7, 'font-weight': 700 }, marks, name);
+    });
+    // axis labels
+    el('text', { x: X0, y: 20, class: 'ink2' }, marks, 'x →');
+    el('text', { x: 8, y: Y0 + 14, class: 'ink2' }, marks, 'z');
+    el('text', { x: 8, y: Y0 + 28, class: 'ink2' }, marks, '↓');
+    zOut.textContent = vz + ' nm';
+    const verdict = vz > 32 ? 'C is nearer to A.' : vz < 32 ? 'D is nearer to A.' : 'C and D are equally far from A. Goal reached.';
+    read.textContent = 'Each box is 8 nm wide and ' + vz + ' nm deep. A to C: 4 voxel steps = 32 nm. A to D: 1 voxel step = ' +
+      vz + ' nm. ' + verdict;
+  }
+  zIn.addEventListener('input', draw);
+  draw();
+})();
+</script>
+</body>
+</html>

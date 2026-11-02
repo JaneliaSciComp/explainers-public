@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="random-draws">
+<meta name="unit-level" content="hs">
+<title>Random draws: chance you can repeat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Random draws: chance you can repeat</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-hs">High school</span> <span class="minutes">7 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Before you start</h2>
+  <p>You need nothing else first. This unit starts from scratch.</p>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A random draw picks one value by chance, like rolling a die. You cannot predict one roll, but many rolls follow
+  a pattern: each face comes up about a sixth of the time. Computers make draws with a fixed recipe that only looks
+  random. The recipe starts from a number called the seed. Start from the same seed and you get the same draws
+  again, which lets you repeat an experiment exactly.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="many-draws">
+    <h2>One draw is unpredictable; many draws follow a pattern</h2>
+    <p>A <dfn>random draw</dfn> is one value picked by chance from a set of possible values. Rolling a fair die is a
+    draw from {1, 2, 3, 4, 5, 6}, and each face has the same chance, 1 in 6. The rule that says how likely each value
+    is called the <dfn>distribution</dfn> of the draw. When every value is equally likely, the distribution is
+    <dfn>uniform</dfn>.</p>
+    <p>Roll 60 times and you expect each face about 10 times, but rarely exactly 10. Roll 6000 times and each face's
+    share lands close to one sixth, even though its count can miss 1000 by 30 or more. The more draws you make, the closer the shares come to the
+    distribution's chances.</p>
+
+    <figure id="fig-hist">
+      <div class="fig-title">More draws bring each face's share closer to one in six</div>
+      <div class="controls">
+        <label>Seed <input id="rd-seed" type="number" min="0" max="9999" step="1" value="1" style="width:5.5em;font:inherit"></label>
+        <label>Draws <input id="rd-n" type="range" min="0" max="5" step="1" value="1"> <output id="rd-on">60</output></label>
+      </div>
+      <div class="scroll-x">
+      <svg id="rd-svg" width="380" height="240" viewBox="0 0 380 240" role="img"
+           aria-label="A bar chart with one bar per die face, showing how many times each face came up, and a dashed line at the expected count">
+        <g id="rd-chart"></g>
+      </svg>
+      </div>
+      <div class="readout-box">First ten draws: <output id="rd-first"></output></div>
+      <figcaption><b>Try this.</b> The dashed line is the expected count, one sixth of the draws. With 60 draws, try
+      seeds 1 to 5: how far do the bars stray from the line? Predict what happens at 6000 draws, then check. Finally,
+      go back to an earlier seed: are the first ten draws the same as before?</figcaption>
+    </figure>
+  </section>
+
+  <section id="seed">
+    <h2>A computer's draws come from a recipe that starts at the seed</h2>
+    <p>A computer follows instructions exactly, so it cannot roll a real die. It uses a <dfn>pseudo-random number
+    generator</dfn> instead: a rule that turns one number into the next, chosen so the results look random. The first
+    number is the <dfn>seed</dfn>. Same seed, same sequence, every time.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example</span>
+      <p>A toy generator: multiply the current number by 5, add 3, and keep the remainder after dividing by 16. So the
+      next number is (5 × current + 3) mod 16, where "mod 16" means "the remainder after dividing by 16."</p>
+      <ol>
+        <li>Seed 7: 5 × 7 + 3 = 38, and 38 mod 16 = 6.</li>
+        <li>From 6: 5 × 6 + 3 = 33, and 33 mod 16 = 1.</li>
+        <li>From 1: 5 × 1 + 3 = 8.</li>
+        <li>From 8: 43 mod 16 = 11. Then 10, 5, 12 and so on.</li>
+      </ol>
+      <p>The sequence 6, 1, 8, 11, 10, 5, 12 looks jumbled, but anyone who starts at 7 gets exactly these numbers.</p>
+      <p><b>Your turn.</b> Run the same generator from seed 2 for three numbers.</p>
+      <details><summary>Answer</summary><p>5 × 2 + 3 = 13; 5 × 13 + 3 = 68, and 68 mod 16 = 4; 5 × 4 + 3 = 23, and
+      23 mod 16 = 7. The next number would be 6, so from here on the sequence repeats the one from seed 7.</p></details>
+    </div>
+
+    <p>Real generators use much larger numbers and cleverer rules, so their sequences pass strict tests of randomness
+    and take an astronomically long time to repeat. The seed still works the same way. Researchers record the seed
+    so that someone else can rerun a computation and get the same numbers.</p>
+
+    <div class="callout warn">
+      <span class="callout-title">This is a simplification</span>
+      <p>The same seed gives the same draws only with the same generator, the same library version and the same
+      order of calls. Several workers that share one generator can take its draws in a different order on each run.
+      The same seed can also give different draws on a CPU and on a graphics card. Some calculations on graphics
+      cards vary from run to run as well, so results can change even when the draws are the same. Pseudo-random numbers are fine for simulations and training, but they are not safe for passwords
+      or keys, which need a generator built for security.</p>
+    </div>
+
+    <p class="code-cap">rand.py: NumPy's generator, with a seed</p>
+<pre><code class="py">import numpy as np
+
+rng = np.random.default_rng(seed=42)
+print(rng.integers(1, 7, size=10))   # ten rolls of a die
+
+rng = np.random.default_rng(seed=42)
+print(rng.integers(1, 7, size=10))   # same seed, same rolls
+
+rng = np.random.default_rng(seed=7)
+print(rng.integers(1, 7, size=10))   # new seed, new rolls
+
+rolls = np.random.default_rng(seed=0).integers(1, 7, size=6000)
+print(np.bincount(rolls)[1:])        # how often each face came up
+</code></pre>
+<pre class="out">[1 5 4 3 3 6 1 5 2 1]
+[1 5 4 3 3 6 1 5 2 1]
+[6 4 5 6 4 5 6 2 1 2]
+[1017  970 1006 1008  969 1030]</pre>
+    <p class="small"><code>integers(1, 7)</code> draws whole numbers from 1 up to but not including 7. The output
+    above came from NumPy 2.5; another version may print different numbers.</p>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>You roll a fair die 600 times. About how many sixes do you expect? Would exactly that number surprise you?</p>
+      <details><summary>Answer</summary><p>About 100. Getting exactly 100 is not likely; a count somewhere between
+      about 80 and 120 is normal.</p></details>
+    </li>
+    <li>
+      <p>Two people run the same program with seed 3, and a third person with seed 4. Whose draws match?</p>
+      <details><summary>Answer</summary><p>The two with seed 3, as long as they use the same generator and library
+      version. The third gets a different sequence.</p></details>
+    </li>
+    <li>
+      <p>A program gives different results each run and you want to find a bug in it. What should you do first?</p>
+      <details><summary>Answer</summary><p>Fix the seed, so that every run makes the same draws and the bug shows up the
+      same way each time.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://seeing-theory.brown.edu/basic-probability/index.html">Basic probability: Chance events</a>
+        <span class="fl-src">Seeing Theory, Brown University; chapter 1, first two sections</span>
+        <span class="fl-format">Interactive page</span>
+        <span class="level-badge level-hs">High school</span>
+      </div>
+      <p class="fl-why">Flip a coin many times and watch the shares settle, then roll a die and watch the average settle.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://numpy.org/doc/stable/reference/random/generator.html">Random Generator</a>
+        <span class="fl-src">NumPy documentation</span>
+        <span class="fl-format">Reference</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">How <code>default_rng(seed)</code> works and the draws it offers.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="bell-curve.html">The bell curve (normal distribution)</a> <span class="level-badge level-hs">High school</span> <span class="minutes">7 min</span></li>
+    <li><a href="data-augmentation.html">Data augmentation: new views of an example</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="generative-models.html">Generative models: making new examples</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const svg = document.getElementById('rd-svg');
+  if (!svg) return;
+  const NS = 'http://www.w3.org/2000/svg', $ = id => document.getElementById(id);
+  const SIZES = [6, 60, 600, 1200, 3000, 6000];
+  // mulberry32: a small, well-known 32-bit generator; the seed fixes the whole sequence
+  const gen = seed => () => {
+    seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const L = 50, R = 370, T = 14, B = 200;
+  function draw() {
+    const seed = Math.max(0, Math.floor(Number($('rd-seed').value) || 0));
+    const n = SIZES[Number($('rd-n').value)];
+    const rnd = gen(seed), counts = [0, 0, 0, 0, 0, 0], first = [];
+    for (let i = 0; i < n; i++) { const f = Math.floor(rnd() * 6); counts[f]++; if (i < 10) first.push(f + 1); }
+    const exp = n / 6, top = Math.max(exp * 1.6, ...counts);
+    const sy = v => B - v / top * (B - T);
+    const g = $('rd-chart'); g.textContent = '';
+    const add = (tag, a, text) => { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); if (text !== undefined) e.textContent = text; g.appendChild(e); };
+    add('line', { x1: L, x2: R, y1: B, y2: B, style: 'stroke:var(--ink-3)' });
+    const w = (R - L) / 6;
+    counts.forEach((c, i) => {
+      add('rect', { x: L + i * w + 8, y: sy(c), width: w - 16, height: B - sy(c), style: 'fill:var(--s1)' });
+      add('text', { x: L + i * w + w / 2, y: B + 18, 'text-anchor': 'middle' }, String(i + 1));
+      add('text', { x: L + i * w + w / 2, y: sy(c) - 5, 'text-anchor': 'middle', class: 'ink2', style: 'font-size:11px' }, String(c));
+    });
+    add('line', { x1: L, x2: R, y1: sy(exp), y2: sy(exp), style: 'stroke:var(--s2);stroke-width:2;stroke-dasharray:6 4' });
+    add('text', { x: L - 6, y: sy(exp) + 4, 'text-anchor': 'end', style: 'fill:var(--s2);font-size:11px' }, String(Math.round(exp)));
+    add('text', { x: (L + R) / 2, y: B + 36, 'text-anchor': 'middle', class: 'muted' }, 'die face');
+    $('rd-on').textContent = String(n);
+    $('rd-first').textContent = first.join(', ');
+  }
+  $('rd-seed').addEventListener('input', draw);
+  $('rd-n').addEventListener('input', draw);
+  draw();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="sigmoid">
+<meta name="unit-level" content="u1">
+<title>The sigmoid: from score to probability</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>The sigmoid: from score to probability</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="exponentials.html">Exponentials, undone by logarithms</a> <span class="level-badge level-hs">High school</span> <span class="minutes">8 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>Many models answer a yes-or-no question with a <dfn>score</dfn>: any number, negative or positive, where higher
+  means "more likely yes". The <dfn>sigmoid</dfn> turns that score into a probability between 0 and 1. A score of 0
+  becomes 0.5. Large positive scores come close to 1, and large negative scores come close to 0. Keep the S-shaped
+  curve below in mind: flat at both ends, steep in the middle.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="why">
+    <h2>A score can be any number, but a probability must lie between 0 and 1</h2>
+    <p>Picture a spam filter. It reads an email and adds up evidence: a strange link adds to the score, a known
+    sender subtracts from it. The result might be 2, or −7, or 0.3. That number ranks emails well, but you cannot
+    read it as a chance. "Score 2" does not tell you how sure the filter is.</p>
+    <p>The sigmoid fixes this. It takes the score <var>z</var> and returns</p>
+    <p class="math">σ(<var>z</var>) = 1 / (1 + <var>e</var><sup>−<var>z</var></sup>)</p>
+    <p>Here <var>e</var> ≈ 2.718 is the base of natural exponentials, from the <a href="exponentials.html">exponentials</a>
+    unit. The Greek letter σ (sigma) is the usual name for the function. Libraries often call the score a
+    <dfn>logit</dfn>; this page says "score".</p>
+    <p>Why does this formula stay between 0 and 1? The term <var>e</var><sup>−<var>z</var></sup> is always positive.
+    So the bottom, 1 + <var>e</var><sup>−<var>z</var></sup>, is always bigger than 1, and one divided by it is always
+    between 0 and 1.</p>
+
+    <p><b>Predict first.</b> Before you read the example, guess the probability for a score of 0.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: a score of 2</span>
+      <ol>
+        <li>Flip the sign of the score: −2.</li>
+        <li>Raise <var>e</var> to that power: <var>e</var><sup>−2</sup> ≈ 0.1353.</li>
+        <li>Add 1: 1.1353.</li>
+        <li>Divide 1 by it: 1 / 1.1353 ≈ 0.8808.</li>
+      </ol>
+      <p>So a score of 2 means about an 88% chance of yes. For a score of 0, <var>e</var><sup>0</sup> = 1, and
+      σ(0) = 1 / 2 = 0.5, an even chance. For a score of −2 the answer is 0.1192, which is 1 − 0.8808.</p>
+    </div>
+
+    <figure id="fig-curve">
+      <div class="fig-title">The sigmoid squeezes every score into the band from 0 to 1</div>
+      <svg id="sig-svg" width="540" height="338" viewBox="0 0 360 225" role="img"
+           aria-label="An S-shaped curve. Scores from minus 6 to 6 run along the bottom; probability from 0 to 1 runs up the side. The curve passes 0.5 at score 0.">
+        <line x1="40" y1="20" x2="340" y2="20" class="grid"/>
+        <line x1="40" y1="105" x2="340" y2="105" class="grid"/>
+        <line x1="190" y1="20" x2="190" y2="190" class="grid"/>
+        <line x1="40" y1="190" x2="340" y2="190" style="stroke:var(--ink-3)"/>
+        <line x1="40" y1="20" x2="40" y2="190" style="stroke:var(--ink-3)"/>
+        <text x="34" y="24" text-anchor="end" class="muted">1</text>
+        <text x="34" y="109" text-anchor="end" class="muted">0.5</text>
+        <text x="34" y="194" text-anchor="end" class="muted">0</text>
+        <text x="40" y="206" text-anchor="middle" class="muted">−6</text>
+        <text x="115" y="206" text-anchor="middle" class="muted">−3</text>
+        <text x="190" y="206" text-anchor="middle" class="muted">0</text>
+        <text x="265" y="206" text-anchor="middle" class="muted">3</text>
+        <text x="340" y="206" text-anchor="middle" class="muted">6</text>
+        <text x="190" y="221" text-anchor="middle" class="ink2">score z</text>
+        <text x="40" y="11" class="ink2">probability σ(z)</text>
+        <path d="M40.0,189.6 L50.0,189.4 L60.0,189.1 L70.0,188.6 L80.0,187.9 L90.0,186.9 L100.0,185.5 L105.0,184.5 L110.0,183.3 L115.0,181.9 L120.0,180.3 L125.0,178.2 L130.0,175.9 L135.0,173.0 L140.0,169.7 L145.0,165.9 L150.0,161.4 L155.0,156.4 L160.0,150.6 L165.0,144.3 L170.0,137.3 L175.0,129.8 L180.0,121.8 L185.0,113.5 L190.0,105.0 L195.0,96.5 L200.0,88.2 L205.0,80.2 L210.0,72.7 L215.0,65.7 L220.0,59.4 L225.0,53.6 L230.0,48.6 L235.0,44.1 L240.0,40.3 L245.0,37.0 L250.0,34.1 L255.0,31.8 L260.0,29.7 L265.0,28.1 L270.0,26.7 L275.0,25.5 L280.0,24.5 L290.0,23.1 L300.0,22.1 L310.0,21.4 L320.0,20.9 L330.0,20.6 L340.0,20.4"
+              fill="none" class="st-s1" stroke-width="2.5"/>
+        <line id="sig-vx" x1="240" y1="190" x2="240" y2="40.3" class="st-s2" stroke-width="1.2" stroke-dasharray="4 3"/>
+        <line id="sig-hy" x1="40" y1="40.3" x2="240" y2="40.3" class="st-s2" stroke-width="1.2" stroke-dasharray="4 3"/>
+        <circle id="sig-dot" cx="240" cy="40.3" r="6" class="f-s2"/>
+      </svg>
+      <div class="controls">
+        <label>Score <var>z</var> <input id="sig-z" type="range" min="-6" max="6" step="0.1" value="2"></label>
+        <output id="sig-out" for="sig-z">σ(2.0) = 0.881</output>
+      </div>
+      <p class="small"><b>Try it.</b> Drag until the probability reaches 0.95. What score did you need? Then find the
+      score for 0.05.</p>
+      <figcaption><b>What to notice.</b> Near score 0 a small change in score moves the probability a lot. Beyond
+      about ±4 the curve is nearly flat, so even a big change in score hardly moves the probability. (A probability of 0.95 needs a
+      score of about 2.94; 0.05 needs about −2.94.)</figcaption>
+    </figure>
+  </section>
+
+  <section id="log-odds">
+    <h2>The score is the log of the odds</h2>
+    <p>The sigmoid has an exact inverse. The <dfn>odds</dfn> of an event are its probability divided by the
+    probability that it does not happen: <var>p</var> / (1 − <var>p</var>). A probability of 0.8 gives odds of 4, or
+    "4 to 1". The score that the sigmoid turns into <var>p</var> is the natural logarithm of those odds:</p>
+    <p class="math"><var>z</var> = ln( <var>p</var> / (1 − <var>p</var>) )</p>
+    <p>Check it on the worked example. For <var>p</var> = 0.8808 the odds are 0.8808 / 0.1192 ≈ 7.39, and
+    ln 7.39 ≈ 2, the score we started from. So adding 1 to a score multiplies the odds by <var>e</var> ≈ 2.718,
+    wherever you start on the curve.</p>
+    <p>Two more facts follow from the formula. First, the curve is symmetric: σ(−<var>z</var>) = 1 − σ(<var>z</var>).
+    Second, its slope is steepest at <var>z</var> = 0, where it equals 1/4.</p>
+
+    <p class="code-cap">sigmoid.py</p>
+<pre><code class="py">import numpy as np
+
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+scores = np.array([-4.0, -2.0, 0.0, 2.0, 4.0])
+p = sigmoid(scores)
+print(np.round(p, 4))
+
+# Undo the sigmoid: the log-odds of each probability.
+print(np.round(np.log(p / (1 - p)), 4))
+</code></pre>
+<pre class="out">[0.018  0.1192 0.5    0.8808 0.982 ]
+[-4. -2.  0.  2.  4.]</pre>
+
+    <div class="callout warn">
+      <span class="callout-title">A number between 0 and 1 is not automatically a good probability</span>
+      <p>The sigmoid only guarantees the range. Whether "0.9" really comes true 9 times in 10 depends on how the
+      model was trained. Training with <a href="binary-cross-entropy.html">binary cross-entropy</a> pushes the
+      outputs toward honest probabilities, but a model can still be over-confident on data unlike its training
+      data.</p>
+      <p>There is also a computing detail. For a very negative score, such as −1000, <var>e</var><sup>1000</sup> is
+      too large for a computer's numbers, and the simple formula above overflows. NumPy prints a warning and
+      returns 0. Libraries use a rearranged formula that avoids this.</p>
+    </div>
+    <p>The same S-shaped curve also appears inside neural networks, where it bends a weighted sum. The
+    <a href="activation-functions.html">activation functions</a> unit covers that use.</p>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>σ(3) ≈ 0.9526. Without a calculator, what is σ(−3)?</p>
+      <details><summary>Answer</summary><p>1 − 0.9526 = 0.0474. The curve is symmetric about the point (0, 0.5).</p></details>
+    </li>
+    <li>
+      <p>A model should say "75% chance of yes". What score must it produce?</p>
+      <details><summary>Answer</summary><p>The odds are 0.75 / 0.25 = 3, so the score is ln 3 ≈ 1.10. Check:
+      1 / (1 + <var>e</var><sup>−1.10</sup>) = 1 / (1 + 0.333) = 0.75.</p></details>
+    </li>
+    <li>
+      <p>One email scores 10 and another scores 12. Does the filter think the second is much more likely to be
+      spam?</p>
+      <details><summary>Answer</summary><p>Not in probability: σ(10) ≈ 0.99995 and σ(12) ≈ 0.99999. Both sit on the
+      flat top of the curve. The odds differ by a factor of <var>e</var><sup>2</sup> ≈ 7.4, but both probabilities
+      round to 1.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://developers.google.com/machine-learning/crash-course/logistic-regression/sigmoid-function#sigmoid_function">Logistic regression: the sigmoid function</a>
+        <span class="fl-src">Google Machine Learning Crash Course</span>
+        <span class="fl-format">Course page</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">A short page that turns a linear model's output into a probability with the sigmoid, with a graph and a quiz.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://mlu-explain.github.io/logistic-regression/">Logistic Regression</a>
+        <span class="fl-src">MLU-Explain (Erin Bugbee and Jared Wilber)</span>
+        <span class="fl-format">Interactive page</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">A scrolling page with sliders; read the opening section and "How It Works" to see the sigmoid turn a weighted sum into a probability.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <h3>Units that build on this one</h3>
+  <ul class="unit-links">
+    <li><a href="binary-cross-entropy.html">Binary cross-entropy: scoring yes-or-no guesses</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+  </ul>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const z = document.getElementById('sig-z');
+  if (!z) return;
+  const out = document.getElementById('sig-out');
+  const dot = document.getElementById('sig-dot');
+  const vx = document.getElementById('sig-vx');
+  const hy = document.getElementById('sig-hy');
+  const sig = v => 1 / (1 + Math.exp(-v));
+  function draw() {
+    const v = Number(z.value), p = sig(v);
+    const x = 190 + 25 * v, y = 190 - 170 * p;
+    dot.setAttribute('cx', x); dot.setAttribute('cy', y);
+    vx.setAttribute('x1', x); vx.setAttribute('x2', x); vx.setAttribute('y2', y);
+    hy.setAttribute('x2', x); hy.setAttribute('y1', y); hy.setAttribute('y2', y);
+    out.textContent = 'σ(' + v.toFixed(1) + ') = ' + p.toFixed(3);
+  }
+  z.addEventListener('input', draw);
+  draw();
+})();
+</script>
+</body>
+</html>
