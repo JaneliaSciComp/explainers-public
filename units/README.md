@@ -63,7 +63,6 @@ these keys:
 | `title` | the page's `<title>` and `<h1>`, exactly |
 | `level` | `starting`, `intermediate` or `advanced` |
 | `kind` | `concept` or `hub`; it may be left out, and defaults to `concept` |
-| `minutes` | the reading time, a whole number |
 | `prereqs` | the ids of the units to read first |
 | `summary` | one plain sentence, shown on the index |
 | `owner` | who maintains the page |
@@ -76,7 +75,7 @@ Start from `_template.html`. The checker looks for each part by its marker.
 
 | Part | Marker | Who writes it |
 |---|---|---|
-| Header: title, level badge, reading minutes | `<header class="unit-head" data-part="header">` with one `<h1>`; the badge and minutes go between `<!-- unit-meta:start -->` and `<!-- unit-meta:end -->` | you write the `<h1>`; the build fills the badge, which links to `about.html#levels`, and the minutes |
+| Header: title and level badge | `<header class="unit-head" data-part="header">` with one `<h1>`; the badge goes between `<!-- unit-meta:start -->` and `<!-- unit-meta:end -->` | you write the `<h1>`; the build fills the badge, which links to `about.html#levels` |
 | Prerequisites | `<!-- prereqs:start -->` … `<!-- prereqs:end -->` | the build |
 | The idea in one paragraph | `<section id="idea" class="idea" data-part="idea">` with `<h2>The idea in one paragraph</h2>` | you |
 | Body | `<div class="unit-body" data-part="body">`, holding at least one worked example (`class="example"`) and one `<figure>` with an `<svg>`, `<canvas>`, `<img>` or `<video>` and a `<figcaption>` (a hub needs neither) | you |
@@ -147,9 +146,9 @@ follow external links, so open each one before you add it. `scripts/check_links.
 
 ## Add a unit
 
-1. Add an entry to `units.json` with `id`, `title`, `level`, `kind`, `minutes`, `prereqs`, `summary` (one plain
-   sentence), `owner`, `status` and `media`. Set `status` to `"planned"`. `kind` may be left out; it defaults
-   to `"concept"`.
+1. Add an entry to `units.json` with `id`, `title`, `level`, `kind`, `prereqs`, `summary` (one plain sentence),
+   `owner`, `status` and `media`. Set `status` to `"planned"`. `kind` may be left out; it defaults to
+   `"concept"`.
 2. Copy `_template.html` to `<id>.html`. Set the two `<meta>` tags, the `<title>` and the `<h1>`.
 3. Write the parts. Delete the template's sample text and the "Go further" section if you have nothing good.
 4. Set `status` to `"draft"` in `units.json`. The index links a unit only when its status is not `"planned"`.

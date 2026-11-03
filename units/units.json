@@ -16,7 +16,6 @@
       "title": "Vectors: arrows made of numbers",
       "level": "starting",
       "kind": "concept",
-      "minutes": 8,
       "prereqs": [],
       "summary": "A point in space is a list of numbers, and a vector is an arrow you can add to another or stretch.",
       "owner": "A",
@@ -28,7 +27,6 @@
       "title": "Distance between two points",
       "level": "starting",
       "kind": "concept",
-      "minutes": 6,
       "prereqs": [
         "vectors"
       ],
@@ -42,7 +40,6 @@
       "title": "Multiplying a matrix by a vector",
       "level": "starting",
       "kind": "concept",
-      "minutes": 8,
       "prereqs": [
         "dot-product"
       ],
@@ -56,7 +53,6 @@
       "title": "Rotating points with a matrix",
       "level": "starting",
       "kind": "concept",
-      "minutes": 8,
       "prereqs": [
         "matrix-times-vector",
         "sine-waves"
@@ -71,7 +67,6 @@
       "title": "The derivative: slope at a point",
       "level": "starting",
       "kind": "concept",
-      "minutes": 8,
       "prereqs": [],
       "summary": "The derivative measures how fast a quantity changes: the slope of its graph at one point.",
       "owner": "A",
@@ -83,7 +78,6 @@
       "title": "The gradient: the uphill direction",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 8,
       "prereqs": [
         "derivative",
         "vectors"
@@ -98,7 +92,6 @@
       "title": "Random draws: chance you can repeat",
       "level": "starting",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [],
       "summary": "A random draw picks a value by chance, and a seed makes a computer's random choices repeatable.",
       "owner": "A",
@@ -110,7 +103,6 @@
       "title": "The bell curve (normal distribution)",
       "level": "starting",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [
         "random-draws",
         "mean-and-spread"
@@ -125,7 +117,6 @@
       "title": "Summarizing a list of numbers",
       "level": "starting",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [],
       "summary": "The mean gives a list's typical value, and the standard deviation its typical distance from that value.",
       "owner": "A",
@@ -137,7 +128,6 @@
       "title": "Normalizing data",
       "level": "starting",
       "kind": "concept",
-      "minutes": 6,
       "prereqs": [
         "mean-and-spread",
         "vectors",
@@ -153,7 +143,6 @@
       "title": "Sine waves",
       "level": "starting",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [],
       "summary": "Sine and cosine turn an angle or a position into a smooth wave that repeats.",
       "owner": "A",
@@ -165,7 +154,6 @@
       "title": "Exponentials, undone by logarithms",
       "level": "starting",
       "kind": "concept",
-      "minutes": 8,
       "prereqs": [],
       "summary": "An exponential grows by repeated multiplication, and the logarithm counts the multiplications back.",
       "owner": "A",
@@ -177,7 +165,6 @@
       "title": "Graphs: dots joined by lines",
       "level": "starting",
       "kind": "concept",
-      "minutes": 6,
       "prereqs": [],
       "summary": "A graph is a set of things, called nodes, with links, called edges, between some pairs of them.",
       "owner": "A",
@@ -189,7 +176,6 @@
       "title": "Connected pieces of a graph",
       "level": "starting",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [
         "graphs"
       ],
@@ -203,7 +189,6 @@
       "title": "Reading Python for this course",
       "level": "starting",
       "kind": "hub",
-      "minutes": 8,
       "prereqs": [],
       "summary": "Just enough Python to read the code here (variables, lists, loops, functions), with pointers to full courses.",
       "owner": "B",
@@ -215,7 +200,6 @@
       "title": "Arrays in NumPy",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 9,
       "prereqs": [
         "python-basics",
         "vectors"
@@ -230,7 +214,6 @@
       "title": "PyTorch tensors on the GPU",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 8,
       "prereqs": [
         "numpy-arrays"
       ],
@@ -244,7 +227,6 @@
       "title": "Automatic gradients in PyTorch",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 8,
       "prereqs": [
         "tensors-on-gpu",
         "chain-rule"
@@ -259,7 +241,6 @@
       "title": "Nearest-neighbor search",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 6,
       "prereqs": [
         "distance",
         "numpy-arrays"
@@ -274,7 +255,6 @@
       "title": "KD-trees: nearest neighbors fast",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 9,
       "prereqs": [
         "nearest-neighbor-search"
       ],
@@ -288,7 +268,6 @@
       "title": "Farthest-point sampling",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [
         "distance",
         "point-clouds",
@@ -304,7 +283,6 @@
       "title": "Matching two sets: the assignment problem",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 8,
       "prereqs": [
         "distance",
         "numpy-arrays"
@@ -319,7 +297,6 @@
       "title": "Shapes as point clouds",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [
         "vectors",
         "numpy-arrays"
@@ -334,7 +311,6 @@
       "title": "3D images made of voxels",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 8,
       "prereqs": [
         "vectors",
         "distance",
@@ -350,7 +326,6 @@
       "title": "Segmentation: a label for every voxel",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [
         "voxels"
       ],
@@ -364,7 +339,6 @@
       "title": "Supervoxels: small pieces to merge",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 6,
       "prereqs": [
         "segmentation"
       ],
@@ -378,7 +352,6 @@
       "title": "Connectomics: mapping neurons from images",
       "level": "intermediate",
       "kind": "hub",
-      "minutes": 6,
       "prereqs": [
         "segmentation",
         "point-clouds"
@@ -393,7 +366,6 @@
       "title": "Two kinds of segmentation error",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [
         "segmentation",
         "supervoxels"
@@ -408,7 +380,6 @@
       "title": "Proofreading a segmentation",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 6,
       "prereqs": [
         "segmentation-errors",
         "supervoxels"
@@ -423,7 +394,6 @@
       "title": "Data augmentation: new views of an example",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [
         "rotation-matrices",
         "random-draws",
@@ -440,7 +410,6 @@
       "title": "A linear layer: weighted sums",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 8,
       "prereqs": [
         "matrix-times-vector"
       ],
@@ -454,7 +423,6 @@
       "title": "Activation functions: bending straight lines",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 6,
       "prereqs": [
         "linear-layer"
       ],
@@ -468,7 +436,6 @@
       "title": "The multilayer perceptron (MLP)",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [
         "linear-layer",
         "activation-functions"
@@ -483,7 +450,6 @@
       "title": "Loss: one number for how wrong",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 9,
       "prereqs": [
         "distance",
         "mean-and-spread"
@@ -498,7 +464,6 @@
       "title": "Gradient descent",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 8,
       "prereqs": [
         "gradient",
         "loss-function"
@@ -513,7 +478,6 @@
       "title": "AdamW: steps that adapt",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 8,
       "prereqs": [
         "gradient-descent"
       ],
@@ -527,7 +491,6 @@
       "title": "Gradient clipping",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 5,
       "prereqs": [
         "gradient-descent"
       ],
@@ -541,7 +504,6 @@
       "title": "Learning-rate schedules: warm-up, decay",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 6,
       "prereqs": [
         "gradient-descent"
       ],
@@ -555,7 +517,6 @@
       "title": "Minibatches: a few examples per step",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 6,
       "prereqs": [
         "gradient-descent"
       ],
@@ -569,7 +530,6 @@
       "title": "Data loaders: preparing examples in parallel",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [
         "minibatches",
         "python-basics"
@@ -584,7 +544,6 @@
       "title": "Held-out data: the validation set",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 6,
       "prereqs": [
         "loss-function",
         "gradient-descent"
@@ -599,7 +558,6 @@
       "title": "Overfitting: when a model fits the noise",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 12,
       "prereqs": [
         "validation-set",
         "gradient-descent",
@@ -615,7 +573,6 @@
       "title": "A moving average of the weights (EMA)",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 6,
       "prereqs": [
         "gradient-descent",
         "mean-and-spread",
@@ -631,7 +588,6 @@
       "title": "Checkpoints: saving training to resume it",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [
         "minibatches"
       ],
@@ -645,7 +601,6 @@
       "title": "Mixed precision: 16-bit numbers (bf16)",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [
         "tensors-on-gpu",
         "gradient-descent",
@@ -661,7 +616,6 @@
       "title": "Training on several GPUs at once",
       "level": "advanced",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [
         "minibatches",
         "tensors-on-gpu"
@@ -676,7 +630,6 @@
       "title": "The training loop",
       "level": "intermediate",
       "kind": "hub",
-      "minutes": 6,
       "prereqs": [
         "minibatches",
         "gradient-descent",
@@ -701,7 +654,6 @@
       "title": "The sigmoid: from score to probability",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 6,
       "prereqs": [
         "exponentials"
       ],
@@ -715,7 +667,6 @@
       "title": "Binary cross-entropy: scoring yes-or-no guesses",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [
         "sigmoid",
         "loss-function"
@@ -730,7 +681,6 @@
       "title": "Softmax: probabilities over many choices",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 6,
       "prereqs": [
         "exponentials"
       ],
@@ -744,7 +694,6 @@
       "title": "Cross-entropy: scoring a choice among many",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [
         "softmax",
         "loss-function"
@@ -759,7 +708,6 @@
       "title": "Top-K accuracy",
       "level": "starting",
       "kind": "concept",
-      "minutes": 5,
       "prereqs": [],
       "summary": "Top-K accuracy asks whether the right answer appears among the first K entries of a ranked list.",
       "owner": "P",
@@ -771,7 +719,6 @@
       "title": "Embeddings: things as vectors",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [
         "vectors",
         "linear-layer"
@@ -786,7 +733,6 @@
       "title": "Fourier features: positions as waves",
       "level": "advanced",
       "kind": "concept",
-      "minutes": 8,
       "prereqs": [
         "sine-waves",
         "embeddings"
@@ -801,7 +747,6 @@
       "title": "Attention: queries, keys, values",
       "level": "advanced",
       "kind": "concept",
-      "minutes": 10,
       "prereqs": [
         "embeddings",
         "softmax",
@@ -818,7 +763,6 @@
       "title": "Cross-attention: reading from another set",
       "level": "advanced",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [
         "attention"
       ],
@@ -832,7 +776,6 @@
       "title": "Residual connections",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 5,
       "prereqs": [
         "mlp",
         "chain-rule"
@@ -847,7 +790,6 @@
       "title": "Layer normalization",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 6,
       "prereqs": [
         "normalizing-data",
         "linear-layer"
@@ -862,7 +804,6 @@
       "title": "The transformer block",
       "level": "advanced",
       "kind": "concept",
-      "minutes": 8,
       "prereqs": [
         "attention",
         "mlp",
@@ -879,7 +820,6 @@
       "title": "PointNet pooling: one summary for a set",
       "level": "advanced",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [
         "mlp",
         "permutation-invariance"
@@ -894,7 +834,6 @@
       "title": "Generative models: making new examples",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [
         "random-draws",
         "bell-curve"
@@ -909,7 +848,6 @@
       "title": "Conditional generation: generating from a hint",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 6,
       "prereqs": [
         "generative-models"
       ],
@@ -923,7 +861,6 @@
       "title": "Shape completion: generating the missing part",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [
         "conditional-generation",
         "point-clouds"
@@ -938,7 +875,6 @@
       "title": "Velocity fields: an arrow at every point",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 6,
       "prereqs": [
         "vectors",
         "derivative"
@@ -953,7 +889,6 @@
       "title": "Euler's method: small steps along a field",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [
         "velocity-field",
         "exponentials"
@@ -968,7 +903,6 @@
       "title": "Flow matching: turning noise into shapes",
       "level": "advanced",
       "kind": "concept",
-      "minutes": 10,
       "prereqs": [
         "generative-models",
         "euler-steps",
@@ -992,7 +926,6 @@
       "title": "Time conditioning: telling a network the time",
       "level": "advanced",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [
         "layer-normalization",
         "fourier-features",
@@ -1008,7 +941,6 @@
       "title": "Diffusion transformers (DiT)",
       "level": "advanced",
       "kind": "concept",
-      "minutes": 8,
       "prereqs": [
         "transformer-block",
         "flow-matching",
@@ -1024,7 +956,6 @@
       "title": "Classifier-free guidance",
       "level": "advanced",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [
         "conditional-generation",
         "flow-matching"
@@ -1039,7 +970,6 @@
       "title": "The diffusion noising process: from data to noise",
       "level": "advanced",
       "kind": "concept",
-      "minutes": 12,
       "prereqs": [
         "generative-models",
         "bell-curve",
@@ -1055,7 +985,6 @@
       "title": "The dot product: how much two vectors agree",
       "level": "starting",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [
         "vectors",
         "distance",
@@ -1071,7 +1000,6 @@
       "title": "The chain rule: slopes of chained steps",
       "level": "starting",
       "kind": "concept",
-      "minutes": 7,
       "prereqs": [
         "derivative"
       ],
@@ -1085,7 +1013,6 @@
       "title": "Broadcasting: arrays of different shapes",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 6,
       "prereqs": [
         "numpy-arrays"
       ],
@@ -1099,7 +1026,6 @@
       "title": "Backpropagation: gradients by the chain rule",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 8,
       "prereqs": [
         "chain-rule",
         "mlp",
@@ -1115,7 +1041,6 @@
       "title": "Order doesn't matter: permutation invariance",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 6,
       "prereqs": [
         "point-clouds"
       ],
@@ -1129,7 +1054,6 @@
       "title": "Floating-point numbers: rounding to the nearest stored value",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 12,
       "prereqs": [
         "exponentials",
         "numpy-arrays"
@@ -1144,7 +1068,6 @@
       "title": "Recursion: a function that calls itself",
       "level": "intermediate",
       "kind": "concept",
-      "minutes": 9,
       "prereqs": [
         "python-basics"
       ],

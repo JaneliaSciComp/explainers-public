@@ -14,7 +14,7 @@ forbidden list. The list is found as scripts/scan_public.py finds it: --forbidde
 $EXPLAINERS_FORBIDDEN_LIST, then ../explainers-private/forbidden-strings.txt beside this repo. With none of them,
 the build prints a notice and skips that check. A local href or src in a public page must stay inside this repo.
 The build fills three generated blocks in every existing unit page, between these markers:
-    <!-- unit-meta:start --> ... <!-- unit-meta:end -->   level badge (a link to about.html#levels) and reading minutes
+    <!-- unit-meta:start --> ... <!-- unit-meta:end -->   the level badge, a link to about.html#levels, in the header
     <!-- prereqs:start -->   ... <!-- prereqs:end -->     links to the units to read first
     <!-- used-by:start -->   ... <!-- used-by:end -->     units and explanation sections that build on this one
 and writes index.html. It writes a file only when its content changes, so running it twice changes nothing.
@@ -46,7 +46,7 @@ LEVELS_HREF = "about.html#levels"   # each unit's header badge links here
 GENERATED = ("unit-meta", "prereqs", "used-by")
 DEFAULT_STATUSES = ["planned", "draft", "reviewed"]
 ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
-UNIT_KEYS = {"id", "title", "level", "minutes", "prereqs", "summary", "owner", "status", "media"}
+UNIT_KEYS = {"id", "title", "level", "prereqs", "summary", "owner", "status", "media"}
 OPTIONAL_KEYS = {"kind"}
 KINDS = ("concept", "hub")          # "concept" is the default: one idea; "hub" ties focused units together
 EXTERNAL = ("http://", "https://", "//", "mailto:", "data:", "blob:", "javascript:", "tel:")
@@ -243,9 +243,6 @@ def load_manifest(rep: Report) -> dict | None:
         if "level" in u and u["level"] not in levels:
             rep.error(w, f'"level" is {u["level"]!r}; it must be one of {", ".join(levels)}')
             ok = False
-        if "minutes" in u and (not isinstance(u["minutes"], int) or isinstance(u["minutes"], bool)
-                               or not 1 <= u["minutes"] <= 90):
-            rep.error(w, '"minutes" must be a whole number from 1 to 90')
         if "status" in u and u["status"] not in statuses:
             rep.error(w, f'"status" is {u["status"]!r}; it must be one of {", ".join(statuses)}')
         if u.get("kind", "concept") not in KINDS:
@@ -375,13 +372,12 @@ def badge(m: dict, level: str, link: bool = False) -> str:
 def unit_link_item(m: dict, u: dict) -> str:
     name = (f'<a href="{esc(u["id"])}.html">{esc(u["title"])}</a>' if is_linked(u)
             else f'<span>{esc(u["title"])}</span> <span class="tag">planned</span>')
-    return f'<li>{name} {badge(m, u["level"])} <span class="minutes">{u["minutes"]} min</span></li>'
+    return f'<li>{name} {badge(m, u["level"])}</li>'
 
 
 def gen_unit_meta(m: dict, u: dict) -> list[str]:
     hub = ' <span class="tag hub">overview</span>' if kind_of(u) == "hub" else ""
-    return [f'<p class="unit-meta">{badge(m, u["level"], link=True)} <span class="minutes">{u["minutes"]} min read</span>'
-            f'{hub}</p>']
+    return [f'<p class="unit-meta">{badge(m, u["level"], link=True)}{hub}</p>']
 
 
 def gen_prereqs(m: dict, u: dict) -> list[str]:
@@ -557,8 +553,7 @@ def gen_index(m: dict) -> str:
             needs = (", ".join(f'<a href="#u-{p}">{esc(by[p]["title"])}</a>' for p in u["prereqs"])
                      if u["prereqs"] else "nothing first")
             L += [f'    <li id="u-{esc(u["id"])}"{"" if is_linked(u) else " class=" + chr(34) + "planned" + chr(34)}>',
-                  f'      <div class="uc-head"><span class="uc-title">{title}</span> '
-                  f'<span class="minutes">{u["minutes"]} min</span>{tag}</div>',
+                  f'      <div class="uc-head"><span class="uc-title">{title}</span>{tag}</div>',
                   f'      <p class="uc-summary">{esc(u["summary"])}</p>',
                   f'      <p class="uc-needs">Needs: {needs}</p>',
                   '    </li>']

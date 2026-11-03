@@ -13,7 +13,7 @@ All paths are relative to the root of the repo clone, `<repo root>`.
 ## Background
 
 - **Concept units:** `units/`. Read `units/README.md` in full: it states the mechanics for every unit page. The
-  manifest `units/units.json` gives each unit's id, title, level, kind, minutes, prerequisites, summary and owner.
+  manifest `units/units.json` gives each unit's id, title, level, kind, prerequisites, summary and owner.
 - **The practices:** `skills/explainer-units/references/writing.md` and `figures-and-code.md`.
 - **The reviewers' brief:** `skills/explainer-units/references/reviewing.md` says what they checked and explains each
   field of a finding.
@@ -46,7 +46,7 @@ record each copy that you do not own under `cross_owner`. One such claim once sp
 
 - Only the pages named in your prompt, and their own media files.
 - Never edit `units.json`, `unit.css`, `unit.js`, `_template.html`, the scripts, or another owner's page. If a fix needs
-  a manifest change (a title, summary, minutes or prerequisites), record it under `manifest_changes`. If you change a
+  a manifest change (a title, summary or prerequisites), record it under `manifest_changes`. If you change a
   page's title, change its `<title>` and `<h1>` to match the new title. The strict check then fails on that page until
   the orchestrator applies your manifest change; that failure is expected.
 - If a fix belongs on another owner's page, record it under `cross_owner`.

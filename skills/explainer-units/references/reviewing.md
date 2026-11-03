@@ -16,7 +16,7 @@ All paths are relative to the root of the repo clone, `<repo root>`.
 - **The pages:** `<the unit ids, or the pages, to review>`, in `<the folder of pages, usually units/>`.
 - **Concept units:** each unit teaches one general concept at one of three levels, `starting`, `intermediate` or
   `advanced`, which `units/about.html#levels` defines. Read `units/README.md` in full: it states the mechanics. The
-  manifest `units/units.json` gives each unit's id, title, level, kind (`concept` or `hub`), minutes, prerequisites
+  manifest `units/units.json` gives each unit's id, title, level, kind (`concept` or `hub`), prerequisites
   (`prereqs`), summary and owner. A hub ties focused units together and needs no figure.
 - **The practices:** `skills/explainer-units/references/writing.md` and `figures-and-code.md` say what a good unit
   does. `skills/explainer-units/references/error-patterns.md` lists the errors that past reviews found most often.
@@ -68,7 +68,7 @@ says? Can the stated reader follow it?
 5. **Scope.** A concept unit teaches one concept, and the concept sets the page's length. It links a prerequisite
    rather than teaching it again at length. A second concept is a finding, and so is a part that does not help the
    reader understand this one. A passage that explains the site itself, such as what the levels mean, instead of
-   linking a section of `units/about.html`, is a finding too. Reading time alone is not.
+   linking a section of `units/about.html`, is a finding too. A page's length alone is not.
 6. **Consistency.** Each page uses one term for one thing, and so do your pages and the units they link: notation,
    symbols, and conventions such as whether a vector in a product is a row or a column. Put a conflict with a unit
    outside your scope under `noticed`.

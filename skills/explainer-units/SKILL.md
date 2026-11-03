@@ -47,9 +47,7 @@ memory. No script catches these. The steps below prevent them, and each step say
    that prints the chain. Missing prerequisites were the most common substantive finding.
 3. **Read the units you will link.** Use their notation and terms, and find the sentence that states each fact you
    will cite them for. Link the section's `id`. Notation that drifts between linked units costs every reader time.
-4. **Add the manifest entry and copy the template.** Follow "Add a unit" in `units/README.md`. Set `minutes` by the
-   page's length: across the 73 units, the manifest allows about 180 words of visible text, code included, per
-   minute. The number tells readers what to expect; it is not a target.
+4. **Add the manifest entry and copy the template.** Follow "Add a unit" in `units/README.md`.
 5. **Write the body.** Let the concept set the page's length: explain it as simply as it can be explained at the
    unit's level, with every step, condition and warning box a reader needs, then stop. Don't cut a needed part to
    shorten the page, and don't pad a simple concept. If the page starts teaching a second concept, move that concept

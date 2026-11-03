@@ -13,7 +13,7 @@ Contents: one concept; levels; prerequisites; conditions and warning boxes; fact
   unit that holds several makes them work through a course instead.
 - Let the concept set the page's length. Explain it as simply as it can be explained at the unit's level, with every
   step, condition and warning box a reader needs, then stop. Don't cut a needed part to shorten the page, and don't
-  pad a simple concept. The manifest's `minutes` tells readers what to expect; it is not a target.
+  pad a simple concept.
 - Write "The idea in one paragraph" first, in at most six short sentences. If you cannot state the concept that
   briefly, the unit holds more than one concept: split it.
 - Link a prerequisite rather than teach it again. A one-sentence reminder with a link is fine.
