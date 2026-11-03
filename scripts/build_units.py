@@ -47,7 +47,6 @@ ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 UNIT_KEYS = {"id", "title", "level", "minutes", "prereqs", "summary", "owner", "status", "media"}
 OPTIONAL_KEYS = {"kind"}
 KINDS = ("concept", "hub")          # "concept" is the default: one idea; "hub" ties focused units together
-CONCEPT_MAX_MINUTES = 12            # a concept unit longer than this probably holds more than one idea
 EXTERNAL = ("http://", "https://", "//", "mailto:", "data:", "blob:", "javascript:", "tel:")
 VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
 FIG_MEDIA = {"svg", "canvas", "img", "video"}
@@ -250,9 +249,6 @@ def load_manifest(rep: Report) -> dict | None:
         if u.get("kind", "concept") not in KINDS:
             rep.error(w, f'"kind" is {u["kind"]!r}; it must be one of {", ".join(KINDS)}')
         elif kind_of(u) == "concept":
-            if isinstance(u.get("minutes"), int) and u["minutes"] > CONCEPT_MAX_MINUTES:
-                rep.warn(w, f'a concept unit should take at most {CONCEPT_MAX_MINUTES} minutes, this one {u["minutes"]}; '
-                            'split it into focused units, or make it a "hub" that links them')
             if isinstance(u.get("title"), str) and re.search(r"\band\b", u["title"], re.I):
                 rep.warn(w, f'the title {u["title"]!r} joins ideas with "and"; one concept per unit')
         if "prereqs" in u and (not isinstance(u["prereqs"], list) or not all(isinstance(p, str) for p in u["prereqs"])):

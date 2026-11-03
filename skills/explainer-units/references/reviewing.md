@@ -14,7 +14,7 @@ All paths are relative to the root of the repo clone, `<repo root>`.
 ## What you are reviewing
 
 - **The pages:** `<the unit ids, or the pages, to review>`, in `<the folder of pages, usually units/>`.
-- **Concept units:** each unit teaches one general concept in 5 to 10 minutes, at one of three levels: `hs` (high
+- **Concept units:** each unit teaches one general concept at one of three levels: `hs` (high
   school), `u1` (intro undergraduate), `u2` (upper undergraduate). Read `units/README.md` in full: it states the
   mechanics. The manifest `units/units.json` gives each unit's id, title, level, kind (`concept` or `hub`), minutes,
   prerequisites (`prereqs`), summary and owner. A hub ties focused units together and needs no figure.
@@ -59,8 +59,9 @@ says? Can the stated reader follow it?
    A `u1` unit assumes some Python and the units it lists. If a page uses a concept that it neither explains nor
    reaches through its chain of prerequisites, that is a finding: name the unit that should be a prerequisite. An
    unneeded prerequisite is a minor finding.
-5. **Scope.** A concept unit teaches one concept in 5 to 10 minutes (the manifest's `minutes`). It links a
-   prerequisite rather than teaching it again at length.
+5. **Scope.** A concept unit teaches one concept, and the concept sets the page's length. It links a prerequisite
+   rather than teaching it again at length. A second concept, or a part that does not help the reader understand
+   this one, is a finding. Reading time alone is not.
 6. **Consistency.** Each page uses one term for one thing, and so do your pages and the units they link: notation,
    symbols, and conventions such as whether a vector in a product is a row or a column. Put a conflict with a unit
    outside your scope under `noticed`.

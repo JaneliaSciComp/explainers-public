@@ -16,7 +16,7 @@ edited by hand drift apart, and then the words run ahead of the picture or behin
 
 ## Keep each video to one idea, and to 2 minutes or less
 
-- Make each video up to 2 minutes long. Shorter videos hold attention better, and a unit is read in 5 to 10 minutes.
+- Make each video up to 2 minutes long. Shorter videos hold attention better.
   The flow-matching video runs about 100 seconds.
 - Show one idea, not the whole method.
 - Keep the file under 8 MB. The repo stores videos with Git LFS.

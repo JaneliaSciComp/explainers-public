@@ -1,11 +1,11 @@
 ---
 name: explainer-units
-description: Write, check, review and fix concept units, the short HTML pages in the explainers-public repo that each teach one general idea at a stated level (hs, u1 or u2), with prerequisites, a worked example, a figure and self-check questions. Use this skill whenever you add or change a page in units/, edit units/units.json, review or fix unit pages, write an explanation page that links to units or quotes code, or make a video for a unit. Use it even when the request only says "write a unit on X", "explain X for the explainers site" or "check this page".
+description: Write, check, review and fix concept units, the HTML pages in the explainers-public repo that each teach one general idea at a stated level (hs, u1 or u2), with prerequisites, a worked example, a figure and self-check questions. Use this skill whenever you add or change a page in units/, edit units/units.json, review or fix unit pages, write an explanation page that links to units or quotes code, or make a video for a unit. Use it even when the request only says "write a unit on X", "explain X for the explainers site" or "check this page".
 ---
 
 # Concept units
 
-A concept unit is a short web page that teaches one general idea, such as vectors or KD-trees, in 5 to 10 minutes.
+A concept unit is a web page that teaches one general idea, such as vectors or KD-trees, at the length it needs.
 Each unit lists the units to read first, down to high-school level, so a reader can start anywhere. The repo's
 `units/` folder holds 73 of them. This skill holds the practices that made those pages accurate.
 
@@ -38,7 +38,8 @@ memory. No script catches these. The steps below prevent them, and each step say
 
 1. **Scope one concept.** Choose the id (lowercase words joined by hyphens), the level and the kind (`concept` or
    `hub`). Write "The idea in one paragraph" first, in at most six short sentences. If the idea does not fit, the
-   unit holds two concepts: split it. A reader comes to look up one idea, and a long unit makes them read a course.
+   unit holds two concepts: split it. A reader comes to look up one idea, and a unit that holds several makes them
+   read a course.
 2. **List what the page will use, and set the prerequisites.** Write down every concept, symbol, formula, library
    call and fact the page will need. Include the code, captions, widget readouts and answers, not only the prose.
    Find each one on the page or in a unit of the prerequisite chain.
@@ -48,10 +49,13 @@ memory. No script catches these. The steps below prevent them, and each step say
    will cite them for. Link the section's `id`. Notation that drifts between linked units costs every reader time.
 4. **Add the manifest entry and copy the template.** Follow "Add a unit" in `units/README.md`. Set `minutes` by the
    page's length: across the 73 units, the manifest allows about 180 words of visible text, code included, per
-   minute. Keep a concept unit at 12 minutes or less.
-5. **Write the body.** Give each section a heading that states its point. Carry one concrete example through the
-   page. Write each claim with its conditions, and name each simplification in a `callout warn` box. Check each fact
-   that the page does not derive against a source you open. See [writing.md](references/writing.md).
+   minute. The number tells readers what to expect; it is not a target.
+5. **Write the body.** Let the concept set the page's length: explain it as simply as it can be explained at the
+   unit's level, with every step, condition and warning box a reader needs, then stop. Don't cut a needed part to
+   shorten the page, and don't pad a simple concept. If the page starts teaching a second concept, move that concept
+   to its own unit and link it. Give each section a heading that states its point. Carry one concrete example
+   through the page. Write each claim with its conditions, and name each simplification in a `callout warn` box.
+   Check each fact that the page does not derive against a source you open. See [writing.md](references/writing.md).
 6. **Work one example with real numbers, and show every step.** A reader at the unit's level must be able to redo
    each step from the page and its prerequisites. Then give the reader a similar problem, with the answer hidden.
 7. **Draw one figure; add a widget only if moving something teaches more.** Give the widget a goal, and a start

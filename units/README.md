@@ -1,6 +1,6 @@
 # Concept units
 
-This folder holds concept units: short HTML pages that each teach one idea. Every unit lists the units a reader
+This folder holds concept units: HTML pages that each teach one idea. Every unit lists the units a reader
 may need first, down to high-school level. A colleague or an intern can start at any unit and follow those links
 back until the material is familiar. Explanations, such as a part of a report, link to units for the background
 they assume.
@@ -15,9 +15,10 @@ guide for people, [`docs/guide.md`](../docs/guide.md).
 
 ## What a unit is, and what it is not
 
-A unit teaches one general concept that many explanations can reuse: vectors, gradient descent, KD-trees. It takes
-about 5 to 10 minutes to read. A reader should never have to work through a large curriculum to understand one
-idea.
+A unit teaches one general concept that many explanations can reuse: vectors, gradient descent, KD-trees. The
+concept sets the page's length: the unit explains it as simply as it can be explained at its level, with every step,
+condition and warning box a reader needs, and then stops. A reader should never have to work through a large
+curriculum to understand one idea.
 
 A unit is not about one project. It never names a project that is not public, and never quotes or describes one
 project's code, data, people or results, even without naming them. That material stays in the explanation, which links
@@ -29,13 +30,13 @@ elsewhere link to the units, but the units never link to them.
 
 Each manifest entry has a `kind`:
 
-- `concept`, the default: one idea, about 5 to 10 minutes.
+- `concept`, the default: one idea, at the length it needs.
 - `hub`: a short overview that ties several focused units together. For example, a training-loop hub links the
   units on minibatches, data loaders and checkpoints, and lists them as its prerequisites. A hub needs no figure
   or worked example, and its pages show an "overview" tag.
 
-`build_units.py --check` warns, without failing, when a concept unit takes more than 12 minutes or its title
-joins two ideas with "and". Treat each warning as a prompt to split the unit or to make it a hub.
+`build_units.py --check` warns, without failing, when a concept unit's title joins two ideas with "and". Treat the
+warning as a prompt to split the unit or to make it a hub.
 
 ## The three levels
 

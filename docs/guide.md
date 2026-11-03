@@ -6,11 +6,13 @@ the commands. The skill in `skills/explainer-units/` holds the detailed rules, a
 
 ## A good unit teaches one idea, accurately, to a stated reader
 
-A concept unit is a short web page that teaches one general idea in 5 to 10 minutes. A good unit has these
-qualities:
+A concept unit is a web page that teaches one general idea. A good unit has these qualities:
 
 - **One concept.** Its idea fits in one paragraph of at most six short sentences. A reader comes to look up one
   idea, so a unit that holds two ideas becomes two units, or a hub that links them.
+- **The length its concept needs.** It explains the concept as simply as it can be explained at its level, with
+  every step, condition and warning box a reader needs, and then stops. The writer never cuts a needed part to
+  shorten the page, and never pads a simple concept.
 - **A stated reader.** Its level, `hs`, `u1` or `u2`, says what the reader knows. Its prerequisites reach every
   concept the page uses, and every chain of prerequisites ends at high-school units.
 - **True claims, with their conditions.** Each sentence holds as written. Where the page simplifies, a warning box

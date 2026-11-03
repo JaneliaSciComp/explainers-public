@@ -9,15 +9,18 @@ Contents: one concept; levels; prerequisites; conditions and warning boxes; fact
 
 ## A unit teaches one concept
 
-- Teach one concept that many explanations can reuse, in about 5 to 10 minutes of reading. Readers arrive from an
-  explanation to look up one idea, and a long unit makes them work through a course instead.
+- Teach one concept that many explanations can reuse. Readers arrive from an explanation to look up one idea, and a
+  unit that holds several makes them work through a course instead.
+- Let the concept set the page's length. Explain it as simply as it can be explained at the unit's level, with every
+  step, condition and warning box a reader needs, then stop. Don't cut a needed part to shorten the page, and don't
+  pad a simple concept. The manifest's `minutes` tells readers what to expect; it is not a target.
 - Write "The idea in one paragraph" first, in at most six short sentences. If you cannot state the concept that
   briefly, the unit holds more than one concept: split it.
 - Link a prerequisite rather than teach it again. A one-sentence reminder with a link is fine.
 - Put broad external courses only in "Go further", as optional background. The unit itself must stand alone.
-- Treat the build's warnings as prompts. A concept unit over 12 minutes, or a title that joins two ideas with "and",
-  usually holds two units. A `hub` is the exception: it ties several focused units together, lists them as its
-  prerequisites, and needs no figure or worked example.
+- If the page starts teaching a second concept, move that concept to its own unit and link it. The build warns when a
+  title joins two ideas with "and"; treat the warning as a prompt to check. A `hub` is the exception: it ties several
+  focused units together, lists them as its prerequisites, and needs no figure or worked example.
 
 ## Set the level by what the page needs
 

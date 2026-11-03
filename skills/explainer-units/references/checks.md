@@ -45,8 +45,8 @@ and other agents may be editing pages at the same time.
 - a local `href` or `src` that points to a missing file or a missing `#id`, or outside the repo;
 - a string from the forbidden list, when the list is present.
 
-It warns, without failing, about a concept unit over 12 minutes or with "and" in its title, and about a
-prerequisite at a higher level than the unit. Treat each warning as an error to fix or to justify. It cannot check
+It warns, without failing, about a concept unit with "and" in its title, and about a prerequisite at a higher
+level than the unit. Treat each warning as an error to fix or to justify. It cannot check
 that the prerequisites cover what the page uses.
 
 **The render check** (step 3) opens each page from disk in headless Chrome. It reports console errors and uncaught
