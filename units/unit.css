@@ -52,7 +52,11 @@ body {
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
   padding-block: 0 4rem;
 }
-main.unit, main.unit-index { max-width: var(--measure); margin: 0 auto; min-width: 0; }
+main.unit { max-width: var(--measure); margin: 0 auto; min-width: 0; }
+/* Index pages keep every part in the text column except the units graph, which may use the window's width. */
+main.unit-index { margin: 0 auto; min-width: 0; }
+main.unit-index > *, main.unit-index #graph > h2, main.unit-index #graph figcaption { max-width: var(--measure); margin-inline: auto; }
+main.unit-index > #graph { max-width: none; }
 a { color: var(--accent); text-underline-offset: 2px; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 img, video, canvas { max-width: 100%; }
@@ -195,7 +199,9 @@ ul.unit-cards > li.planned { background: none; border-style: dashed; }
 .unit-cards .uc-summary { margin: 0.3rem 0 0.2rem; font-size: 0.95rem; }
 .unit-cards .uc-needs { margin: 0; font-size: 0.86rem; color: var(--ink-2); }
 .graph-box { overflow-x: auto; }
-.graph-box svg { max-width: none; min-width: 100%; }
+/* The graph fits the window and is centered. It never shrinks below 65% of its full size, where its labels would fall
+   under 7.5 px, so a narrower window scrolls it sideways. The build sets --graph-w to the full width. */
+.graph-box svg { width: 100%; max-width: var(--graph-w, none); min-width: calc(var(--graph-w, 0px) * 0.65); margin-inline: auto; }
 svg.prereq-graph .edge { fill: none; stroke: var(--ink-3); stroke-width: 1.2; opacity: 0.55; }
 svg.prereq-graph .edge.on { stroke: var(--accent); stroke-width: 2.2; opacity: 1; }
 svg.prereq-graph .node rect { fill: var(--surface); stroke-width: 1.6; }

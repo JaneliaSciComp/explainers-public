@@ -479,7 +479,8 @@ def graph_svg(m: dict) -> list[str]:
         x0 = (width - (len(layer) * W + (len(layer) - 1) * G)) / 2
         for i, uid in enumerate(layer):
             xy[uid] = (x0 + i * (W + G), PAD + d * (H + VG))
-    out = [f'<svg class="prereq-graph" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="group" '
+    out = [f'<svg class="prereq-graph" width="{width}" height="{height}" viewBox="0 0 {width} {height}" '
+           f'style="--graph-w: {width}px" role="group" '
            f'aria-label="Prerequisite graph: each arrow points from a unit to a unit that builds on it">',
            '  <defs><marker id="arrowhead" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" '
            'orient="auto-start-reverse"><path class="arrowhead" d="M0,0 L8,4 L0,8 z"/></marker></defs>']
@@ -535,7 +536,7 @@ def gen_index(m: dict) -> str:
     L += ['    </div>',
           '    <figcaption>Each arrow points from a unit to a unit that builds on it, so the foundations are at the top. '
           'Box outlines show the level. Dashed boxes are planned units. Hover over a unit, or tab to it, to light '
-          'its links.</figcaption>',
+          'its links. On a narrow screen, scroll sideways to see the whole graph.</figcaption>',
           '  </figure>', '</section>']
     for lv, name in m["levels"].items():
         units = [u for u in m["units"] if u["level"] == lv]
