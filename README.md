@@ -12,9 +12,11 @@ https://janeliascicomp.github.io/explainers-public/units/vectors.html.
 
 | Path | What it holds |
 |---|---|
-| `units/` | the unit pages, the manifest `units.json`, `unit.css`, `unit.js`, `_template.html`, the generated `index.html`, and a `README.md` on how to write a unit |
+| `units/` | the unit pages, the manifest `units.json`, `unit.css`, `unit.js`, `_template.html`, the generated `index.html`, and a `README.md` on the mechanics of a unit page |
 | `units/media/` | the flow-matching video and its captions, narration script and poster; `src/` holds the Manim scene that renders them |
-| `scripts/` | the build and checks: `build_units.py`, `render_check_units.mjs`, `check_links.py`, `run_snippets.py`, `figshots.mjs`, `scan_public.py`, `install-hooks.sh` |
+| `scripts/` | the build and checks: `build_units.py`, `render_check_units.mjs`, `check_links.py`, `run_snippets.py`, `figshots.mjs`, `check_code_blocks.py`, `scan_public.py`, `install-hooks.sh` |
+| `docs/` | `guide.md`, the guide for people: what makes a good unit, the workflow, the common errors, and how to use the skill |
+| `skills/` | `explainer-units/`, the agent skill for writing, checking, reviewing and fixing units: `SKILL.md`, its `references/` and its test cases in `evals/` |
 | `.github/workflows/` | `check.yml` runs the checks on every push and pull request; `pages.yml` publishes the site |
 
 ## Clone the repo with its video
@@ -44,7 +46,8 @@ python3 -I -B scripts/build_units.py --check --require-all
 node scripts/render_check_units.mjs tmp/units-shots
 ```
 
-`units/README.md` explains how to write a unit, and lists the other checks.
+`units/README.md` gives the mechanics of a unit page and lists the other checks. `docs/guide.md` and the skill in
+`skills/explainer-units/` say how to write a good unit.
 
 ## Install the pre-push hook before you push
 
@@ -69,7 +72,8 @@ CI has no list. It runs the build check, which then skips the private-name check
 ## Licences
 
 - Pages, media and documentation: CC BY 4.0. See `LICENSE-CONTENT.md`.
-- Scripts and workflows: the BSD 3-Clause licence in `LICENSE`. The Python snippets and widget scripts inside the
-  pages are also under BSD-3-Clause.
+- Scripts, workflows and skills: the BSD 3-Clause licence in `LICENSE`. The skills are the folders in `skills/`,
+  with their reference files and test cases. The Python snippets and widget scripts inside the pages are also under
+  BSD-3-Clause.
 
 Copyright (c) 2026, Howard Hughes Medical Institute.

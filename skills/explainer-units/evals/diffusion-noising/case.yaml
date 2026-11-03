@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: diffusion-noising
+expected_outcome: |
+  The repo has a new concept unit page, units/diffusion-noising.html, at level u2, on the noising process of diffusion models, with no
+  video or audio, and its entry in units/units.json. The build check with --require-all passes. The render
+  check finds no console error and no sideways scrolling at 390 px on the new page. Every Python snippet on
+  the page that shows an output reproduces it exactly. Every external link and #anchor on the page resolves.
+  The new manifest entry takes at most 12 minutes and lists only existing units as prerequisites.

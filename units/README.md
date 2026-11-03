@@ -9,22 +9,23 @@ they assume.
 units. `scripts/build_units.py` fills the generated parts of each page and writes `index.html`. It also checks
 that every page has its required parts and that every link works.
 
+This README gives the mechanics. How to write a good unit, and how to check, review and fix one, is in the agent
+skill [`skills/explainer-units/SKILL.md`](../skills/explainer-units/SKILL.md) and its reference files, and in the
+guide for people, [`docs/guide.md`](../docs/guide.md).
+
 ## What a unit is, and what it is not
 
-A unit teaches one general concept that many explanations can reuse: vectors, gradient descent, KD-trees. A
-reader should never have to work through a large curriculum to understand one idea.
+A unit teaches one general concept that many explanations can reuse: vectors, gradient descent, KD-trees. It takes
+about 5 to 10 minutes to read. A reader should never have to work through a large curriculum to understand one
+idea.
 
-A unit is not about one project. It never quotes a project's code or names its data, people or results. That
-material stays in the explanation, which links to the unit. A unit links back only to explanations published in
-this repo, and only through its generated "Where this shows up" block. Explanations kept elsewhere link to the
-units, but the units never link to them.
+A unit is not about one project. It never names a project that is not public, and never quotes or describes one
+project's code, data, people or results, even without naming them. That material stays in the explanation, which links
+to the unit. Public attribution is fine, such as the author or site of a "Go further" item. A unit links back only to
+explanations published in this repo, and only through its generated "Where this shows up" block. Explanations kept
+elsewhere link to the units, but the units never link to them.
 
-## One concept per unit
-
-- Teach one concept in each unit. A concept unit takes about 5 to 10 minutes to read.
-- Link to a prerequisite rather than teach it again.
-- If the idea needs more than one paragraph to state, split the unit into focused units.
-- Put broad external courses only in "Go further", as optional background.
+## Two kinds of unit
 
 Each manifest entry has a `kind`:
 
@@ -47,6 +48,24 @@ joins two ideas with "and". Treat each warning as a prompt to split the unit or 
 Every chain of prerequisites ends at `hs` units. So a `u1` or `u2` unit lists at least one prerequisite, and only
 `hs` units may list none. A prerequisite is never at a higher level than the unit that needs it.
 
+## The manifest
+
+`units.json` holds `version`, `levels`, `statuses`, `kinds`, `units` and `explanations`. Each entry in `units` has
+these keys:
+
+| Key | What it holds |
+|---|---|
+| `id` | lowercase words joined by hyphens; the page is `<id>.html` in this folder |
+| `title` | the page's `<title>` and `<h1>`, exactly |
+| `level` | `hs`, `u1` or `u2` |
+| `kind` | `concept` or `hub`; it may be left out, and defaults to `concept` |
+| `minutes` | the reading time, a whole number |
+| `prereqs` | the ids of the units to read first |
+| `summary` | one plain sentence, shown on the index |
+| `owner` | who maintains the page |
+| `status` | `planned` (no page yet), `draft` (written) or `reviewed` (checked by a second reader) |
+| `media` | the unit's files in `media/`, as paths relative to this folder |
+
 ## The parts of a unit page, in order
 
 Start from `_template.html`. The checker looks for each part by its marker.
@@ -68,43 +87,23 @@ Leave the generated markers in place and empty. The build replaces whatever is b
 The page's `<meta name="unit-id">`, `<meta name="unit-level">`, `<title>` and `<h1>` must match `units.json`
 exactly. The page file is `<id>.html` in this folder.
 
-## How to write
+## The markup that unit.css and unit.js read
 
-Write in plain English:
+| For | Write |
+|---|---|
+| a warning box that names a simplification | `<div class="callout warn">` with a `<span class="callout-title">`; a plain note is `<div class="callout">` |
+| a worked example | `<div class="example">` with a `<span class="example-title">` |
+| a figure | `<figure>` holding a `<div class="fig-title">`, the drawing, and a `<figcaption>` |
+| a widget's controls and numbers | `<div class="controls">` for the controls, `<output>` for each number, `<div class="readout-box">` for a readout |
+| anything wider than a phone | `<div class="table-wrap">` or `<div class="scroll-x">` around it |
+| colours that follow the theme | the classes `f-s1` … `f-s4` (fills), `st-s1` … `st-s4` (strokes), `muted` and `ink2` (text), or `var(--s1)` and the other tokens |
+| a displayed formula | `<p class="math">`, with `<span class="vec">` for a vector, `<var>` for a variable |
+| a defined term | `<dfn>` at its first use |
+| a Python snippet | `<p class="code-cap">` with the file name, then `<pre><code class="py">…</code></pre>`; `data-start="N"` numbers from N, and `data-hl="3,4"` highlights lines 3 and 4 |
+| a snippet's output | `<pre class="out">` right after the snippet |
+| the page's own script | one `<script>` at the end of `<body>`, which runs without the network |
 
-- Put one idea in each sentence, and keep sentences short.
-- Use familiar words. Define each technical term the first time you use it, with `<dfn>`.
-- Use one term for one thing throughout the page.
-- Write headings that state their point: "A KD-tree skips whole boxes of points," not "KD-trees."
-- Use the active voice, and give each paragraph one topic.
-
-Be accurate first. Units teach standard textbook material. When the text simplifies, say so in a
-`<div class="callout warn">` box that names the hidden detail, rather than stating the simplification as fact.
-
-## Figures and widgets
-
-- Draw figures as inline `<svg>` or `<canvas>`. Use no libraries and no external files.
-- Give an SVG `width`, `height` and `viewBox`. The CSS shrinks it to fit a phone.
-- Color SVG with the classes in `unit.css` (`f-s1` … `f-s4` for fills, `st-s1` … `st-s4` for strokes, `muted`
-  and `ink2` for text) or with `var(--s1)` and the other tokens. Then dark mode works without extra code.
-- A canvas draws with colors read from CSS: `getComputedStyle(document.documentElement).getPropertyValue('--s1')`.
-  Redraw when `matchMedia('(prefers-color-scheme: dark)')` changes.
-- Add a widget when moving something teaches more than a still picture: a slider that rotates a shape, a button
-  that takes one more step. Put controls in `<div class="controls">` and numbers in `<output>`.
-- Put the page's own script in a `<script>` at the end of `<body>`. It must run without errors and without the
-  network.
-- Wrap anything wider than a phone (a wide table, a wide drawing) in `<div class="table-wrap">` or
-  `<div class="scroll-x">`, so it scrolls inside its own box. The page itself must never scroll sideways at 390 px.
-
-## Python snippets
-
-- Use plain Python, NumPy or PyTorch, and nothing else.
-- Keep each snippet short and runnable as it stands. Show the output in a comment or in `<pre class="out">`.
-- Write `<pre><code class="py">…</code></pre>`. `unit.js` adds line numbers and highlighting.
-  `data-start="N"` numbers from N, and `data-hl="3,4"` highlights lines 3 and 4.
-- Put the file name or a short label above it in `<p class="code-cap">`.
-
-## Video and captions
+### Video captions
 
 Put a video in a `<figure>` with `<video controls>` and a `<figcaption>`. Keep the files under `media/`, and list
 them in the unit's `media` entry in `units.json`.
@@ -122,24 +121,7 @@ Start with random noise.
 </script>
 ```
 
-## Keep units public-safe
-
-This repo is public, and a push is public at once. A list of forbidden strings, which name projects, people and
-code bases that are not public, lives outside this repo, in the private `explainers-private` repo, so the list
-itself stays private. Two scripts read it:
-
-- `build_units.py` fails any unit page, `index.html`, `_template.html` or `units.json` that contains a listed
-  string, ignoring case and inside words. It checks whole pages, generated blocks included.
-- `scripts/scan_public.py` checks every file, every path and every commit message that a push sends. The
-  pre-push hook runs it (see the repo's README). It also fails a session URL or an absolute home folder.
-
-Both find the list in this order: `--forbidden PATH`, then `$EXPLAINERS_FORBIDDEN_LIST`, then
-`../explainers-private/forbidden-strings.txt` beside this repo. Without a list, the build prints a notice and
-skips the check, as it does in CI; the scan refuses to run unless you pass `--builtin-only`.
-
-Matching works inside words, so an entry can also block an ordinary word that contains it. Rephrase the unit.
-
-## Go further: the best outside material
+### Go further items
 
 The optional "Go further" part lists one to four external pages, videos or courses on the concept. Each item gives
 the title as a link, the author or site, the format, the level, and one line on why it is worth the reader's time:
@@ -169,8 +151,6 @@ follow external links, so open each one before you add it. `scripts/check_links.
 4. Set `status` to `"draft"` in `units.json`. The index links a unit only when its status is not `"planned"`.
 5. Run the build, then the render check, and fix every error.
 
-The statuses are `planned` (no page yet), `draft` (written) and `reviewed` (checked by a second reader).
-
 ## Register an explanation
 
 An explanation published in this repo lists its sections in `units.json` under `explanations`. The build then
@@ -198,9 +178,27 @@ An explanation kept in another repo is never listed here. It links to the units 
 beside this one, such as `../../explainers-public/units/vectors.html`, and keeps its own `explanations.json`.
 `build_units.py --check-private DIR` checks that file against this manifest, and checks every link on its pages.
 
+## Keep units public-safe
+
+This repo is public, and a push is public at once. A list of forbidden strings, which name projects, people and
+code bases that are not public, lives outside this repo, in the private `explainers-private` repo, so the list
+itself stays private. Two scripts read it:
+
+- `build_units.py` fails any unit page, `index.html`, `_template.html` or `units.json` that contains a listed
+  string, ignoring case and inside words. It checks whole pages, generated blocks included.
+- `scripts/scan_public.py` checks every file, every path and every commit message that a push sends. The
+  pre-push hook runs it (see the repo's README). It also fails a session URL or an absolute home folder.
+
+Both find the list in this order: `--forbidden PATH`, then `$EXPLAINERS_FORBIDDEN_LIST`, then
+`../explainers-private/forbidden-strings.txt` beside this repo. Without a list, the build prints a notice and
+skips the check, as it does in CI; the scan refuses to run unless you pass `--builtin-only`.
+
+Matching works inside words, so an entry can also block an ordinary word that contains it. Rephrase the unit.
+
 ## Commands
 
-Run these from the repo root.
+Run these from the repo root. [`checks.md`](../skills/explainer-units/references/checks.md) gives the order to run
+them in, and what each one catches and misses.
 
 ```sh
 # Fill the generated blocks, write index.html, then check everything. Exit status 1 means an error.
@@ -223,17 +221,9 @@ python3 -I scripts/check_links.py tmp/units-links.tsv units/*.html
 python3 -I scripts/run_snippets.py <python> tmp/units-snippets units/*.html
 # Screenshot each figure on its own, light and dark, to read it at full size:
 node scripts/figshots.mjs tmp/units-figs --port 9336 --only vectors
+# For a page that quotes code: check each code block against the commit it cites:
+python3 -I -B scripts/check_code_blocks.py --repos <folder of clones> <page>
 ```
 
-The build writes a file only when its content changes, so running it twice changes nothing. The checker reports:
-
-- a manifest error: a missing key, an unknown prerequisite, a cycle, or a chain that does not end at `hs`;
-- as a warning only, a concept unit over 12 minutes or with "and" in its title;
-- a missing page for a unit that is not `planned`, or a page with no unit;
-- a missing or out-of-order part, or a `<meta>`, `<title>` or `<h1>` that does not match the manifest;
-- a local `href` or `src` that points to a missing file or a missing `#id`, or outside this repo;
-- a string from the forbidden list in a page or in `units.json` (see "Keep units public-safe").
-
-The render check reports console errors and exceptions, sideways scrolling, and images, videos or caption
-tracks that fail to load. It saves three screenshots of each page: light at 1280 px with the answers open, dark at
-1280 px, and light at 390 px.
+The build writes a file only when its content changes, so running it twice changes nothing.
+[`checks.md`](../skills/explainer-units/references/checks.md) lists what the build check and the render check report.

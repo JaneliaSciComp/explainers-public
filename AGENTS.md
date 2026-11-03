@@ -1,12 +1,14 @@
 # Instructions for agents
 
-This public repo holds general concept units. `units/README.md` is the guide to writing one; read it before you
-change a page.
+This public repo holds general concept units. Before you write, check, review or fix a unit, read
+`skills/explainer-units/SKILL.md` and follow it. It gives the steps of each task and points to the reference files
+that hold the rules. `units/README.md` gives the mechanics: the manifest, the page parts and the commands.
 
 ## Keep the units general
 
-- A unit teaches one general idea. It never names a project, a person, private data or private results, and it
-  never quotes a project's code. That material belongs in an explanation kept elsewhere, which links to the unit.
+- A unit teaches one general idea. It never names a project that is not public, and never quotes or describes one
+  project's code, data, people or results, even without naming them. That material belongs in an explanation kept
+  elsewhere, which links to the unit. Public attribution is fine, such as the author or site of a "Go further" item.
 - Write no local paths: no home folders and no paths into another checkout. Write commands relative to this
   repo's root.
 - Everything pushed here is public at once, including commit messages. Treat a push as irreversible.
