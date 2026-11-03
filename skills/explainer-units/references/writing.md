@@ -17,6 +17,9 @@ Contents: one concept; levels; prerequisites; conditions and warning boxes; fact
 - Write "The idea in one paragraph" first, in at most six short sentences. If you cannot state the concept that
   briefly, the unit holds more than one concept: split it.
 - Link a prerequisite rather than teach it again. A one-sentence reminder with a link is fine.
+- Explain only the concept. For anything about the site, such as what the levels mean or how the lists of units to
+  read first work, link a section of `units/about.html`, for example `about.html#levels`. A copy on the page goes
+  out of date when the site changes.
 - Put broad external courses only in "Go further", as optional background. The unit itself must stand alone.
 - If the page starts teaching a second concept, move that concept to its own unit and link it. The build warns when a
   title joins two ideas with "and"; treat the warning as a prompt to check. A `hub` is the exception: it ties several
@@ -24,8 +27,8 @@ Contents: one concept; levels; prerequisites; conditions and warning boxes; fact
 
 ## Set the level by what the page needs
 
-The levels are `starting`, `intermediate` and `advanced`. A level describes the background that a unit assumes in its
-own field, not the reader's school year. "The three levels" in `units/README.md` defines them.
+`units/about.html#levels` defines the three levels, `starting`, `intermediate` and `advanced`. A level describes the
+background that a unit assumes in its own field, not the reader's school year. To choose one:
 
 - Set the level by what the page assumes, not by how advanced the topic sounds. Review moved one unit from
   `advanced` to `intermediate`, because its content and its only prerequisite were `intermediate`.

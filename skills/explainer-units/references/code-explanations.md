@@ -18,8 +18,11 @@ such a page.
 ## Assume Intermediate Python, and link the rest
 
 An explanation of a code base is for readers who read its code. So it may assume Intermediate Python: about what an
-introductory university course in programming teaches. For anything beyond that, such as a NumPy or PyTorch feature,
-link the unit that teaches it. If no unit does, explain it on the page.
+introductory university course in programming teaches (`units/about.html#levels`). For anything beyond that, such
+as a NumPy or PyTorch feature, link the unit that teaches it. If no unit does, explain it on the page.
+
+Explain the code, and link a section of `units/about.html` for anything about the site, such as what a unit or a
+level is. Copy none of it into the page, because a copy goes out of date when the site changes.
 
 ## Pin every quote to a commit, and let a script check it
 

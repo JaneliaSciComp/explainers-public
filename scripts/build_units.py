@@ -9,12 +9,12 @@ Usage, from anywhere:
     python3 -I -B scripts/build_units.py --check-private DIR     # check DIR/explanations.json and its pages
 
 The units are in units/ beside this script's folder, and units/units.json is the manifest.
-The check fails a unit page, index.html, _template.html or units.json that contains a string from the forbidden
-list. The list is found as scripts/scan_public.py finds it: --forbidden PATH, then $EXPLAINERS_FORBIDDEN_LIST,
-then ../explainers-private/forbidden-strings.txt beside this repo. With none of them, the build prints a
-notice and skips that check. A local href or src in a public page must stay inside this repo.
+The check fails a unit page, index.html, about.html, _template.html or units.json that contains a string from the
+forbidden list. The list is found as scripts/scan_public.py finds it: --forbidden PATH, then
+$EXPLAINERS_FORBIDDEN_LIST, then ../explainers-private/forbidden-strings.txt beside this repo. With none of them,
+the build prints a notice and skips that check. A local href or src in a public page must stay inside this repo.
 The build fills three generated blocks in every existing unit page, between these markers:
-    <!-- unit-meta:start --> ... <!-- unit-meta:end -->   level badge and reading minutes, in the header
+    <!-- unit-meta:start --> ... <!-- unit-meta:end -->   level badge (a link to about.html#levels) and reading minutes
     <!-- prereqs:start -->   ... <!-- prereqs:end -->     links to the units to read first
     <!-- used-by:start -->   ... <!-- used-by:end -->     units and explanation sections that build on this one
 and writes index.html. It writes a file only when its content changes, so running it twice changes nothing.
@@ -41,6 +41,8 @@ ROOT = REPO / "units"
 MANIFEST = ROOT / "units.json"
 INDEX = ROOT / "index.html"
 TEMPLATE = ROOT / "_template.html"
+ABOUT = ROOT / "about.html"         # the page about the site: what a unit is, the levels, prerequisites and code
+LEVELS_HREF = "about.html#levels"   # each unit's header badge links here
 GENERATED = ("unit-meta", "prereqs", "used-by")
 DEFAULT_STATUSES = ["planned", "draft", "reviewed"]
 ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -363,8 +365,11 @@ def esc(s: str) -> str:
     return html.escape(s, quote=True)
 
 
-def badge(m: dict, level: str) -> str:
-    return f'<span class="level-badge level-{esc(level)}">{esc(m["levels"][level])}</span>'
+def badge(m: dict, level: str, link: bool = False) -> str:
+    cls, name = f"level-badge level-{esc(level)}", esc(m["levels"][level])
+    if link:
+        return f'<a class="{cls}" href="{LEVELS_HREF}" title="What the levels mean">{name}</a>'
+    return f'<span class="{cls}">{name}</span>'
 
 
 def unit_link_item(m: dict, u: dict) -> str:
@@ -375,7 +380,8 @@ def unit_link_item(m: dict, u: dict) -> str:
 
 def gen_unit_meta(m: dict, u: dict) -> list[str]:
     hub = ' <span class="tag hub">overview</span>' if kind_of(u) == "hub" else ""
-    return [f'<p class="unit-meta">{badge(m, u["level"])} <span class="minutes">{u["minutes"]} min read</span>{hub}</p>']
+    return [f'<p class="unit-meta">{badge(m, u["level"], link=True)} <span class="minutes">{u["minutes"]} min read</span>'
+            f'{hub}</p>']
 
 
 def gen_prereqs(m: dict, u: dict) -> list[str]:
@@ -524,8 +530,8 @@ def gen_index(m: dict) -> str:
          '<link rel="stylesheet" href="unit.css">', '<script src="unit.js" defer></script>', '</head>', '<body>',
          '<main class="unit-index">', '<header class="unit-head">', '  <p class="eyebrow">Concept units</p>',
          '  <h1>Concept units</h1>',
-         '  <p class="idea-lede">Each unit is a short page that teaches one idea. Each page lists the units to read '
-         'first, so you can start anywhere and work back to units that start from scratch.</p>',
+         '  <p class="idea-lede">Each unit is a short page that teaches one idea. <a href="about.html">How these pages '
+         'work</a> explains the levels, the units to read first, and the code.</p>',
          f'  <p class="small">{written} of {len(m["units"])} units are written. The rest are planned and listed '
          'without links.</p>',
          '  <p class="unit-meta">' + " ".join(badge(m, lv) for lv in m["levels"]) + '</p>',
@@ -736,7 +742,7 @@ def check_all(m: dict, rep: Report, require_all: bool) -> None:
         for s in e["sections"]:
             if s["anchor"] not in ids:
                 rep.error(w, f'no element with id "{s["anchor"]}" in {e["page"]} (rebuild that page if you just added it)')
-    known = {f'{u["id"]}.html' for u in m["units"]} | {"index.html", "_template.html"}
+    known = {f'{u["id"]}.html' for u in m["units"]} | {INDEX.name, TEMPLATE.name, ABOUT.name}
     for f in sorted(ROOT.glob("*.html")):
         if f.name not in known:
             rep.error(rel(f), "an HTML page with no unit in units.json; add the unit or remove the page")
@@ -766,6 +772,12 @@ def check_all(m: dict, rep: Report, require_all: bool) -> None:
         check_forbidden(m, INDEX, cur, rep)
     else:
         rep.warn(rel(INDEX), "missing; run build_units.py without --check")
+    if ABOUT.exists():
+        about = ABOUT.read_text(encoding="utf-8")
+        check_refs(ABOUT, parse(about), rep)
+        check_forbidden(m, ABOUT, about, rep)
+    else:
+        rep.error(rel(ABOUT), "the page about the site is missing; every unit's level badge links to it")
     check_forbidden(m, MANIFEST, MANIFEST.read_text(encoding="utf-8"), rep)
 
 

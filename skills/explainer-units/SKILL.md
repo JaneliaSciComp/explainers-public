@@ -37,9 +37,9 @@ memory. No script catches these. The steps below prevent them, and each step say
 ## Write a unit
 
 1. **Scope one concept.** Choose the id (lowercase words joined by hyphens), the level and the kind (`concept` or
-   `hub`). Write "The idea in one paragraph" first, in at most six short sentences. If the idea does not fit, the
-   unit holds two concepts: split it. A reader comes to look up one idea, and a unit that holds several makes them
-   read a course.
+   `hub`). `units/about.html#levels` defines the levels. Write "The idea in one paragraph" first, in at most six short
+   sentences. If the idea does not fit, the unit holds two concepts: split it. A reader comes to look up one idea, and
+   a unit that holds several makes them read a course.
 2. **List what the text will use, and set the prerequisites.** Write down every concept, symbol, formula and fact
    the text will need. Include the captions, widget readouts and answers, not only the prose. Find each one on the
    page or in a unit of the prerequisite chain. Leave out the code: it is extra material (step 8), and needs no

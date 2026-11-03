@@ -12,7 +12,7 @@ https://janeliascicomp.github.io/explainers-public/units/vectors.html.
 
 | Path | What it holds |
 |---|---|
-| `units/` | the unit pages, the manifest `units.json`, `unit.css`, `unit.js`, `_template.html`, the generated `index.html`, and a `README.md` on the mechanics of a unit page |
+| `units/` | the unit pages, the manifest `units.json`, `unit.css`, `unit.js`, `_template.html`, the generated `index.html`, `about.html` (the page that explains the site to readers: units, levels, prerequisites and code), and a `README.md` on the mechanics of a unit page |
 | `units/media/` | the flow-matching video and its captions, narration script and poster; `src/` holds the Manim scene that renders them |
 | `scripts/` | the build and checks: `build_units.py`, `render_check_units.mjs`, `check_links.py`, `run_snippets.py`, `figshots.mjs`, `check_code_blocks.py`, `scan_public.py`, `install-hooks.sh` |
 | `docs/` | `guide.md`, the guide for people: what makes a good unit, the workflow, the common errors, and how to use the skill |

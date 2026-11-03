@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- The page about the site. Unit pages link its sections, such as about.html#levels, instead of explaining the
+     site themselves. Keep each section's id: other pages link to it. -->
+<title>How these pages work</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>How these pages work</h1>
+  <p class="idea-lede">Every concept unit follows the same plan. This page explains what a unit is, what its level
+  means, how it lists the units to read first, and what its code is for.</p>
+</header>
+
+<section id="units">
+  <h2>Each unit teaches one concept</h2>
+  <p>A concept unit is a page that teaches one general idea, such as vectors, gradient descent or KD-trees. The
+  concept sets the page's length. A unit explains its concept as simply as it can be explained, with every step a
+  reader needs, and then stops.</p>
+  <p>Each unit has the same parts, in this order:</p>
+  <ul>
+    <li>the units to read first, in a box at the top;</li>
+    <li>the idea in one paragraph;</li>
+    <li>the body, with a worked example and a figure;</li>
+    <li>"Check yourself", with two to four questions and their answers hidden;</li>
+    <li>on some units, "Go further", a short list of outside pages on the same concept;</li>
+    <li>"Where this shows up", which lists the units that build on this one.</li>
+  </ul>
+  <p>An overview, a unit with the tag "overview", ties several units together. It lists them as the units to read
+  first, and it may leave out the worked example and the figure.</p>
+  <p>Where a unit leaves out a detail on purpose, it says so in a warning box like this one:</p>
+  <div class="callout warn">
+    <span class="callout-title">This is a simplification</span>
+    <p>A box like this one names the detail that the unit leaves out, and says where that detail matters.</p>
+  </div>
+</section>
+
+<section id="levels">
+  <h2>A level states the background a unit assumes in its field</h2>
+  <p>Each unit carries one of three level badges. A level describes the background that a unit assumes in its own
+  field, not the reader's school year. So a reader can be Advanced in one field and Starting in another.</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Level</th><th>The unit assumes</th><th>Roughly</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="level-badge level-starting">Starting</span></td>
+          <td>no background in its field; everyday math</td>
+          <td>secondary school, or anyone new to the field</td></tr>
+        <tr><td><span class="level-badge level-intermediate">Intermediate</span></td>
+          <td>the field's basics, as the Starting units it lists teach them</td>
+          <td>an introductory university course in that field</td></tr>
+        <tr><td><span class="level-badge level-advanced">Advanced</span></td>
+          <td>the Intermediate units it lists</td>
+          <td>upper-level university courses or early graduate work</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>The items under "Go further" carry the same badges. Each item's badge is set by its own content, so an
+  Intermediate unit can list an Advanced item.</p>
+</section>
+
+<section id="prerequisites">
+  <h2>Each unit lists the units it builds on</h2>
+  <p>The box at the top of a unit, "Read these first if they are new to you", lists the units it builds on. Each of
+  those units lists its own, so you can follow the links back as far as you need. Every chain of links ends at a
+  Starting unit that needs nothing else first.</p>
+  <p>At the bottom of a unit, "Where this shows up" lists the units that build on it. The graph on the
+  <a href="index.html#graph">index page</a> shows all the units and how they build on each other.</p>
+</section>
+
+<section id="code">
+  <h2>Code is extra, for readers who program</h2>
+  <p>Some units show short Python programs. The code is extra material for readers who
+  program. The text teaches the concept without it, so you can skip every code block and still follow the unit.</p>
+  <p>The code uses plain Python and the libraries NumPy and PyTorch. To read it, start with
+  <a href="python-basics.html">Reading Python for this course</a> and <a href="numpy-arrays.html">Arrays in
+  NumPy</a>.</p>
+  <p>A unit about programming itself, such as <a href="recursion.html">Recursion: a function that calls itself</a>,
+  teaches through its code. There the code is part of the text.</p>
+</section>
+
+<footer class="unit-foot">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+</body>
+</html>

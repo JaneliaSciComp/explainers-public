@@ -10,6 +10,8 @@ A concept unit is a web page that teaches one general idea. A good unit has thes
 
 - **One concept.** Its idea fits in one paragraph of at most six short sentences. A reader comes to look up one
   idea, so a unit that holds two ideas becomes two units, or a hub that links them.
+- **Nothing about the site.** The page explains its concept only. For anything about the site, such as what the
+  levels mean, it links a section of `units/about.html`.
 - **The length its concept needs.** It explains the concept as simply as it can be explained at its level, with
   every step, condition and warning box a reader needs, and then stops. The writer never cuts a needed part to
   shorten the page, and never pads a simple concept.
