@@ -24,28 +24,24 @@ Contents: one concept; levels; prerequisites; conditions and warning boxes; fact
 
 ## Set the level by what the page needs
 
-| Level | The reader knows |
-|---|---|
-| `hs`, high school | algebra, coordinates, a little geometry; no programming |
-| `u1`, intro undergraduate | some Python; the `hs` units it lists |
-| `u2`, upper undergraduate | the `u1` units it lists |
+The levels are `starting`, `intermediate` and `advanced`. A level describes the background that a unit assumes in its
+own field, not the reader's school year. "The three levels" in `units/README.md` defines them.
 
-- Set the level by what the page assumes, not by how advanced the topic sounds. Review moved one unit from `u2` to
-  `u1`, because its content and its only prerequisite were `u1`.
-- An `hs` page may show a Python snippet, but it must teach the idea without it. An `hs` reader may skip the code.
-- "Some Python" means what the `python-basics` unit teaches. A feature beyond it, such as a generator expression,
-  needs a sentence of explanation or a plainer form. NumPy and PyTorch arrive through the units that teach them, such
-  as `numpy-arrays`, so list one of those when the page's main point uses them.
+- Set the level by what the page assumes, not by how advanced the topic sounds. Review moved one unit from
+  `advanced` to `intermediate`, because its content and its only prerequisite were `intermediate`.
+- Set the level by the text. Code is extra material for readers who program, so it does not raise the level. See
+  [figures-and-code.md](figures-and-code.md#snippets-show-what-the-text-says).
 - A prerequisite is never at a higher level than the unit that needs it. The build check fails a cycle or an unknown
   id, and warns about a prerequisite at a higher level.
 
-## Prerequisites cover every concept the page uses
+## Prerequisites cover every concept the text uses
 
 A missing prerequisite was the most common substantive finding: 15 of 49. The build proves only that the chain is
 well formed, so do this by hand:
 
-1. List what the page uses: terms, symbols, formulas, library calls and facts. Read the code, the captions, the
-   widget readouts and the "Check yourself" answers too, not only the prose.
+1. List what the text uses: terms, symbols, formulas and facts. Read the captions, the widget readouts and the
+   "Check yourself" answers too, not only the prose. Leave out the code: it is extra material, and needs no
+   prerequisite (see [figures-and-code.md](figures-and-code.md#snippets-show-what-the-text-says)).
 2. Print the unit's prerequisite chain. Run this from the repo root, with the unit's id last:
 
    ```sh
@@ -67,7 +63,7 @@ well formed, so do this by hand:
 4. When you send the reader to a unit for a fact, open that unit and find the sentence that states the fact. Link the
    section's `id` (for example `distance.html#three-d`). If the unit does not state the fact, state it on your page.
    Review found pages that linked a unit for a fact that the unit never stated.
-5. List only what the page needs. Each unneeded prerequisite asks the reader to read one more unit.
+5. List only what the text needs. Each unneeded prerequisite asks the reader to read one more unit.
 
 ## Write each claim with its conditions
 
@@ -172,7 +168,7 @@ items drew 14 findings and notes, most of them claims about the linked page that
 - Link the section's anchor when the page has one. Run `scripts/check_links.py` to confirm the status and the
   anchor.
 - Set the item's level badge by the resource's content. A video that works with second-order differential equations
-  is not `hs`.
+  does not get the Starting badge.
 - Warn when the resource uses another convention than your page. The transformer-block unit says that a linked
   tutorial puts the normalization after each step, the older order, while the unit puts it before.
 - Make sure the description agrees with your page. One item described a "non-crossing flow" on a page that explains

@@ -15,6 +15,12 @@ such a page.
 - Keep a project that is not public out of this repo: never name it, and never quote or describe its code, data,
   people or results, even without naming them.
 
+## Assume Intermediate Python, and link the rest
+
+An explanation of a code base is for readers who read its code. So it may assume Intermediate Python: about what an
+introductory university course in programming teaches. For anything beyond that, such as a NumPy or PyTorch feature,
+link the unit that teaches it. If no unit does, explain it on the page.
+
 ## Pin every quote to a commit, and let a script check it
 
 - Quote code at a fixed commit, never from a working tree. A working tree changes under you, and a reader must be

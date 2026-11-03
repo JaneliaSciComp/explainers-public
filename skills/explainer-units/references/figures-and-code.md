@@ -84,6 +84,11 @@ text must work in both themes too:
 
 ## Snippets show what the text says
 
+Code is extra material for readers who program. The text must teach the concept without it: a reader who skips every
+code block misses nothing they need. So the prerequisites need not cover the code, and the code does not raise the
+unit's level. The exception is a unit whose concept is programming itself, such as `python-basics` or `recursion`.
+There the code is part of the text, and the prerequisites cover it.
+
 Use plain Python, NumPy or PyTorch, and nothing else. Keep each snippet short and runnable as it stands:
 `scripts/run_snippets.py` runs each one alone, in its own empty folder.
 
@@ -103,8 +108,9 @@ Use plain Python, NumPy or PyTorch, and nothing else. Keep each snippet short an
   used the midpoint method.
 - Check orientation with a small case. In code, tokens are the rows of a matrix, so `X @ Wq` holds each token's query
   only when `Wq` is the transpose of the matrix in the formula. A 2 × 2 matrix and one vector are enough to see it.
-- Use only the Python that the level allows. A snippet that used a generator expression became a list
-  comprehension, which `python-basics` teaches.
+- Use only the Python that `python-basics` teaches. A snippet that used a generator expression became a list
+  comprehension, which `python-basics` teaches. For a NumPy or PyTorch call, link the unit that teaches it, such as
+  `numpy-arrays`, or say in a comment what the call does.
 - Put a file name or a short label above each snippet in `<p class="code-cap">`.
 
 A unit never quotes a project's code. A page that does is an explanation, and

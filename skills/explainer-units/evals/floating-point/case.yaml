@@ -1,7 +1,7 @@
 schema_version: "1.1"
 name: floating-point
 expected_outcome: |
-  The repo has a new concept unit page, units/floating-point.html, at level u1, on floating-point numbers, with no
+  The repo has a new concept unit page, units/floating-point.html, at level intermediate, on floating-point numbers, with no
   video or audio, and its entry in units/units.json. The build check with --require-all passes. The render
   check finds no console error and no sideways scrolling at 390 px on the new page. Every Python snippet on
   the page that shows an output reproduces it exactly. Every external link and #anchor on the page resolves.

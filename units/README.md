@@ -1,9 +1,9 @@
 # Concept units
 
 This folder holds concept units: HTML pages that each teach one idea. Every unit lists the units a reader
-may need first, down to high-school level. A colleague or an intern can start at any unit and follow those links
-back until the material is familiar. Explanations, such as a part of a report, link to units for the background
-they assume.
+may need first, down to units that start from scratch. A colleague or an intern can start at any unit and follow
+those links back until the material is familiar. Explanations, such as a part of a report, link to units for the
+background they assume.
 
 `units.json` is the manifest. It lists every unit, its level and its prerequisites, and the explanations that use
 units. `scripts/build_units.py` fills the generated parts of each page and writes `index.html`. It also checks
@@ -40,14 +40,18 @@ warning as a prompt to split the unit or to make it a hub.
 
 ## The three levels
 
-| Id | Level | The reader knows |
-|---|---|---|
-| `hs` | High school | algebra, coordinates, a little geometry; no programming is assumed |
-| `u1` | Intro undergraduate | some Python; the `hs` units it lists |
-| `u2` | Upper undergraduate | the `u1` units it lists |
+A level describes the background that a unit assumes in its own field, not the reader's school year. So a reader can
+be Advanced in one field and Starting in another.
 
-Every chain of prerequisites ends at `hs` units. So a `u1` or `u2` unit lists at least one prerequisite, and only
-`hs` units may list none. A prerequisite is never at a higher level than the unit that needs it.
+| Id | Level | The unit assumes | Roughly |
+|---|---|---|---|
+| `starting` | Starting | no background in its field; everyday math | secondary school, or anyone new to the field |
+| `intermediate` | Intermediate | the field's basics, as the Starting units it lists teach them | an introductory university course in that field |
+| `advanced` | Advanced | the Intermediate units it lists | upper-level university courses or early graduate work |
+
+Every chain of prerequisites ends at `starting` units. So an `intermediate` or `advanced` unit lists at least one
+prerequisite, and only `starting` units may list none. A prerequisite is never at a higher level than the unit that
+needs it.
 
 ## The manifest
 
@@ -58,7 +62,7 @@ these keys:
 |---|---|
 | `id` | lowercase words joined by hyphens; the page is `<id>.html` in this folder |
 | `title` | the page's `<title>` and `<h1>`, exactly |
-| `level` | `hs`, `u1` or `u2` |
+| `level` | `starting`, `intermediate` or `advanced` |
 | `kind` | `concept` or `hub`; it may be left out, and defaults to `concept` |
 | `minutes` | the reading time, a whole number |
 | `prereqs` | the ids of the units to read first |
@@ -133,7 +137,7 @@ the title as a link, the author or site, the format, the level, and one line on 
     <a href="https://…">Title</a>
     <span class="fl-src">Author or site</span>
     <span class="fl-format">Interactive page</span>
-    <span class="level-badge level-u1">Intro undergraduate</span>
+    <span class="level-badge level-intermediate">Intermediate</span>
   </div>
   <p class="fl-why">Why it is worth the reader's time, in one line.</p>
 </li>

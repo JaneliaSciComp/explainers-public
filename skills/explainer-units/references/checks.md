@@ -39,7 +39,7 @@ and other agents may be editing pages at the same time.
 
 **The build check** (steps 1 and 2) exits with status 1 on any error. It reports:
 
-- a manifest error: a missing key, an unknown prerequisite, a cycle, or a chain that does not end at `hs`;
+- a manifest error: a missing key, an unknown prerequisite, a cycle, or a chain that does not end at `starting`;
 - a missing page for a unit that is not `planned`, or a page with no unit;
 - a missing or out-of-order page part, or a `<meta>`, `<title>` or `<h1>` that does not match the manifest;
 - a local `href` or `src` that points to a missing file or a missing `#id`, or outside the repo;
@@ -47,7 +47,7 @@ and other agents may be editing pages at the same time.
 
 It warns, without failing, about a concept unit with "and" in its title, and about a prerequisite at a higher
 level than the unit. Treat each warning as an error to fix or to justify. It cannot check
-that the prerequisites cover what the page uses.
+that the prerequisites cover what the text uses.
 
 **The render check** (step 3) opens each page from disk in headless Chrome. It reports console errors and uncaught
 exceptions, sideways scrolling at 1280 px and 390 px, and images, videos or caption tracks that fail to load. It

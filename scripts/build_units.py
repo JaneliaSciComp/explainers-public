@@ -200,7 +200,7 @@ def load_manifest(rep: Report) -> dict | None:
         rep.error(where, '"version" must be an integer')
     levels = m.get("levels")
     if not isinstance(levels, dict) or not levels or not all(isinstance(v, str) for v in levels.values()):
-        rep.error(where, '"levels" must map each level id to its name, for example {"hs": "High school"}')
+        rep.error(where, '"levels" must map each level id to its name, for example {"starting": "Starting"}')
         return None
     statuses = m.get("statuses", DEFAULT_STATUSES)
     if not isinstance(statuses, list) or "planned" not in statuses:
@@ -525,7 +525,7 @@ def gen_index(m: dict) -> str:
          '<main class="unit-index">', '<header class="unit-head">', '  <p class="eyebrow">Concept units</p>',
          '  <h1>Concept units</h1>',
          '  <p class="idea-lede">Each unit is a short page that teaches one idea. Each page lists the units to read '
-         'first, so you can start anywhere and work back to high-school level.</p>',
+         'first, so you can start anywhere and work back to units that start from scratch.</p>',
          f'  <p class="small">{written} of {len(m["units"])} units are written. The rest are planned and listed '
          'without links.</p>',
          '  <p class="unit-meta">' + " ".join(badge(m, lv) for lv in m["levels"]) + '</p>',

@@ -1,9 +1,9 @@
 {
   "version": 1,
   "levels": {
-    "hs": "High school",
-    "u1": "Intro undergraduate",
-    "u2": "Upper undergraduate"
+    "starting": "Starting",
+    "intermediate": "Intermediate",
+    "advanced": "Advanced"
   },
   "statuses": [
     "planned",
@@ -14,7 +14,7 @@
     {
       "id": "vectors",
       "title": "Vectors: arrows made of numbers",
-      "level": "hs",
+      "level": "starting",
       "kind": "concept",
       "minutes": 8,
       "prereqs": [],
@@ -26,7 +26,7 @@
     {
       "id": "distance",
       "title": "Distance between two points",
-      "level": "hs",
+      "level": "starting",
       "kind": "concept",
       "minutes": 6,
       "prereqs": [
@@ -40,7 +40,7 @@
     {
       "id": "matrix-times-vector",
       "title": "Multiplying a matrix by a vector",
-      "level": "hs",
+      "level": "starting",
       "kind": "concept",
       "minutes": 8,
       "prereqs": [
@@ -54,7 +54,7 @@
     {
       "id": "rotation-matrices",
       "title": "Rotating points with a matrix",
-      "level": "hs",
+      "level": "starting",
       "kind": "concept",
       "minutes": 8,
       "prereqs": [
@@ -69,7 +69,7 @@
     {
       "id": "derivative",
       "title": "The derivative: slope at a point",
-      "level": "hs",
+      "level": "starting",
       "kind": "concept",
       "minutes": 8,
       "prereqs": [],
@@ -81,7 +81,7 @@
     {
       "id": "gradient",
       "title": "The gradient: the uphill direction",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 8,
       "prereqs": [
@@ -96,7 +96,7 @@
     {
       "id": "random-draws",
       "title": "Random draws: chance you can repeat",
-      "level": "hs",
+      "level": "starting",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [],
@@ -108,7 +108,7 @@
     {
       "id": "bell-curve",
       "title": "The bell curve (normal distribution)",
-      "level": "hs",
+      "level": "starting",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [
@@ -123,7 +123,7 @@
     {
       "id": "mean-and-spread",
       "title": "Summarizing a list of numbers",
-      "level": "hs",
+      "level": "starting",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [],
@@ -135,7 +135,7 @@
     {
       "id": "normalizing-data",
       "title": "Normalizing data",
-      "level": "hs",
+      "level": "starting",
       "kind": "concept",
       "minutes": 6,
       "prereqs": [
@@ -151,7 +151,7 @@
     {
       "id": "sine-waves",
       "title": "Sine waves",
-      "level": "hs",
+      "level": "starting",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [],
@@ -163,7 +163,7 @@
     {
       "id": "exponentials",
       "title": "Exponentials, undone by logarithms",
-      "level": "hs",
+      "level": "starting",
       "kind": "concept",
       "minutes": 8,
       "prereqs": [],
@@ -175,7 +175,7 @@
     {
       "id": "graphs",
       "title": "Graphs: dots joined by lines",
-      "level": "hs",
+      "level": "starting",
       "kind": "concept",
       "minutes": 6,
       "prereqs": [],
@@ -187,7 +187,7 @@
     {
       "id": "connected-components",
       "title": "Connected pieces of a graph",
-      "level": "hs",
+      "level": "starting",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [
@@ -201,7 +201,7 @@
     {
       "id": "python-basics",
       "title": "Reading Python for this course",
-      "level": "hs",
+      "level": "starting",
       "kind": "hub",
       "minutes": 8,
       "prereqs": [],
@@ -213,7 +213,7 @@
     {
       "id": "numpy-arrays",
       "title": "Arrays in NumPy",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 9,
       "prereqs": [
@@ -228,7 +228,7 @@
     {
       "id": "tensors-on-gpu",
       "title": "PyTorch tensors on the GPU",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 8,
       "prereqs": [
@@ -242,7 +242,7 @@
     {
       "id": "automatic-gradients",
       "title": "Automatic gradients in PyTorch",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 8,
       "prereqs": [
@@ -257,7 +257,7 @@
     {
       "id": "nearest-neighbor-search",
       "title": "Nearest-neighbor search",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 6,
       "prereqs": [
@@ -272,7 +272,7 @@
     {
       "id": "kd-tree",
       "title": "KD-trees: nearest neighbors fast",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 9,
       "prereqs": [
@@ -286,7 +286,7 @@
     {
       "id": "farthest-point-sampling",
       "title": "Farthest-point sampling",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [
@@ -302,7 +302,7 @@
     {
       "id": "assignment-problem",
       "title": "Matching two sets: the assignment problem",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 8,
       "prereqs": [
@@ -317,7 +317,7 @@
     {
       "id": "point-clouds",
       "title": "Shapes as point clouds",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [
@@ -332,7 +332,7 @@
     {
       "id": "voxels",
       "title": "3D images made of voxels",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 8,
       "prereqs": [
@@ -348,7 +348,7 @@
     {
       "id": "segmentation",
       "title": "Segmentation: a label for every voxel",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [
@@ -362,7 +362,7 @@
     {
       "id": "supervoxels",
       "title": "Supervoxels: small pieces to merge",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 6,
       "prereqs": [
@@ -376,7 +376,7 @@
     {
       "id": "connectomics",
       "title": "Connectomics: mapping neurons from images",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "hub",
       "minutes": 6,
       "prereqs": [
@@ -391,7 +391,7 @@
     {
       "id": "segmentation-errors",
       "title": "Two kinds of segmentation error",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [
@@ -406,7 +406,7 @@
     {
       "id": "proofreading",
       "title": "Proofreading a segmentation",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 6,
       "prereqs": [
@@ -421,7 +421,7 @@
     {
       "id": "data-augmentation",
       "title": "Data augmentation: new views of an example",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [
@@ -438,7 +438,7 @@
     {
       "id": "linear-layer",
       "title": "A linear layer: weighted sums",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 8,
       "prereqs": [
@@ -452,7 +452,7 @@
     {
       "id": "activation-functions",
       "title": "Activation functions: bending straight lines",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 6,
       "prereqs": [
@@ -466,7 +466,7 @@
     {
       "id": "mlp",
       "title": "The multilayer perceptron (MLP)",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [
@@ -481,7 +481,7 @@
     {
       "id": "loss-function",
       "title": "Loss: one number for how wrong",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 9,
       "prereqs": [
@@ -496,7 +496,7 @@
     {
       "id": "gradient-descent",
       "title": "Gradient descent",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 8,
       "prereqs": [
@@ -511,7 +511,7 @@
     {
       "id": "adamw",
       "title": "AdamW: steps that adapt",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 8,
       "prereqs": [
@@ -525,7 +525,7 @@
     {
       "id": "gradient-clipping",
       "title": "Gradient clipping",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 5,
       "prereqs": [
@@ -539,7 +539,7 @@
     {
       "id": "learning-rate-schedule",
       "title": "Learning-rate schedules: warm-up, decay",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 6,
       "prereqs": [
@@ -553,7 +553,7 @@
     {
       "id": "minibatches",
       "title": "Minibatches: a few examples per step",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 6,
       "prereqs": [
@@ -567,7 +567,7 @@
     {
       "id": "data-loaders",
       "title": "Data loaders: preparing examples in parallel",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [
@@ -582,7 +582,7 @@
     {
       "id": "validation-set",
       "title": "Held-out data: the validation set",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 6,
       "prereqs": [
@@ -597,7 +597,7 @@
     {
       "id": "overfitting",
       "title": "Overfitting: when a model fits the noise",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 12,
       "prereqs": [
@@ -613,7 +613,7 @@
     {
       "id": "ema-weights",
       "title": "A moving average of the weights (EMA)",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 6,
       "prereqs": [
@@ -629,7 +629,7 @@
     {
       "id": "checkpoints",
       "title": "Checkpoints: saving training to resume it",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [
@@ -643,7 +643,7 @@
     {
       "id": "mixed-precision",
       "title": "Mixed precision: 16-bit numbers (bf16)",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [
@@ -659,7 +659,7 @@
     {
       "id": "multi-gpu-training",
       "title": "Training on several GPUs at once",
-      "level": "u2",
+      "level": "advanced",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [
@@ -674,7 +674,7 @@
     {
       "id": "training-loop",
       "title": "The training loop",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "hub",
       "minutes": 6,
       "prereqs": [
@@ -699,7 +699,7 @@
     {
       "id": "sigmoid",
       "title": "The sigmoid: from score to probability",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 6,
       "prereqs": [
@@ -713,7 +713,7 @@
     {
       "id": "binary-cross-entropy",
       "title": "Binary cross-entropy: scoring yes-or-no guesses",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [
@@ -728,7 +728,7 @@
     {
       "id": "softmax",
       "title": "Softmax: probabilities over many choices",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 6,
       "prereqs": [
@@ -742,7 +742,7 @@
     {
       "id": "cross-entropy",
       "title": "Cross-entropy: scoring a choice among many",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [
@@ -757,7 +757,7 @@
     {
       "id": "top-k-accuracy",
       "title": "Top-K accuracy",
-      "level": "hs",
+      "level": "starting",
       "kind": "concept",
       "minutes": 5,
       "prereqs": [],
@@ -769,7 +769,7 @@
     {
       "id": "embeddings",
       "title": "Embeddings: things as vectors",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [
@@ -784,7 +784,7 @@
     {
       "id": "fourier-features",
       "title": "Fourier features: positions as waves",
-      "level": "u2",
+      "level": "advanced",
       "kind": "concept",
       "minutes": 8,
       "prereqs": [
@@ -799,7 +799,7 @@
     {
       "id": "attention",
       "title": "Attention: queries, keys, values",
-      "level": "u2",
+      "level": "advanced",
       "kind": "concept",
       "minutes": 10,
       "prereqs": [
@@ -816,7 +816,7 @@
     {
       "id": "cross-attention",
       "title": "Cross-attention: reading from another set",
-      "level": "u2",
+      "level": "advanced",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [
@@ -830,7 +830,7 @@
     {
       "id": "residual-connections",
       "title": "Residual connections",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 5,
       "prereqs": [
@@ -845,7 +845,7 @@
     {
       "id": "layer-normalization",
       "title": "Layer normalization",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 6,
       "prereqs": [
@@ -860,7 +860,7 @@
     {
       "id": "transformer-block",
       "title": "The transformer block",
-      "level": "u2",
+      "level": "advanced",
       "kind": "concept",
       "minutes": 8,
       "prereqs": [
@@ -877,7 +877,7 @@
     {
       "id": "pointnet-pooling",
       "title": "PointNet pooling: one summary for a set",
-      "level": "u2",
+      "level": "advanced",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [
@@ -892,7 +892,7 @@
     {
       "id": "generative-models",
       "title": "Generative models: making new examples",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [
@@ -907,7 +907,7 @@
     {
       "id": "conditional-generation",
       "title": "Conditional generation: generating from a hint",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 6,
       "prereqs": [
@@ -921,7 +921,7 @@
     {
       "id": "shape-completion",
       "title": "Shape completion: generating the missing part",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [
@@ -936,7 +936,7 @@
     {
       "id": "velocity-field",
       "title": "Velocity fields: an arrow at every point",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 6,
       "prereqs": [
@@ -951,7 +951,7 @@
     {
       "id": "euler-steps",
       "title": "Euler's method: small steps along a field",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [
@@ -966,7 +966,7 @@
     {
       "id": "flow-matching",
       "title": "Flow matching: turning noise into shapes",
-      "level": "u2",
+      "level": "advanced",
       "kind": "concept",
       "minutes": 10,
       "prereqs": [
@@ -990,7 +990,7 @@
     {
       "id": "time-conditioning",
       "title": "Time conditioning: telling a network the time",
-      "level": "u2",
+      "level": "advanced",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [
@@ -1006,7 +1006,7 @@
     {
       "id": "diffusion-transformer",
       "title": "Diffusion transformers (DiT)",
-      "level": "u2",
+      "level": "advanced",
       "kind": "concept",
       "minutes": 8,
       "prereqs": [
@@ -1022,7 +1022,7 @@
     {
       "id": "classifier-free-guidance",
       "title": "Classifier-free guidance",
-      "level": "u2",
+      "level": "advanced",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [
@@ -1037,7 +1037,7 @@
     {
       "id": "diffusion-noising",
       "title": "The diffusion noising process: from data to noise",
-      "level": "u2",
+      "level": "advanced",
       "kind": "concept",
       "minutes": 12,
       "prereqs": [
@@ -1053,7 +1053,7 @@
     {
       "id": "dot-product",
       "title": "The dot product: how much two vectors agree",
-      "level": "hs",
+      "level": "starting",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [
@@ -1069,7 +1069,7 @@
     {
       "id": "chain-rule",
       "title": "The chain rule: slopes of chained steps",
-      "level": "hs",
+      "level": "starting",
       "kind": "concept",
       "minutes": 7,
       "prereqs": [
@@ -1083,7 +1083,7 @@
     {
       "id": "broadcasting",
       "title": "Broadcasting: arrays of different shapes",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 6,
       "prereqs": [
@@ -1097,7 +1097,7 @@
     {
       "id": "backpropagation",
       "title": "Backpropagation: gradients by the chain rule",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 8,
       "prereqs": [
@@ -1113,7 +1113,7 @@
     {
       "id": "permutation-invariance",
       "title": "Order doesn't matter: permutation invariance",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 6,
       "prereqs": [
@@ -1127,7 +1127,7 @@
     {
       "id": "floating-point",
       "title": "Floating-point numbers: rounding to the nearest stored value",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 12,
       "prereqs": [
@@ -1142,7 +1142,7 @@
     {
       "id": "recursion",
       "title": "Recursion: a function that calls itself",
-      "level": "u1",
+      "level": "intermediate",
       "kind": "concept",
       "minutes": 9,
       "prereqs": [

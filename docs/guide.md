@@ -13,14 +13,17 @@ A concept unit is a web page that teaches one general idea. A good unit has thes
 - **The length its concept needs.** It explains the concept as simply as it can be explained at its level, with
   every step, condition and warning box a reader needs, and then stops. The writer never cuts a needed part to
   shorten the page, and never pads a simple concept.
-- **A stated reader.** Its level, `hs`, `u1` or `u2`, says what the reader knows. Its prerequisites reach every
-  concept the page uses, and every chain of prerequisites ends at high-school units.
+- **A stated reader.** Its level, Starting, Intermediate or Advanced, says what background the unit assumes in its
+  own field. Its prerequisites reach every concept its text uses, and every chain of prerequisites ends at Starting
+  units.
 - **True claims, with their conditions.** Each sentence holds as written. Where the page simplifies, a warning box
   names the detail it leaves out. Each fact comes from a source that the writer opened.
 - **A worked example with every step.** A reader at the unit's level can redo it on paper, then try a similar
   problem.
 - **A figure that shows what the text says.** A widget appears only where moving something teaches more than a
   still picture, and it comes with a goal.
+- **Code as extra material.** A Python snippet is for readers who program. The text teaches the concept without it,
+  so a reader who skips the code misses nothing they need.
 - **Questions that make the reader recall and apply the idea,** with the answers hidden until asked for.
 - **The same notation and terms as the units it links.**
 - **Plain English,** by the rules in
@@ -119,7 +122,7 @@ names.
 
 A request can be short, because the skill holds the rules:
 
-- "Add a concept unit `<id>` at level `u1` on `<topic>`, add its manifest entry, and run the checks."
+- "Add a concept unit `<id>` at level `intermediate` on `<topic>`, add its manifest entry, and run the checks."
 - "Review `units/<id>.html` with `skills/explainer-units/references/reviewing.md`, and write the findings to
   `tmp/review/R1.json`."
 - "Fix the findings in `tmp/review/R1.json` with `skills/explainer-units/references/fixing.md`."

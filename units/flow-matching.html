@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="unit-id" content="flow-matching">
-<meta name="unit-level" content="u2">
+<meta name="unit-level" content="advanced">
 <title>Flow matching: turning noise into shapes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,7 +23,7 @@
   <p class="eyebrow"><a href="index.html">Concept units</a></p>
   <h1>Flow matching: turning noise into shapes</h1>
   <!-- unit-meta:start -->
-  <p class="unit-meta"><span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">10 min read</span></p>
+  <p class="unit-meta"><span class="level-badge level-advanced">Advanced</span> <span class="minutes">10 min read</span></p>
   <!-- unit-meta:end -->
 </header>
 
@@ -31,12 +31,12 @@
 <section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
   <h2 id="prereqs-h">Read these first if they are new to you</h2>
   <ul class="unit-links">
-    <li><a href="generative-models.html">Generative models: making new examples</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
-    <li><a href="euler-steps.html">Euler&#x27;s method: small steps along a field</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
-    <li><a href="bell-curve.html">The bell curve (normal distribution)</a> <span class="level-badge level-hs">High school</span> <span class="minutes">7 min</span></li>
-    <li><a href="loss-function.html">Loss: one number for how wrong</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">9 min</span></li>
-    <li><a href="gradient-descent.html">Gradient descent</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
-    <li><a href="mlp.html">The multilayer perceptron (MLP)</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="generative-models.html">Generative models: making new examples</a> <span class="level-badge level-intermediate">Intermediate</span> <span class="minutes">7 min</span></li>
+    <li><a href="euler-steps.html">Euler&#x27;s method: small steps along a field</a> <span class="level-badge level-intermediate">Intermediate</span> <span class="minutes">7 min</span></li>
+    <li><a href="bell-curve.html">The bell curve (normal distribution)</a> <span class="level-badge level-starting">Starting</span> <span class="minutes">7 min</span></li>
+    <li><a href="loss-function.html">Loss: one number for how wrong</a> <span class="level-badge level-intermediate">Intermediate</span> <span class="minutes">9 min</span></li>
+    <li><a href="gradient-descent.html">Gradient descent</a> <span class="level-badge level-intermediate">Intermediate</span> <span class="minutes">8 min</span></li>
+    <li><a href="mlp.html">The multilayer perceptron (MLP)</a> <span class="level-badge level-intermediate">Intermediate</span> <span class="minutes">7 min</span></li>
   </ul>
 </section>
 <!-- prereqs:end -->
@@ -436,7 +436,7 @@ for steps in [1, 4, 40]:
         <a href="https://diffusion.csail.mit.edu/2026/#notes">Introduction to Flow Matching and Diffusion Models (MIT 6.S184), lecture notes</a>
         <span class="fl-src">Holderrieth and Erives, MIT</span>
         <span class="fl-format">Course</span>
-        <span class="level-badge level-u2">Upper undergraduate</span>
+        <span class="level-badge level-advanced">Advanced</span>
       </div>
       <p class="fl-why">The most complete free course on this topic. The notes derive every claim on this page, and
       <a href="https://diffusion.csail.mit.edu/2026/#labs">lab 2</a> builds a flow-matching model in a notebook.</p>
@@ -446,7 +446,7 @@ for steps in [1, 4, 40]:
         <a href="https://mlg.eng.cam.ac.uk/blog/2024/01/20/flow-matching.html#conditional-flows">An introduction to Flow Matching: conditional flows</a>
         <span class="fl-src">Cambridge Machine Learning Group blog</span>
         <span class="fl-format">Article</span>
-        <span class="level-badge level-u2">Upper undergraduate</span>
+        <span class="level-badge level-advanced">Advanced</span>
       </div>
       <p class="fl-why">Shows, with figures, why training on single straight paths teaches the averaged field.</p>
     </li>
@@ -455,7 +455,7 @@ for steps in [1, 4, 40]:
         <a href="https://diffusionflow.github.io/#flow-matching">Diffusion Meets Flow Matching: Two Sides of the Same Coin</a>
         <span class="fl-src">Gao, Hoogeboom, Heek and others</span>
         <span class="fl-format">Article</span>
-        <span class="level-badge level-u2">Upper undergraduate</span>
+        <span class="level-badge level-advanced">Advanced</span>
       </div>
       <p class="fl-why">States exactly how flow matching and diffusion models relate. It runs time the other way:
       <var>t</var> = 0 is data.</p>
@@ -465,7 +465,7 @@ for steps in [1, 4, 40]:
         <a href="https://www.cs.utexas.edu/~lqiang/rectflow/html/intro.html#method-rectified-flow">Rectified Flow: the method</a>
         <span class="fl-src">Qiang Liu</span>
         <span class="fl-format">Article</span>
-        <span class="level-badge level-u2">Upper undergraduate</span>
+        <span class="level-badge level-advanced">Advanced</span>
       </div>
       <p class="fl-why">Figures of straight training paths that cross, and of the flow that the averaged field makes, in
       which no two particles meet at the same time.</p>
@@ -478,8 +478,8 @@ for steps in [1, 4, 40]:
   <h2 id="used-by-h">Where this shows up</h2>
   <h3>Units that build on this one</h3>
   <ul class="unit-links">
-    <li><a href="diffusion-transformer.html">Diffusion transformers (DiT)</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">8 min</span></li>
-    <li><a href="classifier-free-guidance.html">Classifier-free guidance</a> <span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="diffusion-transformer.html">Diffusion transformers (DiT)</a> <span class="level-badge level-advanced">Advanced</span> <span class="minutes">8 min</span></li>
+    <li><a href="classifier-free-guidance.html">Classifier-free guidance</a> <span class="level-badge level-advanced">Advanced</span> <span class="minutes">7 min</span></li>
   </ul>
 </section>
 <!-- used-by:end -->

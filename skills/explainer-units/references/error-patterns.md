@@ -35,10 +35,15 @@ needs a vector's length, which the distance unit teaches, and the cosine, which 
 page listed only the vectors unit as a prerequisite, and that unit teaches neither. The fix added `distance` and
 `sine-waves` to the unit's prerequisites. The page now links each of them where it first uses it.
 
-**Check.** List every concept the page uses: in the prose, the code, the captions, the widget readouts and the "Check
-yourself" answers. Find each one on the page or in a unit of the prerequisite chain. When you cite a unit for a fact,
-open that unit and find the sentence that states it.
-[writing.md](writing.md#prerequisites-cover-every-concept-the-page-uses) has a command that prints the chain. The
+Under the current rule, code needs no prerequisite, because code is extra material
+([figures-and-code.md](figures-and-code.md#snippets-show-what-the-text-says)). Two of the 16 items, on
+`farthest-point-sampling` and `point-clouds`, concerned only NumPy calls in a snippet. Today they would ask for a link
+or a comment instead.
+
+**Check.** List every concept the text uses: in the prose, the captions, the widget readouts and the "Check yourself"
+answers. Find each one on the page or in a unit of the prerequisite chain. When you cite a unit for a fact, open that
+unit and find the sentence that states it.
+[writing.md](writing.md#prerequisites-cover-every-concept-the-text-uses) has a command that prints the chain. The
 build check proves only that the chain is well formed. It cannot tell what a page uses.
 
 ## 2. A claim drops a condition, or a simplification has no warning box
@@ -137,9 +142,9 @@ what is there: the section's name and number, what it plots or compares, and its
 symbol in a figure that the text defines only later.
 
 **Example, `sine-waves.html`.** To find sin 30°, the example said that the triangle "is half of an equilateral
-triangle". A high-school reader would not see why, and that step gives the answer. The fix shows the step: reflect the
-triangle in the x-axis. Together, the triangle and its mirror image have a 60° angle at the origin between two sides
-of length 1. So their other two angles are also 60°, and they form an equilateral triangle.
+triangle". A reader at the Starting level would not see why, and that step gives the answer. The fix shows the step:
+reflect the triangle in the x-axis. Together, the triangle and its mirror image have a 60° angle at the origin between
+two sides of length 1. So their other two angles are also 60°, and they form an equilateral triangle.
 
 **Check.** Recompute every step with only the page and its prerequisites in front of you. Wherever you need a fact
 that neither gives, write the step out or link the unit that holds it.
@@ -161,9 +166,9 @@ transcript was rebuilt from the same cues.
 
 1 item, substantive. The page sits at a higher level than its content needs.
 
-**Example, `conditional-generation.html`.** The unit was marked upper undergraduate (`u2`). Its content was two bell
-curves, an average and one formula read in words, and its only prerequisite was a `u1` unit. The fix set the unit to
-`u1` in the manifest and on the page.
+**Example, `conditional-generation.html`.** The unit was marked `advanced`. Its content was two bell curves, an
+average and one formula read in words, and its only prerequisite was an `intermediate` unit. The fix set the unit to
+`intermediate` in the manifest and on the page.
 
 **Check.** Compare what the page assumes with the level table in
 [writing.md](writing.md#set-the-level-by-what-the-page-needs). Set the level by what the page needs, not by how
