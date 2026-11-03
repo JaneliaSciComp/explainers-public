@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="floating-point">
+<meta name="unit-level" content="u1">
+<title>Floating-point numbers: rounding to the nearest stored value</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Floating-point numbers: rounding to the nearest stored value</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">12 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="exponentials.html">Exponentials, undone by logarithms</a> <span class="level-badge level-hs">High school</span> <span class="minutes">8 min</span></li>
+    <li><a href="numpy-arrays.html">Arrays in NumPy</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">9 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A computer stores a decimal number such as 0.1 as a floating-point number: a sign, a power of two, and a
+  fixed number of binary digits. Only some numbers fit that pattern exactly, so every other number is rounded to
+  the nearest one that does. The stored values crowd together near zero and spread apart as they grow, so the
+  gap between neighbours grows with the size of the number. For numbers that are neither huge nor tiny, the
+  rounding error is therefore a tiny share of the number itself. That is why <code>0.1 + 0.2 == 0.3</code> is
+  <code>False</code> in Python, and why code compares floats with a tolerance.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="binary">
+    <h2>A float is scientific notation in base 2</h2>
+    <p>In scientific notation, a decimal number is written as a few digits times a power of ten:
+    6,500 = 6.5 × 10<sup>3</sup>. A computer does the same in base 2. In <dfn>binary</dfn>, each digit
+    (a <dfn>bit</dfn>) is 0 or 1. The place values left of the point are 1, 2, 4, 8 and so on, the powers of
+    two from <a href="exponentials.html#repeat-multiply">the exponentials unit</a>. Right of the point they are
+    1/2, 1/4, 1/8, and so on. We write 2<sup>−3</sup> for 1/2<sup>3</sup> = 1/8. So binary 110.1 is
+    4 + 2 + 1/2 = 6.5, and 6.5 = 1.101 (binary) × 2<sup>2</sup>.</p>
+    <p>A <dfn>floating-point number</dfn>, or float, stores three pieces of that form. The <dfn>sign</dfn> says
+    plus or minus. The <dfn>exponent</dfn> is the power of two, here 2. The <dfn>fraction</dfn> holds the bits
+    after the point, here 101. The bit before the point is always 1, except for zero and the tiny numbers in the warning box below, so the format does not store it. The
+    number of fraction bits sets how many significant digits a float keeps. The number of exponent bits sets
+    how large and how small it can be.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Format</th><th class="r">Bits in all</th><th class="r">Exponent bits</th><th class="r">Fraction bits</th><th class="r">Largest value</th><th class="r">Significant decimal digits</th></tr></thead>
+        <tbody>
+          <tr><td>float64 (Python's <code>float</code>)</td><td class="r">64</td><td class="r">11</td><td class="r">52</td><td class="r nw">1.8 × 10<sup>308</sup></td><td class="r">about 16</td></tr>
+          <tr><td>float32 (PyTorch's default)</td><td class="r">32</td><td class="r">8</td><td class="r">23</td><td class="r nw">3.4 × 10<sup>38</sup></td><td class="r">about 7</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Each format also has 1 sign bit. These are the <code>float64</code> and <code>float32</code> dtypes of
+    <a href="numpy-arrays.html#shape">NumPy arrays</a>. Both follow the IEEE 754 standard, which almost every
+    computer uses today. On almost every platform, Python's <code>float</code> is float64.</p>
+  </section>
+
+  <section id="gaps">
+    <h2>The gap between stored values doubles at each power of two</h2>
+    <p>Take a toy format with only 2 fraction bits. Between 1 and 2 it can store 1.00, 1.01, 1.10 and 1.11 in
+    binary, which are 1, 1.25, 1.5 and 1.75. Between 2 and 4 the exponent goes up by one, so the same four
+    patterns are doubled: 2, 2.5, 3 and 3.5. Each range from one power of two to the next holds the same count
+    of values, so the gap doubles from one range to the next.</p>
+
+    <figure id="fig-gaps">
+      <div class="fig-title">A toy float with 2 fraction bits: four values per range, and the gap doubles</div>
+      <svg width="560" height="128" viewBox="0 0 560 128" role="img"
+           aria-label="A number line from 0 to 8 with dots at the values a 2-fraction-bit format stores; the dots are 1/8 apart below 1 and 1 apart from 4 to 8, and 5.4 rounds to 5">
+        <defs><marker id="fp-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill:var(--s2)"/></marker></defs>
+        <line x1="44" y1="92" x2="552.4" y2="92" stroke="var(--ink-3)" stroke-width="1.2"/>
+        <line x1="44" y1="96" x2="44" y2="101" stroke="var(--ink-3)"/>
+        <text x="44" y="116" text-anchor="middle" class="muted">0</text>
+        <line x1="106" y1="96" x2="106" y2="101" stroke="var(--ink-3)"/>
+        <text x="106" y="116" text-anchor="middle" class="muted">1</text>
+        <line x1="168" y1="96" x2="168" y2="101" stroke="var(--ink-3)"/>
+        <text x="168" y="116" text-anchor="middle" class="muted">2</text>
+        <line x1="230" y1="96" x2="230" y2="101" stroke="var(--ink-3)"/>
+        <text x="230" y="116" text-anchor="middle" class="muted">3</text>
+        <line x1="292" y1="96" x2="292" y2="101" stroke="var(--ink-3)"/>
+        <text x="292" y="116" text-anchor="middle" class="muted">4</text>
+        <line x1="354" y1="96" x2="354" y2="101" stroke="var(--ink-3)"/>
+        <text x="354" y="116" text-anchor="middle" class="muted">5</text>
+        <line x1="416" y1="96" x2="416" y2="101" stroke="var(--ink-3)"/>
+        <text x="416" y="116" text-anchor="middle" class="muted">6</text>
+        <line x1="478" y1="96" x2="478" y2="101" stroke="var(--ink-3)"/>
+        <text x="478" y="116" text-anchor="middle" class="muted">7</text>
+        <line x1="540" y1="96" x2="540" y2="101" stroke="var(--ink-3)"/>
+        <text x="540" y="116" text-anchor="middle" class="muted">8</text>
+        <circle cx="75.0" cy="92" r="3.2" class="f-s1"/>
+        <circle cx="82.8" cy="92" r="3.2" class="f-s1"/>
+        <circle cx="90.5" cy="92" r="3.2" class="f-s1"/>
+        <circle cx="98.2" cy="92" r="3.2" class="f-s1"/>
+        <circle cx="106.0" cy="92" r="3.2" class="f-s1"/>
+        <circle cx="121.5" cy="92" r="3.2" class="f-s1"/>
+        <circle cx="137.0" cy="92" r="3.2" class="f-s1"/>
+        <circle cx="152.5" cy="92" r="3.2" class="f-s1"/>
+        <circle cx="168.0" cy="92" r="3.2" class="f-s1"/>
+        <circle cx="199.0" cy="92" r="3.2" class="f-s1"/>
+        <circle cx="230.0" cy="92" r="3.2" class="f-s1"/>
+        <circle cx="261.0" cy="92" r="3.2" class="f-s1"/>
+        <circle cx="292.0" cy="92" r="3.2" class="f-s1"/>
+        <circle cx="354.0" cy="92" r="3.2" class="f-s1"/>
+        <circle cx="416.0" cy="92" r="3.2" class="f-s1"/>
+        <circle cx="478.0" cy="92" r="3.2" class="f-s1"/>
+        <circle cx="540" cy="92" r="3.2" class="f-s1"/>
+        <text x="2" y="22" class="ink2">gap</text>
+        <path d="M77.0 36 V30 H104 V36" fill="none" stroke="var(--ink-3)"/>
+        <text x="90.5" y="22" text-anchor="middle">1/8</text>
+        <path d="M108 36 V30 H166 V36" fill="none" stroke="var(--ink-3)"/>
+        <text x="137.0" y="22" text-anchor="middle">1/4</text>
+        <path d="M170 36 V30 H290 V36" fill="none" stroke="var(--ink-3)"/>
+        <text x="230.0" y="22" text-anchor="middle">1/2</text>
+        <path d="M294 36 V30 H538 V36" fill="none" stroke="var(--ink-3)"/>
+        <text x="416.0" y="22" text-anchor="middle">1</text>
+        <line x1="378.8" y1="80" x2="378.8" y2="104" class="st-s2" stroke-width="2.5"/>
+        <text x="385.8" y="70" class="f-s2" style="fill:var(--s2)">5.4</text>
+        <path d="M378.8 80 Q366.4 52 355 83" fill="none" class="st-s2" stroke-width="1.8" marker-end="url(#fp-arr)"/>
+      </svg>
+      <figcaption><b>What to notice.</b> The blue dots are the only values this format can store from 0.5 to 8.
+      Each range between powers of two holds four of them, so the gap doubles each time the numbers double. The
+      orange tick, 5.4, is not a dot, so it is stored as the nearest dot, 5. Values below 0.5 continue the
+      pattern, ever closer together, and are not drawn.</figcaption>
+    </figure>
+
+    <p>A real format works the same way with more bits. With <var>f</var> fraction bits, the values between
+    2<sup><var>k</var></sup> and 2<sup><var>k</var>+1</sup> are spaced
+    2<sup><var>k</var></sup> × 2<sup>−<var>f</var></sup> apart:</p>
+    <p class="math">gap = 2<sup><var>k</var> − <var>f</var></sup></p>
+    <p>For float32, <var>f</var> = 23, so the gap between 1 and 2 is 2<sup>−23</sup>, about
+    1.2 × 10<sup>−7</sup>. For float64, <var>f</var> = 52, and that gap is 2<sup>−52</sup>, about
+    2.2 × 10<sup>−16</sup>. The gap just above 1 is called the format's <dfn>machine epsilon</dfn>.</p>
+    <p>A number that falls between two stored values is rounded to the nearer one. A number exactly halfway
+    goes to the neighbour whose last bit is 0. So the error is at most half a gap. The gap grows with the
+    number, so the error is at most the same small share of the number. That share is 2<sup>−24</sup>, about
+    6 × 10<sup>−8</sup>, for float32, and 2<sup>−53</sup>, about 1.1 × 10<sup>−16</sup>, for float64. That
+    share is where the "about 7" and "about 16" significant digits in the table come from.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: a float32 counter that stops at 16,777,216</span>
+      <p>A program counts events in a float32 and adds 1 for each one. What happens at
+      16,777,216 = 2<sup>24</sup>?</p>
+      <ol>
+        <li>16,777,216 = 2<sup>24</sup>, so it lies in the range from 2<sup>24</sup> to 2<sup>25</sup>.
+        There <var>k</var> = 24.</li>
+        <li>float32 has <var>f</var> = 23 fraction bits, so the gap is
+        2<sup>24 − 23</sup> = 2<sup>1</sup> = 2.</li>
+        <li>The neighbouring stored values are therefore 16,777,216 and 16,777,218.</li>
+        <li>The exact sum, 16,777,217, lies exactly halfway between them. The tie goes to the value whose last
+        bit is 0. That is 16,777,216, because it is 1.000…0 × 2<sup>24</sup>, with all fraction bits 0.</li>
+        <li>So 16,777,216 + 1 is stored as 16,777,216, and every later "+ 1" is lost in the same way. The
+        counter never moves again.</li>
+        <li>In float64, <var>f</var> = 52, so the gap there is 2<sup>24 − 52</sup> = 2<sup>−28</sup>, about
+        0.0000000037. Adding 1 is exact. float64 counts whole numbers exactly up to
+        2<sup>53</sup> = 9,007,199,254,740,992.</li>
+      </ol>
+      <p><b>Your turn.</b> What is the gap between float32 values from 1024 to 2048? Then what does
+      1024 + 0.0001 give in float32?</p>
+      <details><summary>Answer</summary><p>1024 = 2<sup>10</sup>, so the gap is
+      2<sup>10 − 23</sup> = 2<sup>−13</sup> = 0.0001220703125. Half a gap is about 0.000061. The added 0.0001
+      is more than half a gap, so the sum rounds up to the next stored value, 1024.0001220703125. The sum moves,
+      but by 0.000122, not by 0.0001.</p></details>
+    </div>
+  </section>
+
+  <section id="decimals">
+    <h2>Most decimals, such as 0.1, have no exact binary form</h2>
+    <p>A binary number with finitely many bits after the point is a whole number divided by a power of two,
+    such as 0.101 (binary) = 5/8. The number 0.1 is 1/10. If 1/10 equalled <var>J</var>/2<sup><var>N</var></sup>
+    for whole numbers <var>J</var> and <var>N</var>, then 10 × <var>J</var> would equal 2<sup><var>N</var></sup>.
+    But 10 × <var>J</var> is divisible by 5, and no power of two is. So 0.1 has no exact binary form. Its bits
+    repeat forever, as 1/3 = 0.333… does in decimal, and the computer must round them.</p>
+    <p>Python stores 0.1 as the nearest float64, which is
+    0.1000000000<wbr>0000000555<wbr>1115123125<wbr>7827021181<wbr>5834045410<wbr>15625. The numbers 0.2 and 0.3 are rounded too. Each
+    addition is then computed exactly and rounded once more. For 0.1 + 0.2, the errors do not cancel: the sum
+    lands on 0.30000000000000004, the stored value just above the one Python uses for 0.3.</p>
+    <p>The snippet shows this, and one more effect: errors can add up over many operations. In the code,
+    <code>f"{x:.20f}"</code> writes <code>x</code> with 20 digits after the point. Python writes
+    2.2 × 10<sup>−16</sup> as <code>2.2e-16</code>, in code and in its output. <code>np.float32(x)</code> stores <code>x</code> as a float32, and <code>int</code> turns a
+    float into a whole number for printing. <code>np.spacing(x)</code> gives the gap from <code>x</code> to the
+    next stored value of its type, and <code>np.finfo(...).eps</code> gives machine epsilon.</p>
+    <p class="code-cap">floats.py</p>
+<pre><code class="py">import math
+import numpy as np
+
+print(0.1 + 0.2, 0.1 + 0.2 == 0.3)
+print(f"{0.1:.20f}")                  # the stored 0.1, to 20 decimals
+print(math.isclose(0.1 + 0.2, 0.3))   # equal to within a tolerance?
+
+total = 0.0
+for i in range(10):
+    total = total + 0.1
+print(total)                          # ten roundings add up
+
+count = np.float32(16777216)          # 2**24, as a float32
+print(int(count + np.float32(1)))     # the added 1 is lost
+print(np.spacing(count), np.spacing(16777216.0))
+print(np.finfo(np.float32).eps, np.finfo(np.float64).eps)
+</code></pre>
+<pre class="out"><code>0.30000000000000004 False
+0.10000000000000000555
+True
+0.9999999999999999
+16777216
+2.0 3.725290298461914e-09
+1.1920929e-07 2.220446049250313e-16</code></pre>
+
+    <div class="callout warn">
+      <span class="callout-title">This page leaves out the ends of the range</span>
+      <p>The gap formula and the error bound hold only for sizes from about 2.2 × 10<sup>−308</sup> up to the
+      largest value in float64, and from about 1.2 × 10<sup>−38</sup> in float32. Below those sizes, the stored
+      values are evenly spaced and keep fewer significant bits. These are called subnormal numbers. Among them,
+      the rounding error can be a large share of the number. Results beyond the largest value become
+      <code>inf</code> (infinity). In a NumPy array, 0 divided by 0 gives <code>nan</code> ("not a
+      number").</p>
+      <p>The page also skips two details. The stored exponent bits hold the power of two plus a fixed offset,
+      so that negative powers need no sign of their own. And the page uses only the default rounding rule,
+      round to nearest with ties to a last bit of 0; the standard defines other rules too.</p>
+    </div>
+  </section>
+
+  <section id="compare">
+    <h2>Compare floats with a tolerance, not with <code>==</code></h2>
+    <p>Two calculations that are equal on paper often differ in their last bits. So a test should ask whether
+    two floats are close, not whether they are equal. <code>math.isclose(a, b)</code> returns
+    <code>True</code> when <code>a</code> and <code>b</code> differ by at most a share of the larger one. By
+    default that share, <code>rel_tol</code>, is 10<sup>−9</sup>, about 9 matching digits. A tolerance of this
+    kind is called <dfn>relative</dfn>, because it grows with the numbers, as the gaps do.</p>
+    <p>A relative tolerance fails near zero. With the defaults, <code>math.isclose(1e-20, 0)</code> is
+    <code>False</code>. The allowed difference is 10<sup>−9</sup> of the larger value, here 10<sup>−29</sup>, and the actual difference, 10<sup>−20</sup>, is far larger. When one value may be zero, also pass an
+    <dfn>absolute</dfn> tolerance, a fixed amount, such as <code>abs_tol=1e-12</code>, chosen for the size of
+    your data. For whole arrays, <code>np.isclose</code> does a similar job, with a slightly different rule and other defaults:
+    <code>rtol=1e-05</code> and <code>atol=1e-08</code>.</p>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>Why does <code>0.1 + 0.2 == 0.3</code> give <code>False</code> in Python? What should the test write
+      instead?</p>
+      <details><summary>Answer</summary><p>None of 0.1, 0.2 and 0.3 has an exact binary form, so each is
+      stored rounded, and the sum is rounded once more. The result, 0.30000000000000004, is the stored value
+      just above the stored 0.3, so <code>==</code> fails. Write <code>math.isclose(0.1 + 0.2, 0.3)</code>,
+      which allows a small relative difference.</p></details>
+    </li>
+    <li>
+      <p>In float32, what is the gap between stored values from 2<sup>20</sup> = 1,048,576 to
+      2<sup>21</sup>? What does 1,048,576 + 0.05 give?</p>
+      <details><summary>Answer</summary><p>The gap is 2<sup>20 − 23</sup> = 2<sup>−3</sup> = 0.125. Half a gap
+      is 0.0625, and 0.05 is less than that, so the sum rounds down to 1,048,576. The added 0.05 is lost
+      completely.</p></details>
+    </li>
+    <li>
+      <p>A test checks <code>abs(a - b) &lt; 1e-9</code> for float64 numbers near 10<sup>10</sup>. Why does it
+      fail even when <code>a</code> and <code>b</code> differ by a single rounding? (<code>abs</code> gives a
+      number's size without its sign.)</p>
+      <details><summary>Answer</summary><p>10<sup>10</sup> lies between 2<sup>33</sup> (about
+      8.6 × 10<sup>9</sup>) and 2<sup>34</sup>, so the gap there is 2<sup>33 − 52</sup> = 2<sup>−19</sup>,
+      about 1.9 × 10<sup>−6</sup>. Two different stored values that close to 10<sup>10</sup> differ by at
+      least that much, which is far more than 10<sup>−9</sup>. A relative tolerance, as in
+      <code>math.isclose</code>, grows with the numbers and works at any size.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://docs.python.org/3/tutorial/floatingpoint.html#representation-error">Floating-Point Arithmetic: Issues and Limitations, 15.1 Representation Error</a>
+        <span class="fl-src">Python tutorial</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Works out by hand why Python stores 0.1 as 3602879701896397 / 2<sup>55</sup>.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://ciechanow.ski/exposing-floating-point/#discrete-space">Exposing Floating Point: Discrete Space</a>
+        <span class="fl-src">Bartosz Ciechanowski</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">A picture of how the gap between floats changes at each power of two. The earlier
+      sections build a float from its sign, exponent and fraction bits, which the article calls the
+      significand.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html">What Every Computer Scientist Should Know About Floating-Point Arithmetic</a>
+        <span class="fl-src">David Goldberg, 1991</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">The classic survey of rounding error and the IEEE standard, with theorems and proofs.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <p>No unit or explanation builds on this one yet.</p>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+</body>
+</html>

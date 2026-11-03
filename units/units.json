@@ -595,6 +595,22 @@
       "media": []
     },
     {
+      "id": "overfitting",
+      "title": "Overfitting: when a model fits the noise",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 12,
+      "prereqs": [
+        "validation-set",
+        "gradient-descent",
+        "numpy-arrays"
+      ],
+      "summary": "A model overfits when it fits the noise in its training examples and does worse on new ones; a penalty on large weights is a common remedy.",
+      "owner": "W",
+      "status": "reviewed",
+      "media": []
+    },
+    {
       "id": "ema-weights",
       "title": "A moving average of the weights (EMA)",
       "level": "u1",
@@ -1019,6 +1035,22 @@
       "media": []
     },
     {
+      "id": "diffusion-noising",
+      "title": "The diffusion noising process: from data to noise",
+      "level": "u2",
+      "kind": "concept",
+      "minutes": 12,
+      "prereqs": [
+        "generative-models",
+        "bell-curve",
+        "numpy-arrays"
+      ],
+      "summary": "The standard noising process of a diffusion model shrinks an example and adds bell-curve noise over many steps, and any step can be reached in one jump.",
+      "owner": "W",
+      "status": "reviewed",
+      "media": []
+    },
+    {
       "id": "dot-product",
       "title": "The dot product: how much two vectors agree",
       "level": "hs",
@@ -1089,6 +1121,35 @@
       ],
       "summary": "A permutation-invariant function gives the same answer however its inputs are ordered, which a model of point sets needs.",
       "owner": "T",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "floating-point",
+      "title": "Floating-point numbers: rounding to the nearest stored value",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 12,
+      "prereqs": [
+        "exponentials",
+        "numpy-arrays"
+      ],
+      "summary": "A computer stores a decimal number as a sign, a power of two and a fixed number of binary digits, so most numbers are rounded to the nearest stored value, and the gaps between stored values grow with their size.",
+      "owner": "W",
+      "status": "reviewed",
+      "media": []
+    },
+    {
+      "id": "recursion",
+      "title": "Recursion: a function that calls itself",
+      "level": "u1",
+      "kind": "concept",
+      "minutes": 9,
+      "prereqs": [
+        "python-basics"
+      ],
+      "summary": "A recursive function answers a small case directly and passes the rest of the problem to a new call of itself; the calls stop only if every chain of them reaches that small case.",
+      "owner": "W",
       "status": "reviewed",
       "media": []
     }

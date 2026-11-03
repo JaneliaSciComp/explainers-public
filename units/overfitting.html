@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="overfitting">
+<meta name="unit-level" content="u1">
+<title>Overfitting: when a model fits the noise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Overfitting: when a model fits the noise</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">12 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="validation-set.html">Held-out data: the validation set</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">6 min</span></li>
+    <li><a href="gradient-descent.html">Gradient descent</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">8 min</span></li>
+    <li><a href="numpy-arrays.html">Arrays in NumPy</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">9 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A model with many adjustable weights can fit its training examples almost exactly, noise included. That is
+  overfitting: the training loss is low, but the loss on new examples is high. Regularization is any change to
+  training that aims to lower the loss on new examples, not on the training ones. A common kind adds a
+  penalty to the loss that grows with the squares of the weights. In many models, the curve on this page included,
+  a fit that swings wildly needs large weights, so the penalty steers training toward calmer fits. Choose the
+  penalty's strength by the validation loss: too weak and the model still overfits, too strong and it misses the
+  pattern.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+  <section id="fits-noise">
+    <h2>A flexible model can fit the noise along with the pattern</h2>
+    <p>Take 12 training points, evenly spaced from <var>x</var> = &minus;1 to <var>x</var> = 1. Each
+    <var>y</var> is a smooth <a href="sine-waves.html">sine wave</a>, sin(2.5<var>x</var>), plus random noise with a standard deviation of 0.25.
+    Another 40 points from the same wave, at random <var>x</var> and with their own noise, form the
+    <a href="validation-set.html#split">validation set</a>.</p>
+    <p>The model is a curve with 12 weights:</p>
+    <p class="math"><var>y</var> = <var>w</var><sub>0</sub> + <var>w</var><sub>1</sub><var>x</var> +
+    <var>w</var><sub>2</sub><var>x</var><sup>2</sup> + &hellip; + <var>w</var><sub>11</sub><var>x</var><sup>11</sup></p>
+    <p>With 12 weights and 12 points at different <var>x</var>, one choice of weights makes the curve pass through
+    every training point exactly. Its training loss, the <a href="loss-function.html#mse">mean squared error</a>
+    (MSE) on those points, is 0. But its validation loss is 6.36. The wave itself scores 0.070 on the validation
+    points, close to 0.0625, which is 0.25<sup>2</sup>: the noise alone.</p>
+    <p>Fitting the noise of the training examples, so that the model does worse on new ones, is called
+    <dfn>overfitting</dfn>. The opposite failure is <dfn>underfitting</dfn>: a model too stiff to follow the
+    pattern, so that both losses stay high. A sign of overfitting is a low training loss with a validation loss that
+    is much higher, and higher than a calmer model gives.</p>
+    <p>The exact fit uses huge weights that nearly cancel: <var>w</var><sub>9</sub> is about &minus;2,333 and
+    <var>w</var><sub>7</sub> about 1,822. At the training points, the terms cancel to give each <var>y</var>.
+    Between the points they do not, and the curve swings far from the wave.</p>
+  </section>
+
+  <section id="penalty">
+    <h2>A penalty on the squared weights makes large weights cost loss</h2>
+    <p>To regularize the fit, train on a total that adds a penalty to the training MSE:</p>
+    <p class="math">total = MSE + (<var>&lambda;</var>/2) &times; (<var>w</var><sub>1</sub><sup>2</sup> +
+    <var>w</var><sub>2</sub><sup>2</sup> + &hellip; + <var>w</var><sub>11</sub><sup>2</sup>)</p>
+    <p>The number <var>&lambda;</var> (lambda) is the <dfn>regularization strength</dfn>, zero or more. You choose
+    it; training does not. At <var>&lambda;</var> = 0 there is no penalty. The larger <var>&lambda;</var> is, the
+    more loss each large weight costs, so training accepts a less exact fit to keep the weights small. This penalty
+    is called <dfn>L2 regularization</dfn>, or ridge regression in statistics. The &frac12; only makes the step
+    formula below tidier.</p>
+    <p>The penalty leaves out <var>w</var><sub>0</sub>. That weight moves the whole curve up or down, which cannot
+    make it swing. A penalty on it would only pull the curve toward <var>y</var> = 0. Leaving out such a constant
+    term, called a <dfn>bias</dfn> in a network, is the common practice.</p>
+
+    <p><b>Predict first.</b> The slider starts at <var>&lambda;</var> = 0, the exact fit. As you raise
+    <var>&lambda;</var>, will the training loss rise or fall? Then find the <var>&lambda;</var> with the lowest
+    validation loss, and keep going to see what a very strong penalty does.</p>
+    <figure id="fig-penalty">
+      <div class="fig-title">One curve, fitted with a stronger and stronger penalty</div>
+      <div class="controls">
+        <label>Strength <var>&lambda;</var> <input type="range" id="of-lam" min="0" max="33" step="1" value="0"> <output id="of-lam-out">0</output></label>
+      </div>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--s1)"></i>training points and training loss</span>
+        <span><i class="sw" style="background:var(--s2)"></i>validation points and validation loss</span>
+      </div>
+      <svg id="of-svg" class="wide-text" style="width:100%" width="420" height="450" viewBox="0 0 420 450" role="img"
+           aria-label="Top: training and validation points with the fitted curve. Bottom: the training and validation losses against the penalty strength on a log scale, which appear for each strength as the slider moves."></svg>
+      <p class="readout-box"><output id="of-out">Losses at this strength.</output></p>
+      <figcaption><b>What to notice.</b> At <var>&lambda;</var> = 0 the curve passes through every solid blue dot and
+      swings off the chart between them. As <var>&lambda;</var> grows, the training loss rises, while the validation
+      loss falls to a low point and then rises. At the largest strengths the curve flattens and misses the wave.
+      The lower panel marks the losses only at the strengths you have tried. Each labelled tick on the <var>&lambda;</var> axis is 100 times the one before. The column for
+      <var>&lambda;</var> = 0 sits apart at the left; its validation loss, 6.36, is off the chart.</figcaption>
+    </figure>
+
+    <p>This code computes the figure's fits for a few strengths. Setting every slope of the total to zero gives 12
+    linear equations in the 12 weights, and <code>np.linalg.solve</code> solves them. So it finds the lowest total
+    directly, without gradient-descent steps.</p>
+    <p class="code-cap">ridge_fit.py</p>
+<pre><code class="py">import numpy as np
+rng = np.random.default_rng(4)
+x_tr = np.linspace(-1, 1, 12)                  # 12 training inputs, evenly spaced
+y_tr = np.sin(2.5 * x_tr) + 0.25 * rng.normal(size=12)
+x_va = rng.uniform(-1, 1, 40)                  # 40 validation inputs
+y_va = np.sin(2.5 * x_va) + 0.25 * rng.normal(size=40)
+
+X_tr = np.vander(x_tr, 12, increasing=True)    # row i holds 1, x, x**2, ..., x**11
+X_va = np.vander(x_va, 12, increasing=True)
+P = np.eye(12)
+P[0, 0] = 0                                    # the penalty leaves out w0
+
+print("lambda    train    valid  sum of squares")
+for lam in [0, 1e-6, 1e-4, 1e-3, 1e-2, 1e-1, 1, 10]:
+    # The weights with the lowest total: training MSE + (lam / 2) * (w1**2 + ... + w11**2).
+    w = np.linalg.solve(X_tr.T @ X_tr + 6 * lam * P, X_tr.T @ y_tr)
+    train = np.mean((X_tr @ w - y_tr) ** 2)
+    valid = np.mean((X_va @ w - y_va) ** 2)
+    print(f"{lam:6g}  {train:7.4f}  {valid:7.4f}  {np.sum(w[1:] ** 2):14.4g}")
+</code></pre>
+<pre class="out"><code>lambda    train    valid  sum of squares
+     0   0.0000   6.3556       1.013e+07
+ 1e-06   0.0102   0.1214            3248
+0.0001   0.0221   0.0845           86.14
+ 0.001   0.0321   0.0802            10.5
+  0.01   0.0424   0.0895           3.076
+   0.1   0.0748   0.1336           1.146
+     1   0.2218   0.3023           0.203
+    10   0.4727   0.5454         0.01138</code></pre>
+    <p>The last column is <var>w</var><sub>1</sub><sup>2</sup> + &hellip; + <var>w</var><sub>11</sub><sup>2</sup>,
+    and 1.013e+07 means 1.013 &times; 10<sup>7</sup>. The 6 in the code is 12 points divided by 2, from setting
+    the slopes to zero.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: the penalty changes which fit wins</span>
+      <p>Score two fits from the table by the total at <var>&lambda;</var> = 0.001, so
+      <var>&lambda;</var>/2 = 0.0005.</p>
+      <ol>
+        <li>The exact fit (the row for <var>&lambda;</var> = 0): MSE 0, sum of squares 10,130,000. Penalty =
+        0.0005 &times; 10,130,000 = 5,065. Total = 0 + 5,065 = <b>5,065</b>.</li>
+        <li>The fit from the row for <var>&lambda;</var> = 0.001: MSE 0.0321, sum of squares 10.5. Penalty =
+        0.0005 &times; 10.5 = 0.00525. Total = 0.0321 + 0.00525 &asymp; <b>0.037</b>.</li>
+        <li>The second fit has the higher training loss but by far the lower total. So training on the total picks
+        the calmer fit.</li>
+        <li>To choose <var>&lambda;</var>, read the validation column. Of the rows printed, the lowest validation
+        loss is 0.0802, at <var>&lambda;</var> = 0.001. So keep that fit. The rows from 0.0001 to 0.01 are all
+        within 0.01 of it, so the exact choice in that range matters little here.</li>
+      </ol>
+      <p><b>Your turn.</b> The row for <var>&lambda;</var> = 0.1 has MSE 0.0748 and sum of squares 1.146. What is its
+      total at <var>&lambda;</var> = 0.1? Is it lower than the exact fit's total at the same
+      <var>&lambda;</var>?</p>
+      <details><summary>Answer</summary><p>Penalty = 0.05 &times; 1.146 = 0.0573, so the total is
+      0.0748 + 0.0573 = 0.1321. The exact fit's total at <var>&lambda;</var> = 0.1 is
+      0.05 &times; 10,130,000 = 506,500, so yes, far lower.</p></details>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-title">What this toy leaves out</span>
+      <p>A network has too many weights to solve for, so training takes gradient-descent steps toward the lowest
+      total instead. The penalty treats all weights alike, so it works best when the inputs share a scale; otherwise
+      <a href="normalizing-data.html">normalize</a> them first. Large weights go with wild swings in this curve, but
+      not in every model. Some libraries leave out the &frac12;, or add the squared errors instead of averaging
+      them, so check the formula before you compare values of <var>&lambda;</var>.</p>
+    </div>
+  </section>
+
+  <section id="decay">
+    <h2>With gradient descent, the penalty shrinks each weight a little at every step</h2>
+    <p>Look at the penalty's part for one weight <var>w</var>: (<var>&lambda;</var>/2) &times;
+    <var>w</var><sup>2</sup>. The slope of <var>w</var><sup>2</sup> is 2<var>w</var>, as the unit on
+    <a href="derivative.html#slope">derivatives</a> shows, and multiplying a curve by a number multiplies its slope
+    by the same number. So the penalty's slope is <var>&lambda;</var><var>w</var>. If <var>g</var> is the gradient
+    of the MSE for this weight, the gradient of the total is <var>g</var> + <var>&lambda;</var><var>w</var>. One
+    <a href="gradient-descent.html#downhill">gradient-descent step</a> with learning rate <var>&eta;</var> is then:</p>
+    <p class="math"><var>w</var><sub>new</sub> = <var>w</var> &minus; <var>&eta;</var> &times; (<var>g</var> +
+    <var>&lambda;</var><var>w</var>) = <var>w</var> &times; (1 &minus; <var>&eta;</var><var>&lambda;</var>) &minus;
+    <var>&eta;</var> &times; <var>g</var></p>
+    <p>The right-hand form says: shrink the weight by the factor 1 &minus; <var>&eta;</var><var>&lambda;</var>, then
+    take the usual step. That shrinking is the <a href="adamw.html#weight-decay">weight decay</a> of the AdamW unit,
+    with the same formula. When <var>&eta;</var><var>&lambda;</var> is below 1, as it is in practice, the factor
+    pulls a weight toward zero from either side without making it exactly zero.</p>
+    <div class="example">
+      <span class="example-title">Worked example: one step with the penalty</span>
+      <p>Take <var>w</var> = 2, <var>g</var> = 0.3, <var>&eta;</var> = 0.1 and <var>&lambda;</var> = 0.5.</p>
+      <ol>
+        <li>Gradient of the total: 0.3 + 0.5 &times; 2 = 1.3.</li>
+        <li>Step: 2 &minus; 0.1 &times; 1.3 = 2 &minus; 0.13 = <b>1.87</b>.</li>
+        <li>The same by the right-hand form: 2 &times; (1 &minus; 0.05) &minus; 0.1 &times; 0.3 = 1.9 &minus; 0.03 =
+        <b>1.87</b>.</li>
+      </ol>
+      <p>Without the penalty, the step would give 2 &minus; 0.03 = 1.97.</p>
+    </div>
+    <div class="callout warn">
+      <span class="callout-title">The penalty equals weight decay only for plain gradient descent</span>
+      <p>Adam divides the whole gradient, penalty term included, by each weight's typical gradient size, so the two
+      differ there. The <a href="adamw.html#weight-decay">AdamW unit</a> explains why AdamW shrinks the weights
+      separately.</p>
+    </div>
+  </section>
+
+  <section id="other-remedies">
+    <h2>A penalty is one of several ways to curb overfitting</h2>
+    <p>Each of these often lowers the validation loss too:</p>
+    <ul>
+      <li><b>More training examples.</b> A curve with 12 weights cannot pass through all of 100 noisy points.</li>
+      <li><b>Fewer weights.</b> A curve with 5 weights turns at most 3 times, against 10 for 12 weights. Too few
+      weights underfit.</li>
+      <li><b>Early stopping.</b> Stop where the validation loss is lowest, as the
+      <a href="validation-set.html#overfit">validation-set unit</a> shows.</li>
+      <li><b><a href="data-augmentation.html">Data augmentation</a>.</b> Train on altered copies of each example,
+      such as rotated ones.</li>
+    </ul>
+    <p>By the broad definition in the idea paragraph, early stopping and data augmentation count as regularization
+    too.</p>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>With <var>&lambda;</var> = 0, a model has training loss 0.01 and validation loss 0.90. With a larger
+      <var>&lambda;</var>, the same model has 0.08 and 0.12. Which setting overfits, and which would you keep?</p>
+      <details><summary>Answer</summary><p>The first overfits: its training loss is tiny but its validation loss is
+      far higher, and far higher than the second setting's. Keep the second, because the validation loss estimates
+      the loss on new examples, and 0.12 is much lower than 0.90.</p></details>
+    </li>
+    <li>
+      <p>You raise <var>&lambda;</var> to 10 and both losses climb to about 0.5. What has gone wrong, and what does
+      the curve look like?</p>
+      <details><summary>Answer</summary><p>Underfitting. The penalty is so strong that <var>w</var><sub>1</sub> to
+      <var>w</var><sub>11</sub> are nearly zero (their squares add up to about 0.01 in the table). So the curve is
+      nearly the level line <var>y</var> = <var>w</var><sub>0</sub> and misses the wave. Lower
+      <var>&lambda;</var>.</p></details>
+    </li>
+    <li>
+      <p>Suppose every target were near 100 instead of near 0. Why would a penalty on <var>w</var><sub>0</sub>
+      hurt?</p>
+      <details><summary>Answer</summary><p>The curve needs <var>w</var><sub>0</sub> near 100 to reach the points.
+      A penalty on it would pull the whole curve down toward 0, away from every point. Shifting the curve never
+      makes it swing, so that penalty costs accuracy and buys nothing.</p></details>
+    </li>
+    <li>
+      <p>With <var>&eta;</var> = 0.05 and <var>&lambda;</var> = 2, a weight is &minus;4 and the gradient of its MSE
+      is &minus;1. What is the weight after one gradient-descent step on the total?</p>
+      <details><summary>Answer</summary><p>&minus;4 &times; (1 &minus; 0.05 &times; 2) &minus; 0.05 &times; (&minus;1)
+      = &minus;3.6 + 0.05 = &minus;3.55. The shrinking moves a negative weight up toward zero, just as it moves a
+      positive one down.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background, for readers who want more than this page.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://developers.google.com/machine-learning/crash-course/overfitting/regularization">Overfitting: L2 regularization</a>
+        <span class="fl-src">Google Machine Learning Crash Course</span>
+        <span class="fl-format">Course</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">The regularization rate, how to pick it, and early stopping, with exercises. It writes the
+      penalty without the &frac12;.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://mlu-explain.github.io/bias-variance/">The Bias Variance Tradeoff</a>
+        <span class="fl-src">MLU-Explain</span>
+        <span class="fl-format">Interactive page</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Its sections "Low Complexity &amp; Underfitting" and "High Complexity &amp; Overfitting"
+      show both failures in plots you can adjust. It skips penalties.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://www.deeplearningbook.org/contents/regularization.html">Deep Learning, chapter 7: Regularization for Deep Learning</a>
+        <span class="fl-src">Goodfellow, Bengio and Courville</span>
+        <span class="fl-format">Book</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">Section 7.1.1 derives the shrink-then-step rule for the L2 penalty; sections 7.4 and 7.8
+      treat data augmentation and early stopping as regularization.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <p>No unit or explanation builds on this one yet.</p>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  'use strict';
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.getElementById('of-svg');
+  const slider = document.getElementById('of-lam');
+  const out = document.getElementById('of-out');
+  if (!svg || !slider) return;
+  const el = (tag, attrs, parent) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  };
+  // The data from ridge_fit.py: NumPy's default_rng(4), wave sin(2.5x), noise of standard deviation 0.25.
+  const TX = Array.from({ length: 12 }, (_, i) => -1 + 2 * i / 11);
+  const TY = [-0.761419932256879, -0.9331283025079052, -0.5838667473302475, -0.7423220290479211, -1.0405550761382154, -0.22662204121572613, 0.06945528992564479, 0.6673636333050603, 0.5050620204593876, 1.0602407143972594, 0.9482942091108245, 0.9923786519618223];
+  const VX = [-0.13900744454117375, 0.5778934350886589, 0.9683059998622427, -0.26054841469514245, 0.9378657386324698, 0.8580527755308389, -0.6446148284760378, 0.21770323368909517, 0.4097294911294851, 0.8856073582583344, 0.33131483393150685, -0.7332084890966137, -0.004264802429251091, -0.012760332087770276, 0.00045237869749170656, 0.9171645722184945, -0.3001252003554904, -0.5524577064435681, 0.04417400442289532, 0.28234184793005634, 0.8782141068480176, 0.16403160129409167, -0.46433321941682304, 0.8595493906161338, -0.01654943077504689, 0.35160172986705174, -0.047922179049196156, -0.5660399471560098, 0.3851040894211213, 0.5412609661834875, -0.6184229894829247, -0.08016797450303681, -0.2763698801961816, -0.6585403611074503, -0.5572966802884256, 0.9250148226527568, 0.7684461032635626, -0.2354163476104416, 0.47894648627008785, -0.916063925637459];
+  const VY = [-0.4127468971597746, 1.1067090425160784, 0.42173816463454417, -0.6984340840119375, 0.7185422612074654, 1.0330899212252838, -1.3281739253435443, 0.8606508797771116, 0.7662486004423241, 0.8425214980938251, 0.9485463601567907, -0.8006173788043152, 0.2541461674761831, 0.011404034328833704, -0.003772391840985075, 0.8295290163449706, -0.9307965934425462, -0.6785230448626772, -0.08363588983062592, 0.3336235111630647, 1.3252180324075047, 0.364570547374271, -1.2119166779116846, 1.300582300912017, -0.12378993035970001, 1.0356230482294837, -0.3268912325813947, -1.0500987770817436, 0.3986391506549823, 0.4991740688099739, -1.2438026571958738, -0.21859063338931223, -0.43775365399992816, -0.39059198524880423, -1.242244293757141, 0.9895537623466601, 0.7881780645871227, -0.5932803063225977, 0.5607835776308407, -1.1219717177524327];
+  const K = 12;
+  const feats = x => { const p = [1]; for (let k = 1; k < K; k++) p.push(p[k - 1] * x); return p; };
+  const predict = (w, x) => { let s = 0, p = 1; for (let k = 0; k < K; k++) { s += w[k] * p; p *= x; } return s; };
+  const mse = (w, xs, ys) => xs.reduce((s, x, i) => s + (predict(w, x) - ys[i]) ** 2, 0) / xs.length;
+  // Solve (XᵀX + (n λ / 2) P) w = Xᵀy by Gaussian elimination with partial pivoting; P leaves out w0.
+  function fit(lam) {
+    const F = TX.map(feats), n = TX.length;
+    const A = [], b = [];
+    for (let r = 0; r < K; r++) {
+      A.push(new Float64Array(K));
+      let s = 0;
+      for (let i = 0; i < n; i++) s += F[i][r] * TY[i];
+      b.push(s);
+      for (let c = 0; c < K; c++) { let t = 0; for (let i = 0; i < n; i++) t += F[i][r] * F[i][c]; A[r][c] = t; }
+      if (r > 0) A[r][r] += n * lam / 2;
+    }
+    for (let c = 0; c < K; c++) {
+      let piv = c;
+      for (let r = c + 1; r < K; r++) if (Math.abs(A[r][c]) > Math.abs(A[piv][c])) piv = r;
+      [A[c], A[piv]] = [A[piv], A[c]]; [b[c], b[piv]] = [b[piv], b[c]];
+      for (let r = c + 1; r < K; r++) {
+        const f = A[r][c] / A[c][c];
+        for (let k = c; k < K; k++) A[r][k] -= f * A[c][k];
+        b[r] -= f * b[c];
+      }
+    }
+    const w = new Array(K).fill(0);
+    for (let r = K - 1; r >= 0; r--) {
+      let s = b[r];
+      for (let k = r + 1; k < K; k++) s -= A[r][k] * w[k];
+      w[r] = s / A[r][r];
+    }
+    return w;
+  }
+  // Slider position 0 is λ = 0; positions 1 to 33 are λ = 10^-7 to 10^1 in steps of 10^0.25.
+  const lamAt = i => (i === 0 ? 0 : Math.pow(10, -7 + 0.25 * (i - 1)));
+  const fits = [];
+  for (let i = 0; i <= 33; i++) {
+    const lam = lamAt(i), w = fit(lam);
+    fits.push({ i, lam, w, lt: mse(w, TX, TY), lv: mse(w, VX, VY), ss: w.slice(1).reduce((s, v) => s + v * v, 0) });
+  }
+  const visited = new Set([0]);   // the slider positions the reader has tried; the start, λ = 0, counts
+  const SUP = { '-': '⁻', 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹' };
+  const pow10 = e => '10' + String(e).split('').map(c => SUP[c]).join('');
+  const fmtLam = lam => {
+    if (lam === 0) return '0';
+    if (lam >= 0.01) return String(Number(lam.toPrecision(3)));
+    const e = Math.floor(Math.log10(lam) + 1e-9), m = lam / Math.pow(10, e);
+    return (Math.abs(m - 1) < 1e-6 ? '' : m.toFixed(2) + ' × ') + pow10(e);
+  };
+  const fmtSS = v => {
+    if (v < 1e5) return v >= 100 ? Math.round(v).toLocaleString('en-US') : v.toPrecision(3);
+    const e = Math.floor(Math.log10(v));
+    return (v / Math.pow(10, e)).toFixed(3) + ' × ' + pow10(e);
+  };
+
+  function draw() {
+    const W = Math.max(300, Math.min(700, Math.round(svg.getBoundingClientRect().width) || 420));
+    const H = 450, L = 46, R = W - 12;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.setAttribute('width', W);
+    svg.textContent = '';
+    const s = fits[Number(slider.value)];
+    visited.add(s.i);
+    document.getElementById('of-lam-out').textContent = fmtLam(s.lam);
+    // Top panel: the points and the fitted curve.
+    const t0 = 8, t1 = 196, yMin = -2, yMax = 2;
+    const X = x => L + (x + 1) / 2 * (R - L), Y = y => t0 + (yMax - y) / (yMax - yMin) * (t1 - t0);
+    const clip = el('clipPath', { id: 'of-clip' }, el('defs', {}, svg));
+    el('rect', { x: L, y: t0, width: R - L, height: t1 - t0 }, clip);
+    el('rect', { x: L, y: t0, width: R - L, height: t1 - t0, fill: 'none', stroke: 'var(--rule)' }, svg);
+    el('line', { x1: L, x2: R, y1: Y(0), y2: Y(0), stroke: 'var(--grid)' }, svg);
+    [-1, 0, 1].forEach(v => {
+      el('text', { x: L - 6, y: Y(v) + 5, 'text-anchor': 'end', class: 'muted' }, svg).textContent = v;
+      el('text', { x: X(v), y: t1 + 16, 'text-anchor': 'middle', class: 'muted' }, svg).textContent = v;
+    });
+    let d = '';
+    for (let k = 0; k <= 400; k++) {
+      const x = -1 + 2 * k / 400, y = Math.max(-50, Math.min(50, predict(s.w, x)));
+      d += (k ? 'L' : 'M') + X(x).toFixed(1) + ' ' + Y(y).toFixed(1);
+    }
+    el('path', { d, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 2, 'clip-path': 'url(#of-clip)' }, svg);
+    VX.forEach((x, i) => el('circle', { cx: X(x), cy: Y(VY[i]), r: 3.5, fill: 'none', stroke: 'var(--s2)', 'stroke-width': 1.6 }, svg));
+    TX.forEach((x, i) => el('circle', { cx: X(x), cy: Y(TY[i]), r: 4.5, fill: 'var(--s1)' }, svg));
+    // Bottom panel: the two losses against λ. λ = 0 sits in its own column at the left.
+    const b0 = 240, b1 = 404, lMax = 0.6, Z = L + 22, A0 = Z + 22;
+    const lx = lam => (lam === 0 ? Z : A0 + (Math.log10(lam) + 7) / 8 * (R - A0));
+    const ly = v => b0 + (1 - Math.min(v, lMax) / lMax) * (b1 - b0);
+    el('rect', { x: L, y: b0, width: R - L, height: b1 - b0, fill: 'none', stroke: 'var(--rule)' }, svg);
+    el('line', { x1: (Z + A0) / 2, x2: (Z + A0) / 2, y1: b0, y2: b1, stroke: 'var(--grid)', 'stroke-dasharray': '2 3' }, svg);
+    [0, 0.2, 0.4, 0.6].forEach(v => {
+      el('line', { x1: L, x2: R, y1: ly(v), y2: ly(v), stroke: 'var(--grid)' }, svg);
+      el('text', { x: L - 6, y: ly(v) + 5, 'text-anchor': 'end', class: 'muted' }, svg).textContent = v;
+    });
+    el('text', { x: Z, y: b1 + 18, 'text-anchor': 'middle', class: 'muted' }, svg).textContent = '0';
+    [-7, -5, -3, -1, 1].forEach(e => {
+      el('text', { x: lx(Math.pow(10, e)), y: b1 + 18, 'text-anchor': 'middle', class: 'muted' }, svg).textContent = e === 1 ? '10' : e === -1 ? '0.1' : pow10(e);
+    });
+    el('text', { x: (L + R) / 2, y: b1 + 38, 'text-anchor': 'middle', class: 'ink2' }, svg).textContent = 'strength λ (log scale)';
+    const ty = el('text', { x: 14, y: (b0 + b1) / 2, 'text-anchor': 'middle', class: 'ink2', transform: `rotate(-90 14 ${(b0 + b1) / 2})` }, svg);
+    ty.textContent = 'loss';
+    // Mark the losses only at the slider positions the reader has tried, so the start state does not show the
+    // answer. A line joins two neighbouring positions when both have been tried, so a full sweep draws each curve.
+    const tried = fits.filter(q => q.lam > 0 && visited.has(q.i));
+    const marks = (key, color) => {
+      let dd = '';
+      for (const q of tried) {
+        if (q.i > 1 && visited.has(q.i - 1)) {
+          const p = fits[q.i - 1];
+          dd += 'M' + lx(p.lam).toFixed(1) + ' ' + ly(p[key]).toFixed(1) + 'L' + lx(q.lam).toFixed(1) + ' ' + ly(q[key]).toFixed(1);
+        }
+      }
+      if (dd) el('path', { d: dd, fill: 'none', stroke: color, 'stroke-width': 2.2 }, svg);
+      for (const q of tried) el('circle', { cx: lx(q.lam), cy: ly(q[key]), r: 2.5, fill: color }, svg);
+    };
+    marks('lt', 'var(--s1)');
+    marks('lv', 'var(--s2)');
+    el('circle', { cx: Z, cy: ly(fits[0].lt), r: 4, fill: 'var(--s1)' }, svg);
+    el('path', { d: `M${Z - 5} ${b0 + 9}L${Z} ${b0 + 1}L${Z + 5} ${b0 + 9}Z`, fill: 'var(--s2)' }, svg);
+    const best = tried.reduce((a, b) => (a && a.lv <= b.lv ? a : b), null);
+    if (best) {
+      const bx = lx(best.lam), anchor = bx > R - 50 ? 'end' : bx < A0 + 50 ? 'start' : 'middle';
+      el('circle', { cx: bx, cy: ly(best.lv), r: 5, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 1.5 }, svg);
+      el('text', { x: bx, y: ly(best.lv) - 10, 'text-anchor': anchor, class: 'ink2' }, svg).textContent =
+        visited.size === fits.length ? 'lowest' : 'lowest so far';
+    }
+    el('line', { x1: lx(s.lam), x2: lx(s.lam), y1: b0, y2: b1, stroke: 'var(--ink)', 'stroke-dasharray': '4 3' }, svg);
+    out.textContent = `λ = ${fmtLam(s.lam)}: training loss ${s.lt.toFixed(4)}, validation loss ${s.lv.toFixed(4)}, ` +
+      `sum of squared weights ${fmtSS(s.ss)}.` + (best
+        ? ` Of the strengths you have tried, the validation loss is lowest at λ = ${fmtLam(best.lam)}.`
+        : ' Move the slider to see the losses at other strengths.');
+  }
+  slider.addEventListener('input', draw);
+  let lastW = 0;
+  window.addEventListener('resize', () => {
+    const wNow = Math.round(svg.getBoundingClientRect().width);
+    if (Math.abs(wNow - lastW) > 4) { lastW = wNow; draw(); }
+  });
+  draw();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="diffusion-noising">
+<meta name="unit-level" content="u2">
+<title>The diffusion noising process: from data to noise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  .wcanvas { width: 100%; max-width: 440px; height: auto; aspect-ratio: 1 / 1; margin: 0 auto; }
+  .sw-line { width: 22px; height: 0; border-top: 3px solid; display: inline-block; }
+  .sw-dash { width: 22px; height: 0; border-top: 3px dashed var(--ink-2); display: inline-block; }
+  .legend .lg { display: inline; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>The diffusion noising process: from data to noise</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u2">Upper undergraduate</span> <span class="minutes">12 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="generative-models.html">Generative models: making new examples</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">7 min</span></li>
+    <li><a href="bell-curve.html">The bell curve (normal distribution)</a> <span class="level-badge level-hs">High school</span> <span class="minutes">7 min</span></li>
+    <li><a href="numpy-arrays.html">Arrays in NumPy</a> <span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">9 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A diffusion model learns to turn noise into examples by learning to undo a fixed noising process. Each step of
+  that process shrinks the example a little and adds a little bell-curve noise. The noise of many steps adds up to one
+  bell-curve draw, so the noisy version at any step can be made in one jump. The noise schedule, a list of step sizes,
+  sets how fast the example fades. After the last step, the result looks almost like a draw from the standard bell
+  curve. To generate, a trained network starts from such a draw and runs the steps
+  backward.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+
+  <div class="callout">
+    <span class="callout-title">The convention on this page</span>
+    <p>Step <var>t</var> runs from 0, the clean example <var>x</var><sub>0</sub>, to <var>T</var>, the noisiest step,
+    as in the DDPM paper. The <a href="flow-matching.html">flow-matching unit</a> runs time the other way. Here
+    <var>α</var> and <var>β</var> belong to the noise schedule; the time-conditioning unit uses them for a gate and a
+    shift. Each formula acts on one number; an image gets the same formula for every pixel, each with its own noise
+    draw.</p>
+  </div>
+
+  <section id="one-step">
+    <h2>Each step shrinks the example a little and adds a little noise</h2>
+    <p>A diffusion model is a <a href="generative-models.html">generative model</a> that learns from the opposite
+    direction: a fixed process that turns examples into noise. This is the <dfn>noising process</dfn>, also called the
+    forward process. This page follows the <a href="https://arxiv.org/abs/2006.11239">DDPM</a> paper (Ho, Jain and
+    Abbeel, 2020), which uses <var>T</var> = 1000 steps.
+    Step <var>t</var> makes <var>x</var><sub><var>t</var></sub> from <var>x</var><sub><var>t</var>−1</sub>:</p>
+    <p class="math"><var>x</var><sub><var>t</var></sub> = √(1 − <var>β</var><sub><var>t</var></sub>) ×
+    <var>x</var><sub><var>t</var>−1</sub> + √<var>β</var><sub><var>t</var></sub> × <var>ε</var><sub><var>t</var></sub></p>
+    <p>Here <var>ε</var><sub><var>t</var></sub> (epsilon) is a fresh draw from the
+    <a href="bell-curve.html#rule">standard normal</a>, the bell curve with mean 0 and standard deviation 1.
+    <var>β</var><sub><var>t</var></sub> (beta), between 0 and 1, sets the step's size, and the list
+    <var>β</var><sub>1</sub>, …, <var>β</var><sub><var>T</var></sub> is the <dfn>noise schedule</dfn>. So the step
+    shrinks the value by the factor √(1 − <var>β</var><sub><var>t</var></sub>), then adds bell-curve noise with
+    standard deviation √<var>β</var><sub><var>t</var></sub>.</p>
+  </section>
+
+  <section id="variance">
+    <h2>The shrink keeps the variance at 1</h2>
+    <p>The reason uses the <a href="mean-and-spread.html#spread">variance</a>, the square of the standard deviation,
+    and two standard rules of probability:</p>
+    <ul>
+      <li><b>Scaling.</b> Multiplying a random value by <var>c</var> multiplies its variance by <var>c</var>².</li>
+      <li><b>Adding.</b> Two random values are <dfn>independent</dfn> when knowing one tells you nothing about the
+      other. A sum of independent values has the sum of their variances. If both are normal, so is the sum.</li>
+    </ul>
+    <p>Each noise draw is fresh, so it is independent of the value it joins. If
+    <var>x</var><sub><var>t</var>−1</sub> has variance 1, the rules give <var>x</var><sub><var>t</var></sub> the
+    variance</p>
+    <p class="math">(1 − <var>β</var><sub><var>t</var></sub>) × 1 + <var>β</var><sub><var>t</var></sub> × 1 = 1.</p>
+    <p>Without the shrink, the variance would grow by <var>β</var><sub><var>t</var></sub> at every step, and the
+    example would stay at full size. Song and others (2021) call this form <dfn>variance preserving</dfn>. The
+    variance stays exactly 1 only for data with variance 1; other data move toward it.</p>
+  </section>
+
+  <section id="jump">
+    <h2>The noise of many steps adds up to one draw, so any step is one jump away</h2>
+    <p>Put the formula for <var>x</var><sub>1</sub> into the formula for <var>x</var><sub>2</sub>:</p>
+    <div class="scroll-x">
+    <p class="math"><var>x</var><sub>2</sub> = √(1 − <var>β</var><sub>2</sub>) √(1 − <var>β</var><sub>1</sub>)
+    <var>x</var><sub>0</sub> + [ √(1 − <var>β</var><sub>2</sub>) √<var>β</var><sub>1</sub> <var>ε</var><sub>1</sub> +
+    √<var>β</var><sub>2</sub> <var>ε</var><sub>2</sub> ]</p>
+    </div>
+    <p>The part in brackets is a sum of two independent normal draws with mean 0. By the rules, it is one normal draw
+    with variance (1 − <var>β</var><sub>2</sub>) <var>β</var><sub>1</sub> + <var>β</var><sub>2</sub>, which multiplies
+    out to 1 − (1 − <var>β</var><sub>1</sub>)(1 − <var>β</var><sub>2</sub>). The same argument works for any number of
+    steps. Write <var>α</var><sub><var>t</var></sub> = 1 − <var>β</var><sub><var>t</var></sub> (alpha), and let
+    <var>ᾱ</var><sub><var>t</var></sub> (alpha bar) be the product <var>α</var><sub>1</sub> × <var>α</var><sub>2</sub>
+    × … × <var>α</var><sub><var>t</var></sub>. Then</p>
+    <p class="math"><var>x</var><sub><var>t</var></sub> = √<var>ᾱ</var><sub><var>t</var></sub> ×
+    <var>x</var><sub>0</sub> + √(1 − <var>ᾱ</var><sub><var>t</var></sub>) × <var>ε</var>,</p>
+    <p>where <var>ε</var> is one standard normal draw. √<var>ᾱ</var><sub><var>t</var></sub> is the <dfn>signal
+    scale</dfn>, the factor left on the example. √(1 − <var>ᾱ</var><sub><var>t</var></sub>) is the standard
+    deviation of the noise. Every <var>α</var><sub><var>t</var></sub> is below 1, so
+    <var>ᾱ</var><sub><var>t</var></sub> falls at every step, and the example fades.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: two steps, then one jump</span>
+      <p>Take one pixel, <var>x</var><sub>0</sub> = 0.8 (DDPM scales pixels to the range −1 to 1). Use
+      <var>β</var><sub>1</sub> = <var>β</var><sub>2</sub> = 0.36, far larger than real steps, so that √(1 − 0.36) = 0.8
+      and √0.36 = 0.6. Let the draws be <var>ε</var><sub>1</sub> = −0.5 and <var>ε</var><sub>2</sub> = 1.0.</p>
+      <ol>
+        <li>Step 1: <var>x</var><sub>1</sub> = 0.8 × 0.8 + 0.6 × (−0.5) = 0.64 − 0.30 = 0.34.</li>
+        <li>Step 2: <var>x</var><sub>2</sub> = 0.8 × 0.34 + 0.6 × 1.0 = 0.272 + 0.600 = 0.872.</li>
+        <li>For the jump, <var>ᾱ</var><sub>2</sub> = 0.64 × 0.64 = 0.4096, so √<var>ᾱ</var><sub>2</sub> = 0.64. The
+        signal part is 0.64 × 0.8 = 0.512.</li>
+        <li>The bracket is 0.8 × 0.6 × <var>ε</var><sub>1</sub> + 0.6 × <var>ε</var><sub>2</sub> = 0.48 × (−0.5) +
+        0.6 × 1.0 = 0.36. And 0.512 + 0.36 = 0.872, as the two steps gave.</li>
+        <li>The bracket's variance is 0.48² + 0.6² = 0.2304 + 0.36 = 0.5904. That is 1 − <var>ᾱ</var><sub>2</sub>, as
+        the jump formula says.</li>
+      </ol>
+    </div>
+    <p><b>Your turn.</b> With the same <var>β</var> values, start from <var>x</var><sub>0</sub> = −0.5, with the draws
+    <var>ε</var><sub>1</sub> = 1.0 and <var>ε</var><sub>2</sub> = −1.0. Find <var>x</var><sub>2</sub> both ways.</p>
+    <details><summary>Answer</summary><p>Steps: <var>x</var><sub>1</sub> = −0.4 + 0.6 = 0.2, and
+    <var>x</var><sub>2</sub> = 0.16 − 0.6 = −0.44. Jump: 0.64 × (−0.5) + (0.48 × 1.0 + 0.6 × (−1.0)) = −0.32 − 0.12 =
+    −0.44.</p></details>
+
+    <div class="callout warn">
+      <span class="callout-title">The jump gives the same spread, not the same path</span>
+      <p>With one fresh draw <var>ε</var>, the jump has the same distribution as <var>t</var> single steps. It says
+      nothing about the steps in between; a whole path needs the single steps.</p>
+    </div>
+
+    <p>The jump makes training cheap. DDPM picks a random step <var>t</var> from 1 to <var>T</var>, makes
+    <var>x</var><sub><var>t</var></sub> in one jump, and trains a network to predict <var>ε</var> from
+    <var>x</var><sub><var>t</var></sub> and <var>t</var>. The network needs <var>t</var> to know how noisy its input
+    is (see <a href="time-conditioning.html">time conditioning</a>).</p>
+
+    <p class="code-cap">noising.py: 500 single steps against one jump, with the DDPM schedule</p>
+<pre><code class="py">import numpy as np
+
+beta = np.linspace(0.0001, 0.02, 1000)   # DDPM: beta_1 ... beta_1000
+alpha_bar = np.cumprod(1 - beta)         # step t is at index t - 1
+a = alpha_bar[499]                       # step 500
+
+rng = np.random.default_rng(0)
+x = np.full(100_000, 0.8)                # 100,000 copies of x0
+for t in range(1, 501):
+    x = np.sqrt(1 - beta[t - 1]) * x + np.sqrt(beta[t - 1]) * rng.standard_normal(100_000)
+jump = np.sqrt(a) * 0.8 + np.sqrt(1 - a) * rng.standard_normal(100_000)
+
+print("500 steps: mean", round(x.mean(), 3), "std", round(x.std(), 3))
+print("one jump:  mean", round(jump.mean(), 3), "std", round(jump.std(), 3))
+print("formula:   mean", round(np.sqrt(a) * 0.8, 3), "std", round(np.sqrt(1 - a), 3))
+</code></pre>
+<pre class="out">500 steps: mean 0.227 std 0.964
+one jump:  mean 0.226 std 0.954
+formula:   mean 0.224 std 0.96</pre>
+    <p><code>np.linspace(a, b, n)</code> gives <code>n</code> evenly spaced numbers from <code>a</code> to
+    <code>b</code>, and <code>np.cumprod</code> gives running products. Both ways agree with the formula to within
+    0.01. The small differences come from using a finite number of draws.</p>
+  </section>
+
+  <section id="schedule">
+    <h2>The schedule sets how fast the example fades</h2>
+    <p>The DDPM schedule is <dfn>linear</dfn>: <var>β</var><sub><var>t</var></sub> rises in a straight line from
+    0.0001 to 0.02 over 1000 steps. Each <var>β</var><sub><var>t</var></sub> is small, but
+    <var>ᾱ</var><sub><var>T</var></sub>, a product of
+    1000 numbers below 1, is about 0.00004. So √<var>ᾱ</var><sub><var>T</var></sub> ≈ 0.0064: less than 1% of the
+    example's scale is left.</p>
+
+    <figure id="fig-schedules">
+      <div class="fig-title">Signal scale and noise standard deviation over 1000 steps, for two schedules</div>
+      <div class="legend">
+        <span><i class="sw-line" style="border-color:var(--s1)"></i><span class="lg">signal scale √<var>ᾱ</var><sub><var>t</var></sub></span></span>
+        <span><i class="sw-line" style="border-color:var(--s2)"></i><span class="lg">noise standard deviation √(1 − <var>ᾱ</var><sub><var>t</var></sub>)</span></span>
+        <span><i class="sw-line" style="border-color:var(--ink-2)"></i>linear schedule</span>
+        <span><i class="sw-dash"></i>cosine schedule</span>
+      </div>
+      <svg width="420" height="250" viewBox="0 0 420 250" role="img"
+           aria-label="Two pairs of curves over steps 0 to 1000. The signal scale falls from 1 to 0 and the noise standard deviation rises from 0 to 1. The linear schedule's curves cross near step 260, the cosine schedule's near step 500.">
+        <g class="grid" stroke-width="1">
+          <line x1="52" y1="20" x2="400" y2="20"/>
+          <line x1="52" y1="110" x2="400" y2="110"/>
+          <line x1="139" y1="20" x2="139" y2="200"/>
+          <line x1="226" y1="20" x2="226" y2="200"/>
+          <line x1="313" y1="20" x2="313" y2="200"/>
+          <line x1="400" y1="20" x2="400" y2="200"/>
+        </g>
+        <line x1="52" y1="200" x2="400" y2="200" stroke="var(--ink-3)" stroke-width="1"/>
+        <line x1="52" y1="20" x2="52" y2="200" stroke="var(--ink-3)" stroke-width="1"/>
+        <g class="muted" text-anchor="end">
+          <text x="46" y="204">0</text>
+          <text x="46" y="114">0.5</text>
+          <text x="46" y="24">1</text>
+        </g>
+        <g class="muted" text-anchor="middle">
+          <text x="52" y="217">0</text>
+          <text x="139" y="217">250</text>
+          <text x="226" y="217">500</text>
+          <text x="313" y="217">750</text>
+          <text x="400" y="217">1000</text>
+          <text x="226" y="238">step t</text>
+        </g>
+        <g fill="none" stroke-width="2.5" stroke-linejoin="round">
+          <path class="st-s1" d="M52.0,20.0 L53.7,20.1 L55.5,20.2 L57.2,20.3 L59.0,20.5 L60.7,20.8 L62.4,21.0 L64.2,21.4 L65.9,21.8 L67.7,22.2 L69.4,22.6 L71.1,23.1 L72.9,23.7 L74.6,24.3 L76.4,24.9 L78.1,25.6 L79.8,26.3 L81.6,27.0 L83.3,27.8 L85.1,28.7 L86.8,29.5 L88.5,30.4 L90.3,31.4 L92.0,32.4 L93.8,33.4 L95.5,34.4 L97.2,35.5 L99.0,36.6 L100.7,37.8 L102.5,39.0 L104.2,40.2 L105.9,41.4 L107.7,42.7 L109.4,44.0 L111.2,45.3 L112.9,46.7 L114.6,48.1 L116.4,49.5 L118.1,50.9 L119.9,52.4 L121.6,53.9 L123.3,55.4 L125.1,56.9 L126.8,58.4 L128.6,60.0 L130.3,61.6 L132.0,63.2 L133.8,64.8 L135.5,66.4 L137.3,68.0 L139.0,69.7 L140.7,71.4 L142.5,73.0 L144.2,74.7 L146.0,76.4 L147.7,78.1 L149.4,79.8 L151.2,81.5 L152.9,83.2 L154.7,84.9 L156.4,86.7 L158.1,88.4 L159.9,90.1 L161.6,91.8 L163.4,93.6 L165.1,95.3 L166.8,97.0 L168.6,98.7 L170.3,100.5 L172.1,102.2 L173.8,103.9 L175.5,105.6 L177.3,107.3 L179.0,109.0 L180.8,110.6 L182.5,112.3 L184.2,114.0 L186.0,115.6 L187.7,117.2 L189.5,118.9 L191.2,120.5 L192.9,122.1 L194.7,123.7 L196.4,125.3 L198.2,126.8 L199.9,128.4 L201.6,129.9 L203.4,131.4 L205.1,132.9 L206.9,134.4 L208.6,135.9 L210.3,137.3 L212.1,138.7 L213.8,140.2 L215.6,141.6 L217.3,142.9 L219.0,144.3 L220.8,145.6 L222.5,147.0 L224.3,148.3 L226.0,149.5 L227.7,150.8 L229.5,152.0 L231.2,153.3 L233.0,154.5 L234.7,155.7 L236.4,156.8 L238.2,158.0 L239.9,159.1 L241.7,160.2 L243.4,161.3 L245.1,162.4 L246.9,163.4 L248.6,164.4 L250.4,165.4 L252.1,166.4 L253.8,167.4 L255.6,168.3 L257.3,169.3 L259.1,170.2 L260.8,171.0 L262.5,171.9 L264.3,172.8 L266.0,173.6 L267.8,174.4 L269.5,175.2 L271.2,176.0 L273.0,176.7 L274.7,177.5 L276.5,178.2 L278.2,178.9 L279.9,179.6 L281.7,180.2 L283.4,180.9 L285.2,181.5 L286.9,182.1 L288.6,182.7 L290.4,183.3 L292.1,183.9 L293.9,184.4 L295.6,185.0 L297.3,185.5 L299.1,186.0 L300.8,186.5 L302.6,187.0 L304.3,187.4 L306.0,187.9 L307.8,188.3 L309.5,188.8 L311.3,189.2 L313.0,189.6 L314.7,190.0 L316.5,190.3 L318.2,190.7 L320.0,191.1 L321.7,191.4 L323.4,191.7 L325.2,192.1 L326.9,192.4 L328.7,192.7 L330.4,193.0 L332.1,193.2 L333.9,193.5 L335.6,193.8 L337.4,194.0 L339.1,194.3 L340.8,194.5 L342.6,194.7 L344.3,194.9 L346.1,195.2 L347.8,195.4 L349.5,195.6 L351.3,195.7 L353.0,195.9 L354.8,196.1 L356.5,196.3 L358.2,196.4 L360.0,196.6 L361.7,196.7 L363.5,196.9 L365.2,197.0 L366.9,197.1 L368.7,197.3 L370.4,197.4 L372.2,197.5 L373.9,197.6 L375.6,197.7 L377.4,197.8 L379.1,197.9 L380.9,198.0 L382.6,198.1 L384.3,198.2 L386.1,198.3 L387.8,198.4 L389.6,198.5 L391.3,198.5 L393.0,198.6 L394.8,198.7 L396.5,198.7 L398.3,198.8 L400.0,198.9"/>
+          <path class="st-s2" d="M52.0,200.0 L53.7,195.2 L55.5,192.2 L57.2,189.2 L59.0,186.3 L60.7,183.5 L62.4,180.6 L64.2,177.8 L65.9,175.0 L67.7,172.2 L69.4,169.4 L71.1,166.6 L72.9,163.8 L74.6,161.1 L76.4,158.3 L78.1,155.6 L79.8,152.9 L81.6,150.2 L83.3,147.5 L85.1,144.9 L86.8,142.2 L88.5,139.6 L90.3,137.0 L92.0,134.5 L93.8,131.9 L95.5,129.4 L97.2,126.9 L99.0,124.4 L100.7,122.0 L102.5,119.6 L104.2,117.2 L105.9,114.8 L107.7,112.5 L109.4,110.2 L111.2,107.9 L112.9,105.7 L114.6,103.4 L116.4,101.3 L118.1,99.1 L119.9,97.0 L121.6,94.9 L123.3,92.8 L125.1,90.8 L126.8,88.8 L128.6,86.9 L130.3,84.9 L132.0,83.0 L133.8,81.2 L135.5,79.4 L137.3,77.6 L139.0,75.8 L140.7,74.1 L142.5,72.4 L144.2,70.8 L146.0,69.1 L147.7,67.6 L149.4,66.0 L151.2,64.5 L152.9,63.0 L154.7,61.6 L156.4,60.2 L158.1,58.8 L159.9,57.4 L161.6,56.1 L163.4,54.8 L165.1,53.6 L166.8,52.4 L168.6,51.2 L170.3,50.0 L172.1,48.9 L173.8,47.8 L175.5,46.8 L177.3,45.7 L179.0,44.7 L180.8,43.8 L182.5,42.8 L184.2,41.9 L186.0,41.0 L187.7,40.2 L189.5,39.3 L191.2,38.5 L192.9,37.7 L194.7,37.0 L196.4,36.3 L198.2,35.6 L199.9,34.9 L201.6,34.2 L203.4,33.6 L205.1,33.0 L206.9,32.4 L208.6,31.8 L210.3,31.3 L212.1,30.7 L213.8,30.2 L215.6,29.8 L217.3,29.3 L219.0,28.8 L220.8,28.4 L222.5,28.0 L224.3,27.6 L226.0,27.2 L227.7,26.9 L229.5,26.5 L231.2,26.2 L233.0,25.9 L234.7,25.5 L236.4,25.3 L238.2,25.0 L239.9,24.7 L241.7,24.5 L243.4,24.2 L245.1,24.0 L246.9,23.8 L248.6,23.6 L250.4,23.4 L252.1,23.2 L253.8,23.0 L255.6,22.8 L257.3,22.6 L259.1,22.5 L260.8,22.3 L262.5,22.2 L264.3,22.1 L266.0,21.9 L267.8,21.8 L269.5,21.7 L271.2,21.6 L273.0,21.5 L274.7,21.4 L276.5,21.3 L278.2,21.2 L279.9,21.2 L281.7,21.1 L283.4,21.0 L285.2,21.0 L286.9,20.9 L288.6,20.8 L290.4,20.8 L292.1,20.7 L293.9,20.7 L295.6,20.6 L297.3,20.6 L299.1,20.5 L300.8,20.5 L302.6,20.5 L304.3,20.4 L306.0,20.4 L307.8,20.4 L309.5,20.4 L311.3,20.3 L313.0,20.3 L314.7,20.3 L316.5,20.3 L318.2,20.2 L320.0,20.2 L321.7,20.2 L323.4,20.2 L325.2,20.2 L326.9,20.2 L328.7,20.1 L330.4,20.1 L332.1,20.1 L333.9,20.1 L335.6,20.1 L337.4,20.1 L339.1,20.1 L340.8,20.1 L342.6,20.1 L344.3,20.1 L346.1,20.1 L347.8,20.1 L349.5,20.1 L351.3,20.1 L353.0,20.0 L354.8,20.0 L356.5,20.0 L358.2,20.0 L360.0,20.0 L361.7,20.0 L363.5,20.0 L365.2,20.0 L366.9,20.0 L368.7,20.0 L370.4,20.0 L372.2,20.0 L373.9,20.0 L375.6,20.0 L377.4,20.0 L379.1,20.0 L380.9,20.0 L382.6,20.0 L384.3,20.0 L386.1,20.0 L387.8,20.0 L389.6,20.0 L391.3,20.0 L393.0,20.0 L394.8,20.0 L396.5,20.0 L398.3,20.0 L400.0,20.0"/>
+          <path class="st-s1" stroke-dasharray="7 5" d="M52.0,20.0 L53.7,20.0 L55.5,20.1 L57.2,20.1 L59.0,20.2 L60.7,20.2 L62.4,20.3 L64.2,20.4 L65.9,20.5 L67.7,20.6 L69.4,20.7 L71.1,20.9 L72.9,21.0 L74.6,21.1 L76.4,21.3 L78.1,21.5 L79.8,21.7 L81.6,21.9 L83.3,22.1 L85.1,22.3 L86.8,22.5 L88.5,22.8 L90.3,23.0 L92.0,23.3 L93.8,23.6 L95.5,23.8 L97.2,24.1 L99.0,24.4 L100.7,24.8 L102.5,25.1 L104.2,25.4 L105.9,25.8 L107.7,26.1 L109.4,26.5 L111.2,26.9 L112.9,27.3 L114.6,27.7 L116.4,28.1 L118.1,28.5 L119.9,28.9 L121.6,29.4 L123.3,29.8 L125.1,30.3 L126.8,30.7 L128.6,31.2 L130.3,31.7 L132.0,32.2 L133.8,32.7 L135.5,33.3 L137.3,33.8 L139.0,34.3 L140.7,34.9 L142.5,35.5 L144.2,36.0 L146.0,36.6 L147.7,37.2 L149.4,37.8 L151.2,38.4 L152.9,39.0 L154.7,39.7 L156.4,40.3 L158.1,41.0 L159.9,41.6 L161.6,42.3 L163.4,43.0 L165.1,43.7 L166.8,44.4 L168.6,45.1 L170.3,45.8 L172.1,46.5 L173.8,47.3 L175.5,48.0 L177.3,48.8 L179.0,49.5 L180.8,50.3 L182.5,51.1 L184.2,51.9 L186.0,52.7 L187.7,53.5 L189.5,54.3 L191.2,55.2 L192.9,56.0 L194.7,56.8 L196.4,57.7 L198.2,58.6 L199.9,59.4 L201.6,60.3 L203.4,61.2 L205.1,62.1 L206.9,63.0 L208.6,63.9 L210.3,64.8 L212.1,65.8 L213.8,66.7 L215.6,67.7 L217.3,68.6 L219.0,69.6 L220.8,70.5 L222.5,71.5 L224.3,72.5 L226.0,73.5 L227.7,74.5 L229.5,75.5 L231.2,76.5 L233.0,77.6 L234.7,78.6 L236.4,79.6 L238.2,80.7 L239.9,81.7 L241.7,82.8 L243.4,83.9 L245.1,84.9 L246.9,86.0 L248.6,87.1 L250.4,88.2 L252.1,89.3 L253.8,90.4 L255.6,91.5 L257.3,92.7 L259.1,93.8 L260.8,94.9 L262.5,96.1 L264.3,97.2 L266.0,98.4 L267.8,99.5 L269.5,100.7 L271.2,101.9 L273.0,103.0 L274.7,104.2 L276.5,105.4 L278.2,106.6 L279.9,107.8 L281.7,109.0 L283.4,110.2 L285.2,111.5 L286.9,112.7 L288.6,113.9 L290.4,115.1 L292.1,116.4 L293.9,117.6 L295.6,118.9 L297.3,120.1 L299.1,121.4 L300.8,122.7 L302.6,123.9 L304.3,125.2 L306.0,126.5 L307.8,127.8 L309.5,129.0 L311.3,130.3 L313.0,131.6 L314.7,132.9 L316.5,134.2 L318.2,135.5 L320.0,136.9 L321.7,138.2 L323.4,139.5 L325.2,140.8 L326.9,142.1 L328.7,143.5 L330.4,144.8 L332.1,146.1 L333.9,147.5 L335.6,148.8 L337.4,150.2 L339.1,151.5 L340.8,152.9 L342.6,154.2 L344.3,155.6 L346.1,156.9 L347.8,158.3 L349.5,159.7 L351.3,161.0 L353.0,162.4 L354.8,163.8 L356.5,165.2 L358.2,166.5 L360.0,167.9 L361.7,169.3 L363.5,170.7 L365.2,172.1 L366.9,173.4 L368.7,174.8 L370.4,176.2 L372.2,177.6 L373.9,179.0 L375.6,180.4 L377.4,181.8 L379.1,183.2 L380.9,184.6 L382.6,186.0 L384.3,187.4 L386.1,188.8 L387.8,190.2 L389.6,191.6 L391.3,193.0 L393.0,194.4 L394.8,195.8 L396.5,197.2 L398.3,198.6 L400.0,200.0"/>
+          <path class="st-s2" stroke-dasharray="7 5" d="M52.0,200.0 L53.7,197.1 L55.5,195.5 L57.2,194.0 L59.0,192.5 L60.7,191.0 L62.4,189.6 L64.2,188.2 L65.9,186.7 L67.7,185.3 L69.4,183.9 L71.1,182.5 L72.9,181.1 L74.6,179.7 L76.4,178.3 L78.1,176.9 L79.8,175.5 L81.6,174.1 L83.3,172.7 L85.1,171.3 L86.8,169.9 L88.5,168.5 L90.3,167.2 L92.0,165.8 L93.8,164.4 L95.5,163.0 L97.2,161.7 L99.0,160.3 L100.7,158.9 L102.5,157.5 L104.2,156.2 L105.9,154.8 L107.7,153.5 L109.4,152.1 L111.2,150.8 L112.9,149.4 L114.6,148.1 L116.4,146.7 L118.1,145.4 L119.9,144.0 L121.6,142.7 L123.3,141.4 L125.1,140.1 L126.8,138.7 L128.6,137.4 L130.3,136.1 L132.0,134.8 L133.8,133.5 L135.5,132.2 L137.3,130.9 L139.0,129.6 L140.7,128.3 L142.5,127.0 L144.2,125.7 L146.0,124.5 L147.7,123.2 L149.4,121.9 L151.2,120.7 L152.9,119.4 L154.7,118.2 L156.4,116.9 L158.1,115.7 L159.9,114.4 L161.6,113.2 L163.4,112.0 L165.1,110.8 L166.8,109.5 L168.6,108.3 L170.3,107.1 L172.1,105.9 L173.8,104.7 L175.5,103.5 L177.3,102.4 L179.0,101.2 L180.8,100.0 L182.5,98.9 L184.2,97.7 L186.0,96.5 L187.7,95.4 L189.5,94.3 L191.2,93.1 L192.9,92.0 L194.7,90.9 L196.4,89.8 L198.2,88.7 L199.9,87.6 L201.6,86.5 L203.4,85.4 L205.1,84.3 L206.9,83.2 L208.6,82.2 L210.3,81.1 L212.1,80.1 L213.8,79.0 L215.6,78.0 L217.3,77.0 L219.0,75.9 L220.8,74.9 L222.5,73.9 L224.3,72.9 L226.0,71.9 L227.7,71.0 L229.5,70.0 L231.2,69.0 L233.0,68.1 L234.7,67.1 L236.4,66.2 L238.2,65.2 L239.9,64.3 L241.7,63.4 L243.4,62.5 L245.1,61.6 L246.9,60.7 L248.6,59.8 L250.4,58.9 L252.1,58.1 L253.8,57.2 L255.6,56.4 L257.3,55.5 L259.1,54.7 L260.8,53.9 L262.5,53.0 L264.3,52.2 L266.0,51.4 L267.8,50.7 L269.5,49.9 L271.2,49.1 L273.0,48.3 L274.7,47.6 L276.5,46.9 L278.2,46.1 L279.9,45.4 L281.7,44.7 L283.4,44.0 L285.2,43.3 L286.9,42.6 L288.6,41.9 L290.4,41.3 L292.1,40.6 L293.9,40.0 L295.6,39.3 L297.3,38.7 L299.1,38.1 L300.8,37.5 L302.6,36.9 L304.3,36.3 L306.0,35.7 L307.8,35.1 L309.5,34.6 L311.3,34.0 L313.0,33.5 L314.7,33.0 L316.5,32.4 L318.2,31.9 L320.0,31.4 L321.7,31.0 L323.4,30.5 L325.2,30.0 L326.9,29.6 L328.7,29.1 L330.4,28.7 L332.1,28.2 L333.9,27.8 L335.6,27.4 L337.4,27.0 L339.1,26.7 L340.8,26.3 L342.6,25.9 L344.3,25.6 L346.1,25.2 L347.8,24.9 L349.5,24.6 L351.3,24.3 L353.0,24.0 L354.8,23.7 L356.5,23.4 L358.2,23.1 L360.0,22.9 L361.7,22.6 L363.5,22.4 L365.2,22.2 L366.9,22.0 L368.7,21.8 L370.4,21.6 L372.2,21.4 L373.9,21.2 L375.6,21.1 L377.4,20.9 L379.1,20.8 L380.9,20.7 L382.6,20.5 L384.3,20.4 L386.1,20.3 L387.8,20.3 L389.6,20.2 L391.3,20.1 L393.0,20.1 L394.8,20.0 L396.5,20.0 L398.3,20.0 L400.0,20.0"/>
+        </g>
+        <circle cx="142.1" cy="72.7" r="4.5" style="fill:var(--ink)"/>
+        <circle cx="224.6" cy="72.7" r="4.5" style="fill:var(--ink)"/>
+        <text x="142" y="60" text-anchor="middle" class="ink2">≈ 260</text>
+        <text x="225" y="60" text-anchor="middle" class="ink2">≈ 500</text>
+      </svg>
+      <figcaption><b>What to notice.</b> The two scales are equal where <var>ᾱ</var><sub><var>t</var></sub> = 0.5, at
+      the round dots: near step 260 for the linear schedule and near step 500 for the cosine schedule. From step 750
+      on, the linear schedule's signal scale is below 0.06, so its last quarter is nearly pure noise.</figcaption>
+    </figure>
+
+    <p>Nichol and Dhariwal (2021) found that, for images of 64 × 64 and 32 × 32 pixels, the linear schedule destroys
+    the example faster than needed. Their <dfn>cosine schedule</dfn> builds <var>ᾱ</var><sub><var>t</var></sub> from a <a href="sine-waves.html">cosine</a>
+    curve. It falls slowly at the start and the end, and almost in a straight line in between.</p>
+  </section>
+
+  <section id="end">
+    <h2>After the last step, every example has become almost pure noise</h2>
+    <p>With the linear schedule, <var>x</var><sub><var>T</var></sub> ≈ 0.0064 × <var>x</var><sub>0</sub> + 1.0 ×
+    <var>ε</var>: nearly a standard normal draw, whatever the example was. So generation can start from fresh
+    noise.</p>
+
+    <figure id="fig-cloud">
+      <div class="fig-title">400 points of a ring after <var>t</var> steps of noising</div>
+      <div class="controls">
+        <label>Step <var>t</var> <input id="dn-t" type="range" min="0" max="1000" step="10" value="0"> <output id="dn-ot">0</output></label>
+        <span role="group" aria-label="Noise schedule">
+          <button class="btn" type="button" data-sched="lin" aria-pressed="true">Linear</button>
+          <button class="btn" type="button" data-sched="cos" aria-pressed="false">Cosine</button>
+        </span>
+      </div>
+      <canvas id="dn-canvas" class="wcanvas" role="img" aria-label="A grey ring of radius 1.41 with an orange dashed circle at its center, and blue dots for the ring's points after t steps of noising"></canvas>
+      <div class="readout-box">Signal scale √<var>ᾱ</var><sub><var>t</var></sub> = <output id="dn-sig">1.000</output>,
+      noise standard deviation √(1 − <var>ᾱ</var><sub><var>t</var></sub>) = <output id="dn-noi">0.000</output>.<br>
+      Standard deviation of the dots' x coordinates: <output id="dn-sd">1.00</output>.<br>
+      Dots inside the dashed circle: <output id="dn-in">0</output> of 400. Pure noise would put about 47 there.</div>
+      <figcaption><b>Predict first.</b> The grey ring is the clean data, of radius √2 ≈ 1.41, so each coordinate has
+      mean 0 and variance 1. The blue dots are its points after <var>t</var> steps. With the linear schedule, will the
+      ring still show at step 500? Then try the cosine schedule. Each dot keeps one draw <var>ε</var> for all steps,
+      which gives the right spread at each step but not the jagged path of single steps.</figcaption>
+    </figure>
+    <details><summary>What you should find</summary><p>No. With the linear schedule, noise fills much of the empty
+    middle by step 200, and by step 500 the dashed circle holds 44 dots, about what pure noise gives. The cosine
+    schedule's step 500 looks like the linear step 260. The standard deviation stays between 1.00 and 1.03.</p></details>
+
+    <div class="callout warn">
+      <span class="callout-title">The last step is almost, not exactly, pure noise</span>
+      <p>None of the common schedules that Lin and others (2023) examined makes <var>ᾱ</var><sub><var>T</var></sub>
+      exactly 0. They give √<var>ᾱ</var><sub><var>T</var></sub> ≈ 0.068 for the schedule of the image model Stable
+      Diffusion. Pure noise
+      lacks that leftover signal, which carries each image's overall brightness. They found that this mismatch kept the
+      model to images of medium brightness.</p>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-title">This page shows one kind of noising</span>
+      <p>It is DDPM's form of noising, with either schedule. Some diffusion models skip the shrink, so the variance grows ("variance exploding" in
+      Song and others, 2021), and some noise in continuous time. DDPM fixes the <var>β</var><sub><var>t</var></sub>,
+      though it notes that they could be learned.</p>
+    </div>
+  </section>
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>Why does each step multiply the value by √(1 − <var>β</var><sub><var>t</var></sub>) before it adds the
+      noise?</p>
+      <details><summary>Answer</summary><p>It keeps the variance at 1: (1 − <var>β</var><sub><var>t</var></sub>) × 1 +
+      <var>β</var><sub><var>t</var></sub> = 1. Without it, the linear schedule's <var>β</var> values, which add up to
+      10.05, would raise the variance to 11.05, and the full example would remain in the last step.</p></details>
+    </li>
+    <li>
+      <p>One image has every pixel at −1; another has every pixel at +1. After the last step of the linear schedule,
+      how far apart are the means of a noisy pixel from each? Compare that with the noise's standard deviation.</p>
+      <details><summary>Answer</summary><p>The means are √<var>ᾱ</var><sub><var>T</var></sub> × (±1) ≈ ±0.0064, about
+      0.013 apart. The noise's standard deviation is about 1.0, almost 80 times as large, so one noisy pixel barely
+      tells the images apart.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://lilianweng.github.io/posts/2021-07-11-diffusion-models/#forward-diffusion-process">What are Diffusion Models? Forward diffusion process</a>
+        <span class="fl-src">Lilian Weng</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">Derives the jump by merging two bell curves at a time, as here, but numbers the draws
+      <var>ε</var><sub><var>t</var>−1</sub>.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://huggingface.co/blog/annotated-diffusion#defining-the-forward-diffusion-process">The Annotated Diffusion Model: Defining the forward diffusion process</a>
+        <span class="fl-src">Niels Rogge and Kashif Rasul, Hugging Face</span>
+        <span class="fl-format">Article</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">PyTorch code for four schedules and the jump, applied to a photo of cats, with 300 steps.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://arxiv.org/abs/2102.09672">Improved Denoising Diffusion Probabilistic Models</a>
+        <span class="fl-src">Nichol and Dhariwal</span>
+        <span class="fl-format">Paper</span>
+        <span class="level-badge level-u2">Upper undergraduate</span>
+      </div>
+      <p class="fl-why">Section 3.2 introduces the cosine schedule; Figure 3 shows images noised under both.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <p>No unit or explanation builds on this one yet.</p>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  'use strict';
+  const root = document.documentElement;
+  const css = n => getComputedStyle(root).getPropertyValue(n).trim();
+  const fit = cv => {
+    const dpr = window.devicePixelRatio || 1;
+    const w = Math.max(1, Math.round(cv.clientWidth)), h = Math.max(1, Math.round(cv.clientHeight));
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
+      cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    }
+    const ctx = cv.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    return { ctx, w, h };
+  };
+  const rand = seed => () => {
+    seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const gauss = r => { let u = 0; while (u === 0) u = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * r()); };
+
+  // alpha-bar for t = 0 ... T under the two schedules
+  const T = 1000;
+  const ab = { lin: [1], cos: [1] };
+  for (let t = 1; t <= T; t++) {
+    const beta = 0.0001 + (0.02 - 0.0001) * (t - 1) / (T - 1);   // linear: beta_1 = 0.0001 ... beta_T = 0.02
+    ab.lin.push(ab.lin[t - 1] * (1 - beta));
+  }
+  const s = 0.008, f = t => Math.cos((t / T + s) / (1 + s) * Math.PI / 2) ** 2;
+  for (let t = 1; t <= T; t++) {
+    const beta = Math.min(0.999, 1 - f(t) / f(t - 1));            // cosine, with each beta capped at 0.999
+    ab.cos.push(ab.cos[t - 1] * (1 - beta));
+  }
+
+  const cv = document.getElementById('dn-canvas');
+  if (!cv) return;
+  const slider = document.getElementById('dn-t');
+  const out = id => document.getElementById(id);
+  const N = 400, RING = Math.SQRT2, HOLE = 0.5, R = 3.6;
+  const r0 = rand(29);
+  const x0 = [], eps = [];
+  for (let i = 0; i < N; i++) {
+    const a = 2 * Math.PI * i / N;
+    x0.push([RING * Math.cos(a), RING * Math.sin(a)]);
+    eps.push([gauss(r0), gauss(r0)]);
+  }
+  let sched = 'lin';
+
+  function points(t) {
+    const a = Math.sqrt(ab[sched][t]), b = Math.sqrt(1 - ab[sched][t]);
+    return x0.map((p, i) => [a * p[0] + b * eps[i][0], a * p[1] + b * eps[i][1]]);
+  }
+  function paint() {
+    const t = Number(slider.value);
+    const pts = points(t);
+    const { ctx, w, h } = fit(cv);
+    const S = Math.min(w, h) / (2 * R), X = x => w / 2 + x * S, Y = y => h / 2 - y * S;
+    ctx.strokeStyle = css('--rule'); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(X(-R), Y(0)); ctx.lineTo(X(R), Y(0)); ctx.moveTo(X(0), Y(-R)); ctx.lineTo(X(0), Y(R)); ctx.stroke();
+    ctx.strokeStyle = css('--ink-3'); ctx.lineWidth = 3; ctx.globalAlpha = 0.45;
+    ctx.beginPath(); ctx.arc(X(0), Y(0), RING * S, 0, 2 * Math.PI); ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = css('--s2'); ctx.setLineDash([5, 4]); ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(X(0), Y(0), HOLE * S, 0, 2 * Math.PI); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = css('--s1');
+    for (const p of pts) { ctx.beginPath(); ctx.arc(X(p[0]), Y(p[1]), 2.4, 0, 2 * Math.PI); ctx.fill(); }
+
+    const m = pts.reduce((acc, p) => acc + p[0], 0) / N;
+    const sd = Math.sqrt(pts.reduce((acc, p) => acc + (p[0] - m) ** 2, 0) / N);
+    const inside = pts.filter(p => Math.hypot(p[0], p[1]) < HOLE).length;
+    out('dn-ot').textContent = String(t);
+    out('dn-sig').textContent = Math.sqrt(ab[sched][t]).toFixed(3);
+    out('dn-noi').textContent = Math.sqrt(1 - ab[sched][t]).toFixed(3);
+    out('dn-sd').textContent = sd.toFixed(2);
+    out('dn-in').textContent = String(inside);
+  }
+  slider.addEventListener('input', paint);
+  document.querySelectorAll('button[data-sched]').forEach(b => b.addEventListener('click', () => {
+    sched = b.dataset.sched;
+    document.querySelectorAll('button[data-sched]').forEach(o => o.setAttribute('aria-pressed', String(o === b)));
+    paint();
+  }));
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', paint);
+  new MutationObserver(paint).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+  window.addEventListener('resize', paint);
+  paint();
+})();
+</script>
+</body>
+</html>

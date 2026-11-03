@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="unit-id" content="recursion">
+<meta name="unit-level" content="u1">
+<title>Recursion: a function that calls itself</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="unit.css">
+<script src="unit.js" defer></script>
+<style>
+  #fig-stack svg, #rec-svg { max-width: min(100%, 440px); margin: 0 auto; }
+  .frame-name { font-family: var(--font-mono); font-size: 13px; }
+</style>
+</head>
+<body>
+<main class="unit">
+
+<header class="unit-head" data-part="header">
+  <p class="eyebrow"><a href="index.html">Concept units</a></p>
+  <h1>Recursion: a function that calls itself</h1>
+  <!-- unit-meta:start -->
+  <p class="unit-meta"><span class="level-badge level-u1">Intro undergraduate</span> <span class="minutes">9 min read</span></p>
+  <!-- unit-meta:end -->
+</header>
+
+<!-- prereqs:start -->
+<section class="prereqs" id="prereqs" aria-labelledby="prereqs-h">
+  <h2 id="prereqs-h">Read these first if they are new to you</h2>
+  <ul class="unit-links">
+    <li><a href="python-basics.html">Reading Python for this course</a> <span class="level-badge level-hs">High school</span> <span class="minutes">8 min</span></li>
+  </ul>
+</section>
+<!-- prereqs:end -->
+
+<section id="idea" class="idea" data-part="idea">
+  <h2>The idea in one paragraph</h2>
+  <p>A recursive function solves a problem by calling itself on a smaller version of the same problem. It has two
+  parts. The <dfn>base case</dfn> is an input small enough to answer directly, such as an empty list. The
+  <dfn>recursive case</dfn> handles one piece and passes the rest to a new call of the same function. Each call waits
+  for the calls it makes, so the newest unfinished call always finishes first. The calls stop only if every
+  chain of calls reaches the base case.</p>
+</section>
+
+<div class="unit-body" data-part="body">
+
+  <section id="two-cases">
+    <h2>A recursive function answers the smallest case directly and hands the rest to itself</h2>
+    <p>Take the job of adding up a list. The sum of <code>[4, 7, 1]</code> is 4 plus the sum of <code>[7, 1]</code>.
+    That second job is the same problem on a shorter list. Keep shortening, and you reach the empty list, whose sum is
+    0 with no work at all.</p>
+    <p>A function that calls itself is <dfn>recursive</dfn>, and the technique is called <dfn>recursion</dfn>. The
+    function <code>total</code> below writes the idea down. It uses the first value, <code>xs[0]</code>, and the
+    <a href="python-basics.html#lists">slice</a> <code>xs[1:]</code>, which holds everything after the first value.</p>
+    <p class="code-cap">total.py</p>
+<pre><code class="py" data-hl="2,3,4">def total(xs):
+    if len(xs) == 0:               # base case: an empty list
+        return 0
+    return xs[0] + total(xs[1:])   # recursive case: first value plus the total of the rest
+
+print(total([4, 7, 1]))
+print(total([]))
+</code></pre>
+<pre class="out"><code>12
+0</code></pre>
+    <p>Line 2 tests for the base case, and line 3 answers it without calling anything. Line 4 is the recursive case.
+    It calls <code>total</code> on a list that is one value shorter, so each call moves one step closer to the empty
+    list.</p>
+
+    <div class="example">
+      <span class="example-title">Worked example: total([4, 7, 1]) by hand</span>
+      <p>Follow the code line by line. Each step does one thing.</p>
+      <ol>
+        <li><code>[4, 7, 1]</code> is not empty, so the answer is 4 + <code>total([7, 1])</code>. This call waits.</li>
+        <li><code>[7, 1]</code> is not empty, so its answer is 7 + <code>total([1])</code>. This call waits too.</li>
+        <li><code>[1]</code> is not empty, so its answer is 1 + <code>total([])</code>. A third call waits.</li>
+        <li><code>[]</code> is empty: the base case. <code>total([])</code> returns 0.</li>
+        <li><code>total([1])</code> can now finish: 1 + 0 = 1.</li>
+        <li><code>total([7, 1])</code> finishes: 7 + 1 = 8.</li>
+        <li><code>total([4, 7, 1])</code> finishes: 4 + 8 = 12, which the snippet printed.</li>
+      </ol>
+      <p>Steps 1 to 4 go down to the base case, and no addition happens on the way down. Steps 5 to 7 come back up, and
+      each one does one addition. Each call here makes only one call, so the last call to start is the first to
+      finish.</p>
+      <p><b>Your turn.</b> The <dfn>factorial</dfn> of a whole number <var>n</var>, written <var>n</var>!, is
+      1 × 2 × … × <var>n</var>. So 3! = 1 × 2 × 3 = 6, and by the usual convention 0! = 1. This function
+      computes it:</p>
+<pre><code class="py">def factorial(n):
+    if n == 0:
+        return 1
+    return n * factorial(n - 1)
+</code></pre>
+      <p>Trace <code>factorial(3)</code> the same way. Which calls does it make, and what does each one return?</p>
+      <details><summary>Answer</summary><p>On the way down it calls <code>factorial(2)</code>, then
+      <code>factorial(1)</code>, then <code>factorial(0)</code>, the base case, which returns 1. On the way back up,
+      <code>factorial(1)</code> returns 1 × 1 = 1, <code>factorial(2)</code> returns 2 × 1 = 2, and
+      <code>factorial(3)</code> returns 3 × 2 = 6. That matches 3! = 6.</p></details>
+    </div>
+  </section>
+
+  <section id="stack">
+    <h2>Each unfinished call waits on a stack until the call it made returns</h2>
+    <p>When <code>total([4, 7, 1])</code> reaches line 4, it cannot add yet, because it needs
+    <code>total([7, 1])</code> first. So it pauses. Python keeps the paused call, with its own <code>xs</code> and its
+    place in the code. The new call gets a separate <code>xs</code> of its own, so the calls never overwrite each
+    other's list.</p>
+    <p>Python keeps the unfinished calls in a <dfn>call stack</dfn>. Each new call goes on the stack, and a call leaves
+    it when it returns. So the newest unfinished call always finishes first.</p>
+
+    <figure id="fig-stack">
+      <div class="fig-title">At its deepest, total([4, 7, 1]) has four unfinished calls</div>
+      <svg width="440" height="260" viewBox="0 0 440 260" role="img" aria-label="Four boxes, one per call of total, from total of 4, 7, 1 at the top to total of the empty list at the bottom. Arrows on the left point down from each call to the call it makes. Arrows on the right point up and carry the returned values 0, 1, 8 and 12.">
+        <defs>
+          <marker id="ah-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="f-s1"/></marker>
+          <marker id="ah-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="f-s3"/></marker>
+        </defs>
+        <text x="50" y="20" class="muted">your code calls</text>
+        <!-- boxes: y = 30, 90, 150, 210; height 38 -->
+        <rect x="50" y="30" width="270" height="38" rx="5" fill="var(--bg)" class="st-s1" stroke-width="2"/>
+        <rect x="50" y="90" width="270" height="38" rx="5" fill="var(--bg)" class="st-s1" stroke-width="2"/>
+        <rect x="50" y="150" width="270" height="38" rx="5" fill="var(--bg)" class="st-s1" stroke-width="2"/>
+        <rect x="50" y="210" width="270" height="38" rx="5" fill="var(--bg)" class="st-s3" stroke-width="3"/>
+        <text x="62" y="54" class="frame-name">total([4, 7, 1])</text>
+        <text x="308" y="54" text-anchor="end" class="ink2">waits: 4 + ?</text>
+        <text x="62" y="114" class="frame-name">total([7, 1])</text>
+        <text x="308" y="114" text-anchor="end" class="ink2">waits: 7 + ?</text>
+        <text x="62" y="174" class="frame-name">total([1])</text>
+        <text x="308" y="174" text-anchor="end" class="ink2">waits: 1 + ?</text>
+        <text x="62" y="234" class="frame-name">total([])</text>
+        <text x="308" y="234" text-anchor="end" style="fill:var(--s3);font-weight:700">base case: 0</text>
+        <!-- call arrows, down -->
+        <line x1="80" y1="70" x2="80" y2="88" class="st-s1" stroke-width="2" marker-end="url(#ah-blue)"/>
+        <line x1="80" y1="130" x2="80" y2="148" class="st-s1" stroke-width="2" marker-end="url(#ah-blue)"/>
+        <line x1="80" y1="190" x2="80" y2="208" class="st-s1" stroke-width="2" marker-end="url(#ah-blue)"/>
+        <text x="90" y="84" class="muted" style="font-size:11px">calls</text>
+        <text x="90" y="144" class="muted" style="font-size:11px">calls</text>
+        <text x="90" y="204" class="muted" style="font-size:11px">calls</text>
+        <!-- return arrows, up, in the gaps between boxes -->
+        <line x1="290" y1="208" x2="290" y2="191" class="st-s3" stroke-width="2" marker-end="url(#ah-green)"/>
+        <line x1="290" y1="148" x2="290" y2="131" class="st-s3" stroke-width="2" marker-end="url(#ah-green)"/>
+        <line x1="290" y1="88" x2="290" y2="71" class="st-s3" stroke-width="2" marker-end="url(#ah-green)"/>
+        <line x1="290" y1="28" x2="290" y2="8" class="st-s3" stroke-width="2" marker-end="url(#ah-green)"/>
+        <text x="300" y="204" style="fill:var(--s3);font-size:11px">returns 0</text>
+        <text x="300" y="144" style="fill:var(--s3);font-size:11px">returns 1</text>
+        <text x="300" y="84" style="fill:var(--s3);font-size:11px">returns 8</text>
+        <text x="300" y="22" style="fill:var(--s3);font-size:11px">returns 12</text>
+      </svg>
+      <figcaption><b>Down, then back up.</b> Read the blue arrows first: each call makes the next one and waits. The
+      bottom call is the base case, and it answers without a call. Then read the green arrows from the bottom: each
+      call finishes its addition and hands the result to the call above it. Here the newest call is drawn at the
+      bottom.</figcaption>
+    </figure>
+
+    <figure id="fig-widget">
+      <div class="fig-title">Step through total([5, 2, 8, 6]) one call at a time</div>
+      <div class="controls">
+        <button class="btn" id="rec-step" type="button">Step</button>
+        <button class="btn" id="rec-reset" type="button">Start over</button>
+        <output id="rec-count">step 0 of 10</output>
+      </div>
+      <svg id="rec-svg" width="440" height="290" viewBox="0 0 440 290" role="img" aria-label="The call stack of total with the list 5, 2, 8, 6. Each press of Step adds a call box or removes the call that returned.">
+        <g id="rec-frames"></g>
+      </svg>
+      <div class="readout-box"><output id="rec-out"></output></div>
+      <figcaption><b>Predict first.</b> Before you press Step, decide two things. How many boxes will the stack hold at
+      its tallest? In what order will the calls return their values? A blue box is a call that waits, and the green
+      box is the call that is returning now. The first call is at the top, as in the figure above.</figcaption>
+    </figure>
+  </section>
+
+  <section id="base-case">
+    <h2>The calls stop only if every chain of calls reaches the base case</h2>
+    <p>Recursion needs two things to finish. There must be a base case, and each recursive call must move closer to it.
+    <code>total</code> has both: each call gets a list that is one value shorter, so any list reaches the empty list.</p>
+    <p><code>factorial</code> has both only for some inputs. It assumes that <var>n</var> is a whole number that is 0 or
+    more. Call <code>factorial(-1)</code>, and the calls go to −2, −3 and on, and never meet <code>n == 0</code>. A
+    call such as <code>factorial(2.5)</code> skips past 0 the same way: 1.5, 0.5, −0.5.</p>
+    <p>Python does not let such a chain grow forever. It counts the unfinished calls, and when the count passes a limit,
+    it stops the program with an error called <code>RecursionError</code>. The standard <code>sys</code> library, which comes with
+    Python, reports the limit:</p>
+    <p class="code-cap">limit.py</p>
+<pre><code class="py">import sys
+
+print(sys.getrecursionlimit())
+</code></pre>
+<pre class="out"><code>1000</code></pre>
+
+    <div class="callout warn">
+      <span class="callout-title">Deep recursion fails in Python even when the logic is right</span>
+      <p>The limit counts every unfinished call, not only calls in a chain that never ends. Run as a script on Python 3.12.3,
+      <code>total</code> handled a list of 998 values and stopped with <code>RecursionError</code> on a list of 999 values.
+      The 1000 printed above is the value on that Python; another version or setup may give another value. The
+      function <code>sys.setrecursionlimit</code> raises the limit, but
+      <a href="https://docs.python.org/3/library/sys.html#sys.setrecursionlimit">Python's documentation</a> warns
+      that a limit set too high can crash Python. For a chain of thousands of steps, use a loop.</p>
+    </div>
+  </section>
+
+  <section id="loops">
+    <h2>A loop can do the same job, and recursion fits problems that split into smaller copies</h2>
+    <p>Any of these sums could also be written with a <a href="python-basics.html#loops">for-loop</a>, and Python's
+    built-in <code>sum([4, 7, 1])</code> also gives 12. The loop keeps a running total in one name, and it makes no chain
+    of calls:</p>
+    <p class="code-cap">total_loop.py</p>
+<pre><code class="py">def total_loop(xs):
+    result = 0
+    for x in xs:
+        result = result + x
+    return result
+
+print(total_loop([4, 7, 1]))
+</code></pre>
+<pre class="out"><code>12</code></pre>
+    <p>For a flat list, the loop is the plainer choice. Recursion pays off when the smaller pieces of a problem are
+    problems of the same kind, and especially when one call needs two or more smaller calls. A function that builds a
+    KD-tree, for example, splits its points at the middle point and calls itself once for each side. The
+    <a href="kd-tree.html#search">KD-tree unit</a> shows such a function, <code>build</code>.</p>
+
+    <div class="callout warn">
+      <span class="callout-title">This page's total copies the list at every call</span>
+      <p>The slice <code>xs[1:]</code> makes a new list. For a list of <var>n</var> values, the calls copy
+      (<var>n</var> − 1) + (<var>n</var> − 2) + … + 1 + 0 values, which is <var>n</var> × (<var>n</var> − 1) / 2 in
+      all: 124,750 copies for a list of 500 values. The loop copies none. A faster recursive version passes a position in the
+      list instead of a shorter copy. This page keeps the slice because it shows the smaller problem plainly.</p>
+    </div>
+  </section>
+
+</div>
+
+<section id="check" class="check" data-part="check">
+  <h2>Check yourself</h2>
+  <ol class="questions">
+    <li>
+      <p>Name the two parts that every recursive function needs, and say what each one does.</p>
+      <details><summary>Answer</summary><p>A base case, which answers a small input directly without calling the
+      function again, and a recursive case, which calls the function on a smaller input. The recursive case must move
+      every input closer to the base case, or the calls never stop.</p></details>
+    </li>
+    <li>
+      <p>What does this print? How many calls of <code>count</code> are unfinished at the deepest point?</p>
+<pre><code class="py">def count(xs):
+    if len(xs) == 0:
+        return 0
+    return 1 + count(xs[1:])
+
+print(count([9, 9, 9]))
+</code></pre>
+      <details><summary>Answer</summary><p>It prints <code>3</code>: each non-empty list adds 1, and the empty list adds 0.
+      At the deepest point there are four unfinished calls, on lists of 3, 2, 1 and 0 values. A list of
+      <var>n</var> values always gives <var>n</var> + 1 calls, because the empty list needs a call of its own.</p></details>
+    </li>
+    <li>
+      <p>What happens when you call <code>factorial(-1)</code> with the function on this page? How could the caller
+      avoid it?</p>
+      <details><summary>Answer</summary><p>The calls go to −2, −3 and on, and never reach the base case
+      <code>n == 0</code>. Python stops the program with a <code>RecursionError</code> once the unfinished calls pass
+      its limit. The function assumes a whole number that is 0 or more, so the caller should pass only such numbers,
+      since the factorial of a negative number is not defined.</p></details>
+    </li>
+  </ol>
+</section>
+
+<section id="further" class="further" data-part="further">
+  <h2>Go further</h2>
+  <p class="small">Optional background.</p>
+  <ul class="further-list">
+    <li>
+      <div class="fl-head">
+        <a href="https://allendowney.github.io/ThinkPython/chap05.html#recursion">Think Python, chapter 5: Conditionals and Recursion</a>
+        <span class="fl-src">Allen B. Downey</span>
+        <span class="fl-format">Book</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Sections 5.8 to 5.10 build a countdown function, draw its calls as a stack diagram, and show
+      the <code>RecursionError</code> that infinite recursion causes.</p>
+    </li>
+    <li>
+      <div class="fl-head">
+        <a href="https://www.composingprograms.com/pages/17-recursive-functions.html#the-anatomy-of-recursive-functions">Composing Programs, 1.7: Recursive Functions</a>
+        <span class="fl-src">John DeNero</span>
+        <span class="fl-format">Book</span>
+        <span class="level-badge level-u1">Intro undergraduate</span>
+      </div>
+      <p class="fl-why">Section 1.7.1 compares a recursive factorial with a loop version, and section 1.7.4 covers
+      functions that call themselves twice, such as one for the Fibonacci numbers.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- used-by:start -->
+<section class="used-by" id="used-by" aria-labelledby="used-by-h">
+  <h2 id="used-by-h">Where this shows up</h2>
+  <p>No unit or explanation builds on this one yet.</p>
+</section>
+<!-- used-by:end -->
+
+<footer class="unit-foot" data-part="footer">
+  <a href="index.html">All concept units</a>
+</footer>
+
+</main>
+<script>
+(() => {
+  const svg = document.getElementById('rec-svg');
+  if (!svg) return;
+  const NS = 'http://www.w3.org/2000/svg', $ = id => document.getElementById(id);
+  const XS = [5, 2, 8, 6];
+  const show = a => '[' + a.join(', ') + ']';
+  const name = k => 'total(' + show(XS.slice(k)) + ')';
+  const sumFrom = k => XS.slice(k).reduce((s, v) => s + v, 0);
+  const n = XS.length;
+  // Build every state once. A frame is { label, note, ret } where ret marks the call that is returning now.
+  const states = [{ frames: [], text: 'Nothing has run yet. Press Step to call ' + name(0) + '.', rets: [] }];
+  const frames = [];
+  for (let k = 0; k < n; k++) {
+    frames.push({ label: name(k), note: 'waits: ' + XS[k] + ' + ?', ret: false });
+    states.push({ frames: frames.map(f => ({ ...f })), rets: [],
+      text: name(k) + ' starts. Its list is not empty, so it needs ' + XS[k] + ' + ' + name(k + 1) +
+        '. It calls ' + name(k + 1) + ' and waits.' });
+  }
+  frames.push({ label: name(n), note: 'returns 0', ret: true });
+  states.push({ frames: frames.map(f => ({ ...f })), rets: [],
+    text: name(n) + ' starts. Its list is empty, so this is the base case: it returns 0 without calling anything.' });
+  const rets = [0];
+  for (let k = n - 1; k >= 0; k--) {
+    frames.pop();
+    const got = sumFrom(k + 1), val = sumFrom(k);
+    frames[k] = { label: name(k), note: XS[k] + ' + ' + got + ' = ' + val + ', returns ' + val, ret: true };
+    states.push({ frames: frames.map(f => ({ ...f })), rets: rets.slice(),
+      text: name(k + 1) + ' has finished and handed ' + got + ' back to ' + name(k) + ', which computes ' +
+        XS[k] + ' + ' + got + ' = ' + val + ' and returns it.' });
+    rets.push(val);
+  }
+  states.push({ frames: [], rets: rets.slice(),
+    text: name(0) + ' has finished and handed ' + sumFrom(0) + ' back to the line that called it. The stack is empty again.' });
+
+  let step = 0;
+  const el = (p, tag, a, text) => { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); if (text !== undefined) e.textContent = text; p.appendChild(e); return e; };
+  function draw() {
+    const s = states[step], g = $('rec-frames');
+    g.textContent = '';
+    if (s.frames.length === 0) {
+      el(g, 'text', { x: 220, y: 145, 'text-anchor': 'middle', class: 'muted' }, 'the stack is empty');
+    }
+    s.frames.forEach((f, i) => {
+      const y = 8 + i * 56;
+      el(g, 'rect', { x: 20, y, width: 400, height: 44, rx: 5, fill: 'var(--bg)',
+        class: f.ret ? 'st-s3' : 'st-s1', 'stroke-width': f.ret ? 3 : 2 });
+      el(g, 'text', { x: 34, y: y + 27, class: 'frame-name' }, f.label);
+      const t = el(g, 'text', { x: 406, y: y + 27, 'text-anchor': 'end', class: f.ret ? '' : 'ink2' }, f.note);
+      if (f.ret) t.setAttribute('style', 'fill:var(--s3);font-weight:700');
+    });
+    $('rec-count').textContent = 'step ' + step + ' of ' + (states.length - 1) + ' · calls on the stack: ' + s.frames.length;
+    $('rec-out').textContent = s.text + (s.rets.length ? ' Returned so far: ' + s.rets.join(', ') + '.' : '');
+    $('rec-step').disabled = step === states.length - 1;
+  }
+  $('rec-step').addEventListener('click', () => { if (step < states.length - 1) { step++; draw(); } });
+  $('rec-reset').addEventListener('click', () => { step = 0; draw(); });
+  draw();
+})();
+</script>
+</body>
+</html>
