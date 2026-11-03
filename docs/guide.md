@@ -37,7 +37,7 @@ A concept unit is a web page that teaches one general idea. A good unit has thes
 
 ## The workflow has four steps: write, check, review, fix
 
-1. **Write.** Scope one concept, list what the page will use, and set the prerequisites. Read the units you link,
+1. **Write.** Scope one concept, list what the text will use, and set the prerequisites. Read the units you link,
    then write the page from `units/_template.html`. The skill's
    [`SKILL.md`](../skills/explainer-units/SKILL.md) gives the steps, and
    [`writing.md`](../skills/explainer-units/references/writing.md) and
@@ -87,7 +87,7 @@ reviewers' notes and the findings on the manifest and the video, there were 125 
 | A colour word that is false in dark mode, or names the wrong colour | 5 | 0 |
 
 The first three patterns hold 37 of the 49 substantive items, and no script catches them. A writer prevents them by
-listing every concept the page uses, by testing each claim on its edge cases, and by checking each fact against a
+listing every concept the text uses, by testing each claim on its edge cases, and by checking each fact against a
 source. [`error-patterns.md`](../skills/explainer-units/references/error-patterns.md) gives an example of each
 pattern from a unit page, and the check that catches it.
 

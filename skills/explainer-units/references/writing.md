@@ -28,7 +28,7 @@ Contents: one concept; levels; prerequisites; conditions and warning boxes; fact
 ## Set the level by what the page needs
 
 `units/about.html#levels` defines the three levels, `starting`, `intermediate` and `advanced`. A level describes the
-background that a unit assumes in its own field, not the reader's school year. To choose one:
+background that a unit assumes in its own field. To choose one:
 
 - Set the level by what the page assumes, not by how advanced the topic sounds. Review moved one unit from
   `advanced` to `intermediate`, because its content and its only prerequisite were `intermediate`.
@@ -43,8 +43,9 @@ A missing prerequisite was the most common substantive finding: 15 of 49. The bu
 well formed, so do this by hand:
 
 1. List what the text uses: terms, symbols, formulas and facts. Read the captions, the widget readouts and the
-   "Check yourself" answers too, not only the prose. Leave out the code: it is extra material, and needs no
-   prerequisite (see [figures-and-code.md](figures-and-code.md#snippets-show-what-the-text-says)).
+   "Check yourself" answers too, not only the prose. Leave out the code, which is extra material and needs no
+   prerequisite, unless the unit is about programming itself (see
+   [figures-and-code.md](figures-and-code.md#snippets-show-what-the-text-says)).
 2. Print the unit's prerequisite chain. Run this from the repo root, with the unit's id last:
 
    ```sh

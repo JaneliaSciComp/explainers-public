@@ -11,7 +11,7 @@ once for each of the first three patterns before you ask for a review.
 
 | # | Pattern | Items | Substantive | What catches it |
 |---|---|---|---|---|
-| 1 | A page uses a concept it neither teaches nor reaches through its prerequisites, or links a unit that lacks the cited fact | 16 | 15 | listing every concept the page uses, and the prerequisite chain |
+| 1 | A page uses a concept it neither teaches nor reaches through its prerequisites, or links a unit that lacks the cited fact | 16 | 15 | listing every concept the text uses, and the prerequisite chain |
 | 2 | A claim drops a condition, or a simplification has no warning box | 22 | 14 | testing each claim on its edge cases |
 | 3 | A fact, number or name stated from memory, and wrong | 13 | 8 | opening a source for each fact |
 | 4 | Code, its output or a table does not show what the text says | 6 | 4 | rerunning the code, and reading the text beside it |

@@ -7,7 +7,7 @@ description: Write, check, review and fix concept units, the HTML pages in the e
 
 A concept unit is a web page that teaches one general idea, such as vectors or KD-trees, at the length it needs.
 Each unit lists the units to read first, down to units that start from scratch, so a reader can start anywhere. The
-repo's `units/` folder holds 73 of them. This skill holds the practices that made those pages accurate.
+repo's `units/` folder holds 77 of them. This skill holds the practices that made those pages accurate.
 
 When the first 73 units were reviewed, every script passed, and reviewers still found 45 substantive problems. Most
 fell in three patterns: a concept used without a prerequisite, a claim that drops a condition, and a fact stated from
@@ -40,11 +40,12 @@ memory. No script catches these. The steps below prevent them, and each step say
    `hub`). `units/about.html#levels` defines the levels. Write "The idea in one paragraph" first, in at most six short
    sentences. If the idea does not fit, the unit holds two concepts: split it. A reader comes to look up one idea, and
    a unit that holds several makes them read a course.
-2. **List what the text will use, and set the prerequisites.** Write down every concept, symbol, formula and fact
-   the text will need. Include the captions, widget readouts and answers, not only the prose. Find each one on the
-   page or in a unit of the prerequisite chain. Leave out the code: it is extra material (step 8), and needs no
-   prerequisite. [writing.md](references/writing.md#prerequisites-cover-every-concept-the-text-uses) has a command
-   that prints the chain. Missing prerequisites were the most common substantive finding.
+2. **List what the text will use, and set the prerequisites.** Write down every concept, symbol, formula and fact the
+   text will need. Include the captions, widget readouts and answers, not only the prose. Find each one on the page or
+   in a unit of the prerequisite chain. Leave out the code, which is extra material and needs no prerequisite, unless
+   the unit is about programming itself (step 8).
+   [writing.md](references/writing.md#prerequisites-cover-every-concept-the-text-uses) has a command that prints the
+   chain. Missing prerequisites were the most common substantive finding.
 3. **Read the units you will link.** Use their notation and terms, and find the sentence that states each fact you
    will cite them for. Link the section's `id`. Notation that drifts between linked units costs every reader time.
 4. **Add the manifest entry and copy the template.** Follow "Add a unit" in `units/README.md`.
@@ -59,11 +60,12 @@ memory. No script catches these. The steps below prevent them, and each step say
 7. **Draw one figure; add a widget only if moving something teaches more.** Give the widget a goal, and a start
    state that does not show the answer. Name colours that hold in both themes. See
    [figures-and-code.md](references/figures-and-code.md).
-8. **Add Python only if it helps readers who program, and run it.** Code is extra material: the text must teach
-   the concept without it, so a reader who skips every code block misses nothing they need. Use only the Python
-   that `python-basics` teaches. For a NumPy or PyTorch call, link the unit that teaches it, or say in a comment what
-   the call does. Paste what the code prints into `<pre class="out">` exactly, because the snippet check compares
-   only that block. Make the text, the comments and any table match what the code does.
+8. **Add Python only if it helps readers who program, and run it.** Code is extra material: the text must teach the
+   concept without it, so a reader who skips every code block misses nothing they need. A unit about programming
+   itself, such as `recursion`, is the exception: there the code is part of the text. Use only the Python that
+   `python-basics` teaches. For a NumPy or PyTorch call, link the unit that teaches it, or say in a comment what the
+   call does. Paste what the code prints into `<pre class="out">` exactly, because the snippet check compares only
+   that block. Make the text, the comments and any table match what the code does.
 9. **Write "Check yourself".** Ask two to four questions that the page answers. Give the reason in each answer, and
    recompute each one. Answering from memory teaches more than rereading.
 10. **Add "Go further" only with items you have opened.** Describe what the linked section actually shows, and set
