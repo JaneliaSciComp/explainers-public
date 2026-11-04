@@ -16,7 +16,7 @@ A concept unit is a web page that teaches one general idea. A good unit has thes
   every step, condition and warning box a reader needs, and then stops. The writer never cuts a needed part to
   shorten the page, and never pads a simple concept.
 - **A stated reader.** Its level, Starting, Intermediate or Advanced, says what background the unit assumes in its
-  own field. Its prerequisites reach every concept its text uses, and every chain of prerequisites ends at Starting
+  own field. Its prerequisites reach every concept the page uses, and every chain of prerequisites ends at Starting
   units.
 - **True claims, with their conditions.** Each sentence holds as written. Where the page simplifies, a warning box
   names the detail it leaves out. Each fact comes from a source that the writer opened.
@@ -24,8 +24,8 @@ A concept unit is a web page that teaches one general idea. A good unit has thes
   problem.
 - **A figure that shows what the text says.** A widget appears only where moving something teaches more than a
   still picture, and it comes with a goal.
-- **Code as extra material.** A Python snippet is for readers who program. The text teaches the concept without it,
-  so a reader who skips the code misses nothing they need.
+- **Code where it helps.** Python is the default language. Code appears wherever it helps the reader, most of all
+  where a figure or a widget can't show the idea. In a unit about coding, the code is part of the lesson.
 - **Questions that make the reader recall and apply the idea,** with the answers hidden until asked for.
 - **The same notation and terms as the units it links.**
 - **Plain English,** by the rules in
@@ -37,7 +37,7 @@ A concept unit is a web page that teaches one general idea. A good unit has thes
 
 ## The workflow has four steps: write, check, review, fix
 
-1. **Write.** Scope one concept, list what the text will use, and set the prerequisites. Read the units you link,
+1. **Write.** Scope one concept, list what the page will use, and set the prerequisites. Read the units you link,
    then write the page from `units/_template.html`. The skill's
    [`SKILL.md`](../skills/explainer-units/SKILL.md) gives the steps, and
    [`writing.md`](../skills/explainer-units/references/writing.md) and
@@ -87,7 +87,7 @@ reviewers' notes and the findings on the manifest and the video, there were 125 
 | A colour word that is false in dark mode, or names the wrong colour | 5 | 0 |
 
 The first three patterns hold 37 of the 49 substantive items, and no script catches them. A writer prevents them by
-listing every concept the text uses, by testing each claim on its edge cases, and by checking each fact against a
+listing every concept the page uses, by testing each claim on its edge cases, and by checking each fact against a
 source. [`error-patterns.md`](../skills/explainer-units/references/error-patterns.md) gives an example of each
 pattern from a unit page, and the check that catches it.
 

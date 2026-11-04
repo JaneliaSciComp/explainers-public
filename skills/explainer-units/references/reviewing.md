@@ -56,15 +56,14 @@ says? Can the stated reader follow it?
    look for text or lines that vanish or lose contrast. Full-page screenshots are in `<render dir>/<id>-1280.png`,
    `-1280-dark.png` and `-390.png`. They are tall, so open them only when you need the page layout.
 4. **Level and prerequisites.** Check the unit's level against the table in `units/about.html#levels`, by what the
-   text assumes in the unit's own field. If the text uses a concept that it neither explains nor reaches through its
+   page assumes in the unit's own field. If the page uses a concept that it neither explains nor reaches through its
    chain of prerequisites, that is a finding: name the unit that should be a prerequisite. An unneeded prerequisite is
    a minor finding.
 
-   Code is extra material for readers who program, so it needs no prerequisite: "the code uses NumPy, but no
-   prerequisite teaches it" is not a finding. Report instead text that depends on its code, so that a reader who
-   skips the code misses something they need. Report code that goes beyond `python-basics` with neither a link to a
-   unit nor a comment that says what it does. In a unit whose concept is programming itself, such as `recursion`,
-   the code is part of the text.
+   Code needs a prerequisite only when the lesson depends on it: in a unit about coding, or where the code carries
+   part of the idea. There, a missing `python-basics` or `numpy-arrays` is a finding. Elsewhere, "the code uses
+   NumPy, but no prerequisite teaches it" is not a finding. Report code that goes beyond `python-basics` with no link
+   to a unit or an outside tutorial, and no comment that says what it does.
 5. **Scope.** A concept unit teaches one concept, and the concept sets the page's length. It links a prerequisite
    rather than teaching it again at length. A second concept is a finding, and so is a part that does not help the
    reader understand this one. A passage that explains the site itself, such as what the levels mean, instead of

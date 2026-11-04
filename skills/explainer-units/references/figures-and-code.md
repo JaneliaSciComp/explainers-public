@@ -84,13 +84,15 @@ text must work in both themes too:
 
 ## Snippets show what the text says
 
-Code is extra material for readers who program. The text must teach the concept without it: a reader who skips every
-code block misses nothing they need. So the prerequisites need not cover the code, and the code does not raise the
-unit's level. The exception is a unit whose concept is programming itself, such as `python-basics` or `recursion`.
-There the code is part of the text, and the prerequisites cover it.
+Show code where it helps the reader, and don't avoid it. Code is most useful where a figure or a widget can't show
+the idea, and in a unit about coding it is part of the lesson. List `python-basics` or `numpy-arrays` among the
+prerequisites only when the lesson depends on the code: in a unit about coding, or where the code carries part of the
+idea. Keep all other code easy to read, by the rules below.
 
-Use plain Python, NumPy or PyTorch, and nothing else. Keep each snippet short and runnable as it stands:
-`scripts/run_snippets.py` runs each one alone, in its own empty folder.
+Python is the default language, but it can vary depending on the application. In Python, use plain Python, NumPy or
+PyTorch. Keep each snippet short and runnable as it stands: `scripts/run_snippets.py` runs each one alone, in its own
+empty folder. The script runs only `<code class="py">` blocks. Put code in another language, or an excerpt that
+cannot run alone, in a plain `<pre><code>`, and run it yourself if it prints anything.
 
 - Put everything a snippet prints in a `<pre class="out">` block right after it, exactly as printed. The snippet
   check compares only that block. It does not read comments, so a value that you give in a comment is unchecked:
@@ -108,9 +110,9 @@ Use plain Python, NumPy or PyTorch, and nothing else. Keep each snippet short an
   used the midpoint method.
 - Check orientation with a small case. In code, tokens are the rows of a matrix, so `X @ Wq` holds each token's query
   only when `Wq` is the transpose of the matrix in the formula. A 2 × 2 matrix and one vector are enough to see it.
-- Use only the Python that `python-basics` teaches. A snippet that used a generator expression became a list
-  comprehension, which `python-basics` teaches. For a NumPy or PyTorch call, link the unit that teaches it, such as
-  `numpy-arrays`, or say in a comment what the call does.
+- Keep to the Python that `python-basics` teaches. A snippet that used a generator expression became a list
+  comprehension, which `python-basics` teaches. For anything beyond it, such as a NumPy or PyTorch call, link the
+  unit that teaches it, such as `numpy-arrays`, or a good outside tutorial, or say in a comment what it does.
 - Put a file name or a short label above each snippet in `<p class="code-cap">`.
 
 A unit never quotes a project's code. A page that does is an explanation, and

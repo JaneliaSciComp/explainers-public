@@ -47,7 +47,7 @@ and other agents may be editing pages at the same time.
 
 It warns, without failing, about a concept unit with "and" in its title, and about a prerequisite at a higher
 level than the unit. Treat each warning as an error to fix or to justify. It cannot check
-that the prerequisites cover what the text uses.
+that the prerequisites cover what the page uses.
 
 **The render check** (step 3) opens each page from disk in headless Chrome. It reports console errors and uncaught
 exceptions, sideways scrolling at 1280 px and 390 px, and images, videos or caption tracks that fail to load. It

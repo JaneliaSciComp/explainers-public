@@ -104,6 +104,7 @@ exactly. The page file is `<id>.html` in this folder.
 | a defined term | `<dfn>` at its first use |
 | a Python snippet | `<p class="code-cap">` with the file name, then `<pre><code class="py">…</code></pre>`; `data-start="N"` numbers from N, and `data-hl="3,4"` highlights lines 3 and 4 |
 | a snippet's output | `<pre class="out">` right after the snippet |
+| code in another language, or an excerpt that cannot run alone | a plain `<pre><code>…</code></pre>`; the snippet check skips it, and `unit.js` neither numbers nor highlights it |
 | the page's own script | one `<script>` at the end of `<body>`, which runs without the network |
 
 ### Video captions

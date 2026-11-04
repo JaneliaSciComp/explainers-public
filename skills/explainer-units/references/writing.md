@@ -20,6 +20,8 @@ Contents: one concept; levels; prerequisites; conditions and warning boxes; fact
 - Explain only the concept. For anything about the site, such as what the levels mean or how the lists of units to
   read first work, link a section of `units/about.html`, for example `about.html#levels`. A copy on the page goes
   out of date when the site changes.
+- For basic Python, link `python-basics` or a good outside tutorial or notebook. Write a unit on coding only for an
+  important coding style or case that outside links don't handle well.
 - Put broad external courses only in "Go further", as optional background. The unit itself must stand alone.
 - If the page starts teaching a second concept, move that concept to its own unit and link it. The build warns when a
   title joins two ideas with "and"; treat the warning as a prompt to check. A `hub` is the exception: it ties several
@@ -32,19 +34,17 @@ background that a unit assumes in its own field. To choose one:
 
 - Set the level by what the page assumes, not by how advanced the topic sounds. Review moved one unit from
   `advanced` to `intermediate`, because its content and its only prerequisite were `intermediate`.
-- Set the level by the text. Code is extra material for readers who program, so it does not raise the level. See
-  [figures-and-code.md](figures-and-code.md#snippets-show-what-the-text-says).
 - A prerequisite is never at a higher level than the unit that needs it. The build check fails a cycle or an unknown
   id, and warns about a prerequisite at a higher level.
 
-## Prerequisites cover every concept the text uses
+## Prerequisites cover every concept the page uses
 
 A missing prerequisite was the most common substantive finding: 15 of 49. The build proves only that the chain is
 well formed, so do this by hand:
 
-1. List what the text uses: terms, symbols, formulas and facts. Read the captions, the widget readouts and the
-   "Check yourself" answers too, not only the prose. Leave out the code, which is extra material and needs no
-   prerequisite, unless the unit is about programming itself (see
+1. List what the page uses: terms, symbols, formulas and facts. Read the captions, the widget readouts and the
+   "Check yourself" answers too, not only the prose. Read the code too when the lesson depends on it: in a unit about
+   coding, or where the code carries part of the idea. Other code needs no prerequisite (see
    [figures-and-code.md](figures-and-code.md#snippets-show-what-the-text-says)).
 2. Print the unit's prerequisite chain. Run this from the repo root, with the unit's id last:
 
@@ -67,7 +67,7 @@ well formed, so do this by hand:
 4. When you send the reader to a unit for a fact, open that unit and find the sentence that states the fact. Link the
    section's `id` (for example `distance.html#three-d`). If the unit does not state the fact, state it on your page.
    Review found pages that linked a unit for a fact that the unit never stated.
-5. List only what the text needs. Each unneeded prerequisite asks the reader to read one more unit.
+5. List only what the page needs. Each unneeded prerequisite asks the reader to read one more unit.
 
 ## Write each claim with its conditions
 

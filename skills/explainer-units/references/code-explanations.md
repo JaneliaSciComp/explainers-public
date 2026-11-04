@@ -19,7 +19,7 @@ such a page.
 
 An explanation of a code base is for readers who read its code. So it may assume Intermediate Python, as
 `units/about.html#levels` defines that level. For anything beyond that, such as a NumPy or PyTorch feature, link the
-unit that teaches it. If no unit does, explain it on the page.
+unit or a good outside tutorial that teaches it, or explain it on the page.
 
 Explain the code, and link a section of `units/about.html` for anything about the site, such as what a unit or a
 level is. Copy none of it into the page, because a copy goes out of date when the site changes.

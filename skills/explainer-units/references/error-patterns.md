@@ -11,7 +11,7 @@ once for each of the first three patterns before you ask for a review.
 
 | # | Pattern | Items | Substantive | What catches it |
 |---|---|---|---|---|
-| 1 | A page uses a concept it neither teaches nor reaches through its prerequisites, or links a unit that lacks the cited fact | 16 | 15 | listing every concept the text uses, and the prerequisite chain |
+| 1 | A page uses a concept it neither teaches nor reaches through its prerequisites, or links a unit that lacks the cited fact | 16 | 15 | listing every concept the page uses, and the prerequisite chain |
 | 2 | A claim drops a condition, or a simplification has no warning box | 22 | 14 | testing each claim on its edge cases |
 | 3 | A fact, number or name stated from memory, and wrong | 13 | 8 | opening a source for each fact |
 | 4 | Code, its output or a table does not show what the text says | 6 | 4 | rerunning the code, and reading the text beside it |
@@ -35,15 +35,14 @@ needs a vector's length, which the distance unit teaches, and the cosine, which 
 page listed only the vectors unit as a prerequisite, and that unit teaches neither. The fix added `distance` and
 `sine-waves` to the unit's prerequisites. The page now links each of them where it first uses it.
 
-Under the current rule, code needs no prerequisite, because code is extra material
-([figures-and-code.md](figures-and-code.md#snippets-show-what-the-text-says)). Two of the 16 items, on
-`farthest-point-sampling` and `point-clouds`, concerned only NumPy calls in a snippet. Today they would ask for a link
-or a comment instead.
+Code counts here when the lesson depends on it: in a unit about coding, or where the code carries part of the idea
+([figures-and-code.md](figures-and-code.md#snippets-show-what-the-text-says)). Other code needs only a link or a
+comment for what goes beyond `python-basics`.
 
-**Check.** List every concept the text uses: in the prose, the captions, the widget readouts and the "Check yourself"
-answers. Find each one on the page or in a unit of the prerequisite chain. When you cite a unit for a fact, open that
-unit and find the sentence that states it.
-[writing.md](writing.md#prerequisites-cover-every-concept-the-text-uses) has a command that prints the chain. The
+**Check.** List every concept the page uses: in the prose, the captions, the widget readouts, the "Check yourself"
+answers, and the code when the lesson depends on it. Find each one on the page or in a unit of the prerequisite chain.
+When you cite a unit for a fact, open that unit and find the sentence that states it.
+[writing.md](writing.md#prerequisites-cover-every-concept-the-page-uses) has a command that prints the chain. The
 build check proves only that the chain is well formed. It cannot tell what a page uses.
 
 ## 2. A claim drops a condition, or a simplification has no warning box
