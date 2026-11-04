@@ -141,7 +141,7 @@ what is there: the section's name and number, what it plots or compares, and its
 symbol in a figure that the text defines only later.
 
 **Example, `sine-waves.html`.** To find sin 30°, the example said that the triangle "is half of an equilateral
-triangle". A reader at the Starting level would not see why, and that step gives the answer. The fix shows the step:
+triangle". A reader at the Basic level would not see why, and that step gives the answer. The fix shows the step:
 reflect the triangle in the x-axis. Together, the triangle and its mirror image have a 60° angle at the origin between
 two sides of length 1. So their other two angles are also 60°, and they form an equilateral triangle.
 

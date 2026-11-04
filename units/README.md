@@ -44,12 +44,12 @@ warning as a prompt to split the unit or to make it a hub.
 
 ## The three levels
 
-The manifest's `levels` map gives the three level ids and their names, in order: `starting` (Starting),
+The manifest's `levels` map gives the three level ids and their names, in order: `basic` (Basic),
 `intermediate` (Intermediate) and `advanced` (Advanced). [`about.html#levels`](about.html#levels) defines them, and
 each unit's header badge links there.
 
-Every chain of prerequisites ends at `starting` units. So an `intermediate` or `advanced` unit lists at least one
-prerequisite, and only `starting` units may list none. A prerequisite is never at a higher level than the unit that
+Every chain of prerequisites ends at `basic` units. So an `intermediate` or `advanced` unit lists at least one
+prerequisite, and only `basic` units may list none. A prerequisite is never at a higher level than the unit that
 needs it.
 
 ## The manifest
@@ -61,7 +61,7 @@ these keys:
 |---|---|
 | `id` | lowercase words joined by hyphens; the page is `<id>.html` in this folder |
 | `title` | the page's `<title>` and `<h1>`, exactly |
-| `level` | `starting`, `intermediate` or `advanced` |
+| `level` | `basic`, `intermediate` or `advanced` |
 | `kind` | `concept` or `hub`; it may be left out, and defaults to `concept` |
 | `prereqs` | the ids of the units to read first |
 | `summary` | one plain sentence, shown on the index |

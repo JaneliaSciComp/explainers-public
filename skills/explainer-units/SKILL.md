@@ -1,6 +1,6 @@
 ---
 name: explainer-units
-description: Write, check, review and fix concept units, the HTML pages in the explainers-public repo that each teach one general idea at a stated level (Starting, Intermediate or Advanced), with prerequisites, a worked example, a figure and self-check questions. Use this skill whenever you add or change a page in units/, edit units/units.json, review or fix unit pages, write an explanation page that links to units or quotes code, or make a video for a unit. Use it even when the request only says "write a unit on X", "explain X for the explainers site" or "check this page".
+description: Write, check, review and fix concept units, the HTML pages in the explainers-public repo that each teach one general idea at a stated level (Basic, Intermediate or Advanced), with prerequisites, a worked example, a figure and self-check questions. Use this skill whenever you add or change a page in units/, edit units/units.json, review or fix unit pages, write an explanation page that links to units or quotes code, or make a video for a unit. Use it even when the request only says "write a unit on X", "explain X for the explainers site" or "check this page".
 ---
 
 # Concept units

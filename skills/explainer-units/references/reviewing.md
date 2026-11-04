@@ -14,7 +14,7 @@ All paths are relative to the root of the repo clone, `<repo root>`.
 ## What you are reviewing
 
 - **The pages:** `<the unit ids, or the pages, to review>`, in `<the folder of pages, usually units/>`.
-- **Concept units:** each unit teaches one general concept at one of three levels, `starting`, `intermediate` or
+- **Concept units:** each unit teaches one general concept at one of three levels, `basic`, `intermediate` or
   `advanced`, which `units/about.html#levels` defines. Read `units/README.md` in full: it states the mechanics. The
   manifest `units/units.json` gives each unit's id, title, level, kind (`concept` or `hub`), prerequisites
   (`prereqs`), summary and owner. A hub ties focused units together and needs no figure.

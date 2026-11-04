@@ -18,7 +18,7 @@
   --good: #0ca30c; --bad: #d03b3b; --warn: #c98500;
   --pa: #6250d6; --pb: #e87ba4; --pc: #7d8ea6; --pd: #8a7f6a;
   --warn-soft: #fbf0d9;
-  --lv-starting: #1baf7a; --lv-intermediate: #2a78d6; --lv-advanced: #6250d6;
+  --lv-basic: #1baf7a; --lv-intermediate: #2a78d6; --lv-advanced: #6250d6;
   --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
   --font-body: "Source Sans 3", "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-mono: "Source Code Pro", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -30,7 +30,7 @@
     --accent: #93b6ea; --accent-soft: #1d2a3c; --code-bg: #121820; --mark: #3a3214;
     --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --good: #2fb52f; --bad: #e66767; --warn: #e0a028;
     --pa: #9085e9; --pb: #d55181; --pc: #8d9db4; --pd: #a39678;
-    --warn-soft: #2e2614; --lv-starting: #2fbf8a; --lv-intermediate: #5b9be8; --lv-advanced: #9085e9;
+    --warn-soft: #2e2614; --lv-basic: #2fbf8a; --lv-intermediate: #5b9be8; --lv-advanced: #9085e9;
     color-scheme: dark;
   }
 }
@@ -39,7 +39,7 @@
   --accent: #93b6ea; --accent-soft: #1d2a3c; --code-bg: #121820; --mark: #3a3214;
   --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --good: #2fb52f; --bad: #e66767; --warn: #e0a028;
   --pa: #9085e9; --pb: #d55181; --pc: #8d9db4; --pd: #a39678;
-  --warn-soft: #2e2614; --lv-starting: #2fbf8a; --lv-intermediate: #5b9be8; --lv-advanced: #9085e9;
+  --warn-soft: #2e2614; --lv-basic: #2fbf8a; --lv-intermediate: #5b9be8; --lv-advanced: #9085e9;
   color-scheme: dark;
 }
 
@@ -79,7 +79,7 @@ header.unit-head { padding-top: 2.6rem; display: grid; gap: 0.7rem; }
   display: inline-block; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.04em; line-height: 1.5;
   padding: 0.05rem 0.5rem; border-radius: 99px; border: 1px solid currentColor; white-space: nowrap; font-weight: 600;
 }
-.level-starting { color: var(--lv-starting); }
+.level-basic { color: var(--lv-basic); }
 .level-intermediate { color: var(--lv-intermediate); }
 .level-advanced { color: var(--lv-advanced); }
 /* The badge in a unit's header links to about.html#levels; it keeps its colour, and underlines on hover. */
@@ -208,7 +208,7 @@ svg.prereq-graph .edge { fill: none; stroke: var(--ink-3); stroke-width: 1.2; op
 svg.prereq-graph .edge.on { stroke: var(--accent); stroke-width: 2.2; opacity: 1; }
 svg.prereq-graph .node rect { fill: var(--surface); stroke-width: 1.6; }
 svg.prereq-graph .node.planned rect { stroke-dasharray: 4 3; }
-svg.prereq-graph .node.lv-starting rect { stroke: var(--lv-starting); }
+svg.prereq-graph .node.lv-basic rect { stroke: var(--lv-basic); }
 svg.prereq-graph .node.lv-intermediate rect { stroke: var(--lv-intermediate); }
 svg.prereq-graph .node.lv-advanced rect { stroke: var(--lv-advanced); }
 svg.prereq-graph .node.on rect { fill: var(--accent-soft); }

@@ -1,7 +1,7 @@
 {
   "version": 1,
   "levels": {
-    "starting": "Starting",
+    "basic": "Basic",
     "intermediate": "Intermediate",
     "advanced": "Advanced"
   },
@@ -14,7 +14,7 @@
     {
       "id": "vectors",
       "title": "Vectors: arrows made of numbers",
-      "level": "starting",
+      "level": "basic",
       "kind": "concept",
       "prereqs": [],
       "summary": "A point in space is a list of numbers, and a vector is an arrow you can add to another or stretch.",
@@ -25,7 +25,7 @@
     {
       "id": "distance",
       "title": "Distance between two points",
-      "level": "starting",
+      "level": "basic",
       "kind": "concept",
       "prereqs": [
         "vectors"
@@ -38,7 +38,7 @@
     {
       "id": "matrix-times-vector",
       "title": "Multiplying a matrix by a vector",
-      "level": "starting",
+      "level": "basic",
       "kind": "concept",
       "prereqs": [
         "dot-product"
@@ -51,7 +51,7 @@
     {
       "id": "rotation-matrices",
       "title": "Rotating points with a matrix",
-      "level": "starting",
+      "level": "basic",
       "kind": "concept",
       "prereqs": [
         "matrix-times-vector",
@@ -65,7 +65,7 @@
     {
       "id": "derivative",
       "title": "The derivative: slope at a point",
-      "level": "starting",
+      "level": "basic",
       "kind": "concept",
       "prereqs": [],
       "summary": "The derivative measures how fast a quantity changes: the slope of its graph at one point.",
@@ -90,7 +90,7 @@
     {
       "id": "random-draws",
       "title": "Random draws: chance you can repeat",
-      "level": "starting",
+      "level": "basic",
       "kind": "concept",
       "prereqs": [],
       "summary": "A random draw picks a value by chance, and a seed makes a computer's random choices repeatable.",
@@ -101,7 +101,7 @@
     {
       "id": "bell-curve",
       "title": "The bell curve (normal distribution)",
-      "level": "starting",
+      "level": "basic",
       "kind": "concept",
       "prereqs": [
         "random-draws",
@@ -115,7 +115,7 @@
     {
       "id": "mean-and-spread",
       "title": "Summarizing a list of numbers",
-      "level": "starting",
+      "level": "basic",
       "kind": "concept",
       "prereqs": [],
       "summary": "The mean gives a list's typical value, and the standard deviation its typical distance from that value.",
@@ -126,7 +126,7 @@
     {
       "id": "normalizing-data",
       "title": "Normalizing data",
-      "level": "starting",
+      "level": "basic",
       "kind": "concept",
       "prereqs": [
         "mean-and-spread",
@@ -141,7 +141,7 @@
     {
       "id": "sine-waves",
       "title": "Sine waves",
-      "level": "starting",
+      "level": "basic",
       "kind": "concept",
       "prereqs": [],
       "summary": "Sine and cosine turn an angle or a position into a smooth wave that repeats.",
@@ -152,7 +152,7 @@
     {
       "id": "exponentials",
       "title": "Exponentials, undone by logarithms",
-      "level": "starting",
+      "level": "basic",
       "kind": "concept",
       "prereqs": [],
       "summary": "An exponential grows by repeated multiplication, and the logarithm counts the multiplications back.",
@@ -163,7 +163,7 @@
     {
       "id": "graphs",
       "title": "Graphs: dots joined by lines",
-      "level": "starting",
+      "level": "basic",
       "kind": "concept",
       "prereqs": [],
       "summary": "A graph is a set of things, called nodes, with links, called edges, between some pairs of them.",
@@ -174,7 +174,7 @@
     {
       "id": "connected-components",
       "title": "Connected pieces of a graph",
-      "level": "starting",
+      "level": "basic",
       "kind": "concept",
       "prereqs": [
         "graphs"
@@ -187,7 +187,7 @@
     {
       "id": "python-basics",
       "title": "Reading Python for this course",
-      "level": "starting",
+      "level": "basic",
       "kind": "hub",
       "prereqs": [],
       "summary": "Just enough Python to read the code here (variables, lists, loops, functions), with pointers to full courses.",
@@ -706,7 +706,7 @@
     {
       "id": "top-k-accuracy",
       "title": "Top-K accuracy",
-      "level": "starting",
+      "level": "basic",
       "kind": "concept",
       "prereqs": [],
       "summary": "Top-K accuracy asks whether the right answer appears among the first K entries of a ranked list.",
@@ -983,7 +983,7 @@
     {
       "id": "dot-product",
       "title": "The dot product: how much two vectors agree",
-      "level": "starting",
+      "level": "basic",
       "kind": "concept",
       "prereqs": [
         "vectors",
@@ -998,7 +998,7 @@
     {
       "id": "chain-rule",
       "title": "The chain rule: slopes of chained steps",
-      "level": "starting",
+      "level": "basic",
       "kind": "concept",
       "prereqs": [
         "derivative"

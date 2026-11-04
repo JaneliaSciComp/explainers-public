@@ -39,7 +39,7 @@ and other agents may be editing pages at the same time.
 
 **The build check** (steps 1 and 2) exits with status 1 on any error. It reports:
 
-- a manifest error: a missing key, an unknown prerequisite, a cycle, or a chain that does not end at `starting`;
+- a manifest error: a missing key, an unknown prerequisite, a cycle, or a chain that does not end at `basic`;
 - a missing page for a unit that is not `planned`, or a page with no unit;
 - a missing or out-of-order page part, or a `<meta>`, `<title>` or `<h1>` that does not match the manifest;
 - a local `href` or `src` that points to a missing file or a missing `#id`, or outside the repo;

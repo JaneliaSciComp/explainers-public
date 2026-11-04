@@ -29,7 +29,7 @@ Contents: one concept; levels; prerequisites; conditions and warning boxes; fact
 
 ## Set the level by what the page needs
 
-`units/about.html#levels` defines the three levels, `starting`, `intermediate` and `advanced`. A level describes the
+`units/about.html#levels` defines the three levels, `basic`, `intermediate` and `advanced`. A level describes the
 background that a unit assumes in its own field. To choose one:
 
 - Set the level by what the page assumes, not by how advanced the topic sounds. Review moved one unit from
@@ -172,7 +172,7 @@ items drew 14 findings and notes, most of them claims about the linked page that
 - Link the section's anchor when the page has one. Run `scripts/check_links.py` to confirm the status and the
   anchor.
 - Set the item's level badge by the resource's content. A video that works with second-order differential equations
-  does not get the Starting badge.
+  does not get the Basic badge.
 - Warn when the resource uses another convention than your page. The transformer-block unit says that a linked
   tutorial puts the normalization after each step, the older order, while the unit puts it before.
 - Make sure the description agrees with your page. One item described a "non-crossing flow" on a page that explains

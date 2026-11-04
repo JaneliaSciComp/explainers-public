@@ -202,7 +202,7 @@ def load_manifest(rep: Report) -> dict | None:
         rep.error(where, '"version" must be an integer')
     levels = m.get("levels")
     if not isinstance(levels, dict) or not levels or not all(isinstance(v, str) for v in levels.values()):
-        rep.error(where, '"levels" must map each level id to its name, for example {"starting": "Starting"}')
+        rep.error(where, '"levels" must map each level id to its name, for example {"basic": "Basic"}')
         return None
     statuses = m.get("statuses", DEFAULT_STATUSES)
     if not isinstance(statuses, list) or "planned" not in statuses:
