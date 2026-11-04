@@ -1,6 +1,6 @@
 # Explainers
 
-This repo holds concept units: short web pages that each teach one general idea, such as vectors, KD-trees or
+This repo holds concept units: concise web pages that each teach one general idea, such as vectors, KD-trees or
 flow matching. Every unit lists the units to read first, down to units that start from scratch. A reader can
 start at any unit and follow those links back until the material is familiar.
 

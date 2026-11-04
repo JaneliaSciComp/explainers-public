@@ -529,7 +529,7 @@ def gen_index(m: dict) -> str:
          '<link rel="stylesheet" href="unit.css">', '<script src="unit.js" defer></script>', '</head>', '<body>',
          '<main class="unit-index">', '<header class="unit-head">', '  <p class="eyebrow">Concept units</p>',
          '  <h1>Concept units</h1>',
-         '  <p class="idea-lede">Each unit is a short page that teaches one idea. <a href="about.html">How these pages '
+         '  <p class="idea-lede">Each unit is a concise page that teaches one idea. <a href="about.html">How these pages '
          'work</a> explains the levels, the units to read first, and the code.</p>',
          f'  <p class="small">{written} of {len(m["units"])} units are written.{rest}</p>',
          '  <p class="unit-meta">' + " ".join(badge(m, lv) for lv in m["levels"]) + '</p>',
