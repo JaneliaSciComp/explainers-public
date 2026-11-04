@@ -39,9 +39,10 @@
 <section id="idea" class="idea" data-part="idea">
   <h2>The idea in one paragraph</h2>
   <p><dfn>Layer normalization</dfn> takes one token's numbers, the <var>d</var> entries of its vector, and shifts and
-  rescales them to mean 0 and standard deviation 1. It then multiplies each entry by a learned scale and adds a
-  learned shift. It treats every token on its own, so the result does not depend on the other tokens or on the other
-  examples in a batch. Networks use it to keep the numbers that flow from layer to layer at a steady size.</p>
+  rescales them to mean 0 and standard deviation 1. If the numbers are all nearly equal, the standard deviation comes
+  out below 1. Layer normalization then multiplies each entry by a learned scale and adds a learned shift. It treats
+  every token on its own, so the result does not depend on the other tokens or on the other examples in a batch.
+  Networks use it to keep the numbers that flow from layer to layer at a steady size.</p>
 </section>
 
 <div class="unit-body" data-part="body">
@@ -105,11 +106,16 @@
     <p><b>Predict first.</b> What does layer normalization give for the token [20, 40, 60, 80]? And for
     [102, 104, 106, 108]?</p>
     <p>Both give [−1.342, −0.447, 0.447, 1.342] again. The first is the worked example times 10; the second is the
-    worked example plus 100. Normalization undoes any common offset, and any common scale by a positive number.</p>
+    worked example plus 100. Normalization undoes a common offset exactly, and a common scale by a positive number
+    nearly.</p>
+    <p>The scale cancels only nearly because of ε. Scaling the token by <var>k</var> multiplies its differences from
+    the mean by <var>k</var> and its variance by <var>k</var><sup>2</sup>, but leaves ε the same. So <var>k</var>
+    cancels while the variance is much larger than ε, which means a spread well above √ε, about 0.003. The worked
+    example times 0.001 has spread 0.0022, and it gives [−0.775, −0.258, 0.258, 0.775].</p>
   </section>
 
   <section id="widget">
-    <h2>Shifting a token, or scaling it by a positive number, leaves its normalized values unchanged</h2>
+    <h2>Shifting a token leaves its normalized values unchanged, and scaling it by a positive number nearly does</h2>
 
     <figure id="fig-ln">
       <div class="fig-title">A token before and after layer normalization</div>
@@ -132,9 +138,10 @@
       </div>
       <p class="small"><b>Try it.</b> Before you move a slider, predict what the right-hand bars will do. Then
       search: is there any setting of <var>k</var> and <var>c</var> that changes the right-hand bars?</p>
-      <details><summary>Answer</summary><p>Only two kinds of setting change them. A negative <var>k</var> flips the
-      token, so the normalized bars flip too. At <var>k</var> = 0 all four numbers are equal, the spread is 0, and
-      every output is 0; this is where ε prevents a division by zero.</p></details>
+      <details><summary>Answer</summary><p>Only two kinds of setting change them visibly. A negative <var>k</var>
+      flips the token, so the normalized bars flip too. At <var>k</var> = 0 all four numbers are equal, the spread is
+      0, and every output is 0; this is where ε prevents a division by zero. Every other setting changes them by less
+      than 0.0001, too little to see. Even at <var>k</var> = 0.25, the spread is 0.56, far above √ε.</p></details>
       <figcaption><b>What to notice.</b> The left bars show the token's numbers on a fixed scale; the right bars show
       the same token after layer normalization, with <b>γ</b> = 1 and <b>β</b> = 0.</figcaption>
     </figure>
@@ -175,11 +182,11 @@ print(np.round(layer_norm(tokens[0], np.full(4, 2.0), np.ones(4)), 3))
 
     <div class="callout warn">
       <span class="callout-title">Two details this page skips</span>
-      <p>Layer normalization throws away each token's overall size and offset. Designs that need that information
-      keep an unnormalized copy, which is one job of the residual path in a transformer block. A different method,
-      batch normalization, normalizes each feature across the examples in a batch, so its result depends on the
-      other examples and it behaves differently in training and in use. Transformers mostly use layer
-      normalization, which avoids both effects.</p>
+      <p>Layer normalization throws away each token's overall offset, and nearly all of its overall size. Designs
+      that need that information keep an unnormalized copy, which is one job of the residual path in a transformer
+      block. A different method, batch normalization, normalizes each feature across the examples in a batch, so its
+      result depends on the other examples and it behaves differently in training and in use. Transformers mostly
+      use layer normalization, which avoids both effects.</p>
     </div>
   </section>
 </div>
@@ -222,8 +229,8 @@ print(np.round(layer_norm(tokens[0], np.full(4, 2.0), np.ones(4)), 3))
         <span class="fl-format">Textbook section</span>
         <span class="level-badge level-intermediate">Intermediate</span>
       </div>
-      <p class="fl-why">A short section that sets layer normalization beside batch normalization, with the formula
-      and the scale-invariance shown on this page.</p>
+      <p class="fl-why">A short section that sets layer normalization beside batch normalization. It gives the
+      formula, and notes that ε makes the scale-invariance only approximate.</p>
     </li>
     <li>
       <div class="fl-head">
