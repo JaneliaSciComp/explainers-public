@@ -2,6 +2,7 @@
 
 Usage, from the repo root:
     python3 -I scripts/run_snippets.py <python with NumPy and PyTorch> <out dir> <html files...>
+The interpreter can be a command, such as python3, or a path. A relative path starts from the current folder.
 Each <pre><code class="py"> block runs on its own in a temporary folder; its output is compared with the next
 <pre class="out"> block before the following snippet.
 Writes <out dir>/snippets.tsv (one row per snippet) and <out dir>/diffs/<page>-<n>.txt for each mismatch or error.
@@ -30,6 +31,8 @@ def norm(s):
 
 def main():
     py, out_dir, files = sys.argv[1], sys.argv[2], sys.argv[3:]
+    if os.sep in py:
+        py = os.path.abspath(py)  # each snippet runs in its own folder; abspath keeps a venv's symlink
     os.makedirs(os.path.join(out_dir, "diffs"), exist_ok=True)
     rows = []
     for f in files:
