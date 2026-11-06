@@ -138,7 +138,7 @@ units you will link and the units likely to link yours, and use their convention
   components in italic (`<var>`). The vectors, dot-product and linear-layer units do this, and the vectors unit
   defines a₁ as the first component of **a**.
 - Write × for a product of numbers, or of a number and a vector. Keep · for the dot product of two vectors, as the
-  dot-product and chain-rule units do. A few pages still write a number times a vector with ·; do not copy them.
+  dot-product and chain-rule units do.
 - Use "length" only for a vector's magnitude. Say "entries" for how many numbers a vector holds.
 - In a matrix product, the vector is a column, as `matrix-times-vector.html` says.
 - Give each symbol one meaning across the linked units. The units use γ for a learned scale, so the Fourier-features
