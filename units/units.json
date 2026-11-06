@@ -242,8 +242,7 @@
       "level": "intermediate",
       "kind": "concept",
       "prereqs": [
-        "distance",
-        "numpy-arrays"
+        "distance"
       ],
       "summary": "Finding the closest point to a query by checking every point works, but it slows down as the points multiply.",
       "owner": "B",
@@ -270,8 +269,7 @@
       "kind": "concept",
       "prereqs": [
         "distance",
-        "point-clouds",
-        "numpy-arrays"
+        "point-clouds"
       ],
       "summary": "Farthest-point sampling covers a shape evenly with a few points, always taking the point whose nearest picked point is farthest away.",
       "owner": "B",
@@ -284,8 +282,7 @@
       "level": "intermediate",
       "kind": "concept",
       "prereqs": [
-        "distance",
-        "numpy-arrays"
+        "distance"
       ],
       "summary": "The assignment problem pairs each item of one set with one item of another so that the total cost is as small as possible.",
       "owner": "B",
@@ -492,7 +489,8 @@
       "level": "intermediate",
       "kind": "concept",
       "prereqs": [
-        "gradient-descent"
+        "gradient-descent",
+        "python-basics"
       ],
       "summary": "Gradient clipping caps the length of the gradient, so one unusual batch cannot throw the weights far off.",
       "owner": "D",
@@ -505,7 +503,8 @@
       "level": "intermediate",
       "kind": "concept",
       "prereqs": [
-        "gradient-descent"
+        "gradient-descent",
+        "python-basics"
       ],
       "summary": "A learning-rate schedule starts with small steps, grows them, then shrinks them as training settles.",
       "owner": "D",
@@ -560,8 +559,7 @@
       "kind": "concept",
       "prereqs": [
         "validation-set",
-        "gradient-descent",
-        "numpy-arrays"
+        "gradient-descent"
       ],
       "summary": "A model overfits when it fits the noise in its training examples and does worse on new ones; a penalty on large weights is a common remedy.",
       "owner": "W",
@@ -589,7 +587,8 @@
       "level": "intermediate",
       "kind": "concept",
       "prereqs": [
-        "minibatches"
+        "minibatches",
+        "python-basics"
       ],
       "summary": "A checkpoint saves the weights, the optimizer state and the step count, so training can stop and resume where it left off.",
       "owner": "E",
@@ -972,8 +971,7 @@
       "kind": "concept",
       "prereqs": [
         "generative-models",
-        "bell-curve",
-        "numpy-arrays"
+        "bell-curve"
       ],
       "summary": "The standard noising process of a diffusion model shrinks an example and adds bell-curve noise over many steps, and any step can be reached in one jump.",
       "owner": "W",
