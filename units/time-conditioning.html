@@ -207,11 +207,12 @@
 <pre><code class="py">import torch
 import torch.nn as nn
 
+# fix the layer's random starting weights, so each run prints the same
 torch.manual_seed(0)
 D = 4                                      # features per token
 
 def time_features(t):
-    """Sines and cosines of t at four frequencies: 8 numbers per time."""
+    # Sines and cosines of t at four frequencies: 8 numbers per time.
     # torch.arange(4) is [0, 1, 2, 3], so freqs holds π × 1, 2, 4 and 8.
     freqs = torch.pi * 2.0 ** torch.arange(4)
     # torch.cat joins the 4 sines and the 4 cosines into one row of 8 numbers.

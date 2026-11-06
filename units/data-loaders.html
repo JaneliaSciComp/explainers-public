@@ -66,7 +66,7 @@
 from torch.utils.data import Dataset, DataLoader
 
 class Squares(Dataset):
-    """Ten examples; example i is the pair (i, i*i)."""
+    # Ten examples; example i is the pair (i, i*i).
     def __len__(self):
         return 10
     def __getitem__(self, i):              # prepare one example
@@ -74,6 +74,7 @@ class Squares(Dataset):
         return torch.tensor([i, i * i], dtype=torch.float32)
 
 if __name__ == "__main__":
+    # fix the random shuffle, so each run prints the same order
     torch.manual_seed(0)
     loader = DataLoader(Squares(), batch_size=4, shuffle=True, num_workers=2)
     for epoch in range(2):

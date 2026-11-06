@@ -155,8 +155,8 @@ CENTERS = {"A": np.array([-1.0, 0.0]), "B": np.array([1.0, 0.0])}
 SPREAD = 0.5                                  # each class: a bell curve with this spread
 
 def velocity(x, t, classes):
-    """Exact flow-matching velocity when the data are an equal mix of the listed
-    classes. It stands in for a trained network on this toy."""
+    # Exact flow-matching velocity when the data are an equal mix of the listed
+    # classes. It stands in for a trained network on this toy.
     s2 = t**2 * SPREAD**2 + (1 - t)**2        # squared spread of x_t within a class
     k = (t * SPREAD**2 - (1 - t)) / s2
     vs = [CENTERS[c] + k * (x - t * CENTERS[c]) for c in classes]

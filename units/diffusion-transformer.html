@@ -194,7 +194,7 @@
 import torch.nn as nn
 
 class DiTBlock(nn.Module):
-    """One transformer block whose normalization is set by the time (adaLN-Zero)."""
+    # One transformer block whose normalization is set by the time (adaLN-Zero).
     def __init__(self, d, heads):
         super().__init__()
         self.norm1 = nn.LayerNorm(d, elementwise_affine=False)

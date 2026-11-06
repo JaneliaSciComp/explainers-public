@@ -118,7 +118,7 @@ a = np.linspace(0, np.pi / 2, 12)
 shape = np.stack([4 * np.cos(a), 4 * np.sin(a)], axis=1)
 
 def make_pair(shape):
-    """Cut a full shape at a random x: the right part is known, the left part is missing."""
+    # Cut a full shape at a random x: the right part is known, the left part is missing.
     cut = rng.uniform(1.0, 3.0)             # a random number between 1 and 3
     known = shape[shape[:, 0] > cut]        # the rows whose x is greater than cut
     missing = shape[shape[:, 0] <= cut]     # the rows whose x is at most cut

@@ -219,6 +219,7 @@ print(pts[:, 0])
         <tr><td class="nw"><code>with ...:</code></td><td>Run the indented lines inside a setting, and undo the setting afterward.</td></tr>
         <tr><td class="nw"><code>np.sqrt(xs)</code>,<br><code>np.round(xs, 3)</code></td><td>NumPy's versions of math functions, such as <code>np.sqrt</code>, <code>np.exp</code>, <code>np.log</code>, <code>np.sin</code>, <code>np.cos</code>, <code>np.abs</code> and <code>np.round</code>. Each one works on every number in the array <code>xs</code> at once.</td></tr>
         <tr><td class="nw"><code>xs.mean()</code>,<br><code>xs.std()</code>,<br><code>xs.max()</code></td><td>The mean, the <a href="mean-and-spread.html#spread">standard deviation</a> and the largest value of all the numbers in <code>xs</code>. <a href="numpy-arrays.html#axis">Arrays in NumPy</a> shows how <code>axis</code> gives one value per row or column instead.</td></tr>
+        <tr><td><code>xs.sum(axis=1, keepdims=True)</code></td><td>The total of each row, kept as a column: shape (n, 1) instead of (n,). Then <code>xs / xs.sum(axis=1, keepdims=True)</code> divides each row by its own total. PyTorch spells it <code>keepdim=True</code>.</td></tr>
         <tr><td><code>rng = np.random.<wbr>default_rng(0)</code></td><td>A generator of random numbers, started from the seed 0. <code>rng.normal(size=5)</code> then draws 5 numbers from a bell curve, and <code>rng.integers(1, 7)</code> draws a whole number from 1 to 6. <a href="random-draws.html#seed">Random draws</a> explains seeds.</td></tr>
       </tbody>
     </table>
