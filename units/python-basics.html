@@ -208,11 +208,18 @@ print(pts[:, 0])
       <tbody>
         <tr><td class="nw"><code>(2, 3)</code></td><td>A <dfn>tuple</dfn>: like a list, but it cannot change after it is made.</td></tr>
         <tr><td class="nw"><code>a, b = 1, 2</code></td><td>Two assignments at once: <code>a</code> gets 1 and <code>b</code> gets 2.</td></tr>
+        <tr><td class="nw"><code>for u, v in edges:</code></td><td>A loop over a list of pairs. On each pass, <code>u</code> and <code>v</code> get the two values of one pair. <code>zip(xs, ys)</code> pairs up two lists value by value, and <code>enumerate(xs)</code> pairs each value with its index.</td></tr>
         <tr><td class="nw"><code>None</code></td><td>A value that means "nothing yet".</td></tr>
         <tr><td class="nw"><code>{"axis": 0}</code></td><td>A <dfn>dictionary</dfn>: values looked up by a name. <code>d["axis"]</code> gives 0.</td></tr>
         <tr><td class="nw"><code>[x * 2 for x in xs]</code></td><td>A new list built by a loop in one line: here, every value of <code>xs</code> doubled.</td></tr>
+        <tr><td class="nw"><code>sum(xs)</code></td><td>The total of the numbers in the list <code>xs</code>.</td></tr>
+        <tr><td class="nw"><code>round(x, 3)</code></td><td>The number <code>x</code>, rounded to 3 decimal places.</td></tr>
+        <tr><td class="nw"><code>f"loss {x:.2f}"</code></td><td>An <dfn>f-string</dfn>: text in which each pair of braces is replaced by a value. <code>:.2f</code> shows the value with 2 decimal places, and <code>:6.2f</code> also pads it to at least 6 characters, so that columns line up.</td></tr>
         <tr><td class="nw"><code>1_000_000</code></td><td>One million. Python ignores the underscores; they only help you read.</td></tr>
         <tr><td class="nw"><code>with ...:</code></td><td>Run the indented lines inside a setting, and undo the setting afterward.</td></tr>
+        <tr><td class="nw"><code>np.sqrt(xs)</code>,<br><code>np.round(xs, 3)</code></td><td>NumPy's versions of math functions, such as <code>np.sqrt</code>, <code>np.exp</code>, <code>np.log</code>, <code>np.sin</code>, <code>np.cos</code>, <code>np.abs</code> and <code>np.round</code>. Each one works on every number in the array <code>xs</code> at once.</td></tr>
+        <tr><td class="nw"><code>xs.mean()</code>,<br><code>xs.std()</code>,<br><code>xs.max()</code></td><td>The mean, the <a href="mean-and-spread.html#spread">standard deviation</a> and the largest value of all the numbers in <code>xs</code>. <a href="numpy-arrays.html#axis">Arrays in NumPy</a> shows how <code>axis</code> gives one value per row or column instead.</td></tr>
+        <tr><td><code>rng = np.random.<wbr>default_rng(0)</code></td><td>A generator of random numbers, started from the seed 0. <code>rng.normal(size=5)</code> then draws 5 numbers from a bell curve, and <code>rng.integers(1, 7)</code> draws a whole number from 1 to 6. <a href="random-draws.html#seed">Random draws</a> explains seeds.</td></tr>
       </tbody>
     </table>
     </div>
