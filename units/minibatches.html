@@ -46,7 +46,7 @@
   <section id="estimate">
     <h2>A small random batch estimates the full gradient</h2>
     <p>In <a href="gradient-descent.html">gradient descent</a>, each step moves a weight <var>w</var> against
-    the gradient <var>g</var> of the loss: <var>w</var> ← <var>w</var> − <var>η</var>·<var>g</var>, where
+    the gradient <var>g</var> of the loss: <var>w</var> ← <var>w</var> − <var>η</var> × <var>g</var>, where
     <var>η</var> is the learning rate. The loss is the average of one loss per training example. So its
     gradient is also an average: the average of the gradients of the single examples.</p>
     <p>An average over a million numbers can be estimated from a few of them, picked at random. A

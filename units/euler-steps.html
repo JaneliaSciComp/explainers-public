@@ -51,7 +51,7 @@
     <p>Choose a short time <var>h</var>, the <dfn>step size</dfn>. Start at position <var>x</var><sub>0</sub> at time
     <var>t</var><sub>0</sub>. Each step reads the arrow at the current position and time, and moves along it for time
     <var>h</var>:</p>
-    <p class="math"><var>x</var><sub><var>k</var>+1</sub> = <var>x</var><sub><var>k</var></sub> + <var>h</var> · <var>v</var>(<var>x</var><sub><var>k</var></sub>, <var>t</var><sub><var>k</var></sub>),&nbsp;&nbsp; <var>t</var><sub><var>k</var>+1</sub> = <var>t</var><sub><var>k</var></sub> + <var>h</var>.</p>
+    <p class="math"><var>x</var><sub><var>k</var>+1</sub> = <var>x</var><sub><var>k</var></sub> + <var>h</var> × <var>v</var>(<var>x</var><sub><var>k</var></sub>, <var>t</var><sub><var>k</var></sub>),&nbsp;&nbsp; <var>t</var><sub><var>k</var>+1</sub> = <var>t</var><sub><var>k</var></sub> + <var>h</var>.</p>
     <p>The rule is "distance = velocity × time", applied as if the arrow stayed the same for the whole step. Over a
     short step the arrow barely changes, so the guess is close. To cover a time span <var>T</var> in <var>n</var>
     steps, use <var>h</var> = <var>T</var> / <var>n</var>.</p>

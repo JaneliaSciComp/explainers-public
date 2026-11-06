@@ -60,7 +60,7 @@
     <p>Write <var>v</var>(<var>x</var>, <var>t</var>, <var>c</var>) for the velocity the network predicts with the
     condition <var>c</var>, and <var>v</var>(<var>x</var>, <var>t</var>, ∅) for its prediction with no condition. The
     symbol ∅ stands for a special "no condition" input. The guided velocity is</p>
-    <p class="math"><var>v</var><sub>guided</sub> = <var>v</var>(<var>x</var>, <var>t</var>, ∅) + <var>s</var> · ( <var>v</var>(<var>x</var>, <var>t</var>, <var>c</var>) − <var>v</var>(<var>x</var>, <var>t</var>, ∅) ).</p>
+    <p class="math"><var>v</var><sub>guided</sub> = <var>v</var>(<var>x</var>, <var>t</var>, ∅) + <var>s</var> × ( <var>v</var>(<var>x</var>, <var>t</var>, <var>c</var>) − <var>v</var>(<var>x</var>, <var>t</var>, ∅) ).</p>
     <ul>
       <li><var>s</var> = 0 gives the unconditional prediction.</li>
       <li><var>s</var> = 1 gives the conditional prediction.</li>
@@ -197,7 +197,7 @@ scale 3: mean x -1.53, spread x 0.30, spread y 0.49</pre>
     from the unconditional distribution <var>p</var>(<var>x</var>) and weights each point <var>x</var> by
     <var>p</var>(<var>c</var> | <var>x</var>)<sup><var>s</var></sup>. Here <var>p</var>(<var>c</var> | <var>x</var>)
     is the probability that a classifier of noisy inputs gives to <var>c</var>. At <var>s</var> = 1 the result,
-    <var>p</var>(<var>x</var>) · <var>p</var>(<var>c</var> | <var>x</var>), is proportional to the conditional
+    <var>p</var>(<var>x</var>) × <var>p</var>(<var>c</var> | <var>x</var>), is proportional to the conditional
     distribution <var>p</var>(<var>x</var> | <var>c</var>) by Bayes' rule. A larger <var>s</var> favors points that the
     classifier is surer about.</p>
     <div class="callout warn">

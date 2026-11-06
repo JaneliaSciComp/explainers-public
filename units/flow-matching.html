@@ -324,7 +324,7 @@ follow it in small steps.
     <p>To make a new example, draw a fresh noise draw and follow the learned field from <var>t</var> = 0 to
     <var>t</var> = 1 with <a href="euler-steps.html">Euler's method</a>. With <var>n</var> steps of size
     <var>h</var> = 1/<var>n</var>, each step is</p>
-    <p class="math"><var>x</var><sub><var>t</var>+<var>h</var></sub> = <var>x</var><sub><var>t</var></sub> + <var>h</var> · <var>v</var><sub>θ</sub>(<var>x</var><sub><var>t</var></sub>, <var>t</var>),&nbsp;&nbsp; <var>t</var> = 0, <var>h</var>, 2<var>h</var>, …, 1 − <var>h</var>.</p>
+    <p class="math"><var>x</var><sub><var>t</var>+<var>h</var></sub> = <var>x</var><sub><var>t</var></sub> + <var>h</var> × <var>v</var><sub>θ</sub>(<var>x</var><sub><var>t</var></sub>, <var>t</var>),&nbsp;&nbsp; <var>t</var> = 0, <var>h</var>, 2<var>h</var>, …, 1 − <var>h</var>.</p>
     <p>Each step runs the network once, so <var>n</var> steps cost <var>n</var> network runs. A new noise draw gives a
     new example. Few steps are cheap but drift off the curved paths; many steps follow them closely.</p>
     <p>The program below trains a small network on points of a ring with radius 2, then generates with 1, 4 and 40

@@ -50,8 +50,8 @@
     <p>Call a weight after step <var>t</var> <var>w</var><sub><var>t</var></sub>, and its averaged copy
     <var>e</var><sub><var>t</var></sub>. Pick a number <var>β</var> (the Greek letter beta) a little below 1,
     such as 0.999. After every training step, update the copy:</p>
-    <p class="math"><var>e</var><sub><var>t</var></sub> = <var>β</var> · <var>e</var><sub><var>t</var>−1</sub>
-    + (1 − <var>β</var>) · <var>w</var><sub><var>t</var></sub></p>
+    <p class="math"><var>e</var><sub><var>t</var></sub> = <var>β</var> × <var>e</var><sub><var>t</var>−1</sub>
+    + (1 − <var>β</var>) × <var>w</var><sub><var>t</var></sub></p>
     <p>The copy keeps a share <var>β</var> of its old value and takes a share 1 − <var>β</var> from the new
     weight. A model has millions of weights; each one gets its own copy, updated by the same rule.</p>
 
@@ -71,8 +71,8 @@
 
     <h3>Old weights fade by a factor β each step</h3>
     <p>Unroll the rule and the copy is a weighted <a href="mean-and-spread.html">average</a> of all past
-    weights. The newest weight counts 1 − <var>β</var>. The one before counts (1 − <var>β</var>) ·
-    <var>β</var>, the one before that (1 − <var>β</var>) · <var>β</var>², and so on. With <var>β</var> = 0.9
+    weights. The newest weight counts 1 − <var>β</var>. The one before counts (1 − <var>β</var>) ×
+    <var>β</var>, the one before that (1 − <var>β</var>) × <var>β</var>², and so on. With <var>β</var> = 0.9
     the shares are 0.1, 0.09, 0.081, … . The shares shrink by the same factor at each step back; that is
     what "exponential" means here (see <a href="exponentials.html">exponentials</a>).</p>
     <p>Two numbers describe how far back the average reaches:</p>
