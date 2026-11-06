@@ -126,6 +126,7 @@ print(a.grad, b.grad) # every entry scaled by 1.5 / 3 = 0.5
 tensor([0.5000, 1.0000]) tensor([1.0000])</code></pre>
     <p>In a training loop, the three lines go in this order (an excerpt, not a whole program):</p>
 <pre><code>loss.backward()
+# model.parameters() lists all the model's weights, like [a, b] above.
 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
 optimizer.step()
 </code></pre>

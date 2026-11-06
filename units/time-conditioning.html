@@ -196,6 +196,13 @@
       data.</p>
     </div>
 
+    <p>The code writes the layer as a Python <code>class</code> named <code>AdaLN</code>, built on PyTorch's
+    <code>nn.Module</code>. Its <code>__init__</code> runs once, when <code>AdaLN(D)</code> makes the layer. It first
+    calls <code>super().__init__()</code>, which lets <code>nn.Module</code> set itself up. Then it stores the
+    layer's parts in <code>self</code>, the layer itself. Its <code>forward</code> runs each time the layer is called,
+    as in <code>layer(h, t)</code>. The Python tutorial explains
+    <a href="https://docs.python.org/3/tutorial/classes.html#a-first-look-at-classes">classes</a>.</p>
+
     <p class="code-cap">adaln.py (PyTorch)</p>
 <pre><code class="py">import torch
 import torch.nn as nn
@@ -205,7 +212,9 @@ D = 4                                      # features per token
 
 def time_features(t):
     """Sines and cosines of t at four frequencies: 8 numbers per time."""
+    # torch.arange(4) is [0, 1, 2, 3], so freqs holds π × 1, 2, 4 and 8.
     freqs = torch.pi * 2.0 ** torch.arange(4)
+    # torch.cat joins the 4 sines and the 4 cosines into one row of 8 numbers.
     return torch.cat([torch.sin(t * freqs), torch.cos(t * freqs)], dim=-1)
 
 class AdaLN(nn.Module):
@@ -215,11 +224,14 @@ class AdaLN(nn.Module):
         self.to_scale_shift = nn.Linear(d_time, 2 * d)           # the time chooses them
 
     def forward(self, h, t):
+        # .chunk(2, dim=-1) cuts the 8 outputs into two halves of 4: scale and shift.
         scale, shift = self.to_scale_shift(time_features(t)).chunk(2, dim=-1)
         return self.norm(h) * (1 + scale) + shift
 
 layer = AdaLN(D)
 h = torch.tensor([2.0, 4.0, 6.0, 8.0])     # one token's features
+# Inside torch.no_grad(), PyTorch records no gradients, so .numpy() can turn
+# each result into a NumPy array.
 with torch.no_grad():
     print("normalized    ", layer.norm(h).numpy().round(2))
     for t in [0.1, 0.9]:

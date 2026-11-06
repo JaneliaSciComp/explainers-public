@@ -198,6 +198,7 @@ class DiTBlock(nn.Module):
     def __init__(self, d, heads):
         super().__init__()
         self.norm1 = nn.LayerNorm(d, elementwise_affine=False)
+        # Attention with several heads. batch_first=True puts the batch first, as in h.
         self.attn = nn.MultiheadAttention(d, heads, batch_first=True)
         self.norm2 = nn.LayerNorm(d, elementwise_affine=False)
         self.mlp = nn.Sequential(nn.Linear(d, 4 * d), nn.GELU(), nn.Linear(4 * d, d))
@@ -206,8 +207,10 @@ class DiTBlock(nn.Module):
         nn.init.zeros_(self.ada[1].bias)
 
     def forward(self, h, c):                  # h: (batch, tokens, d); c: (batch, d)
+        # [:, None] adds an axis of length 1, so each of the 6 parts acts on all tokens.
         g1, b1, a1, g2, b2, a2 = self.ada(c)[:, None].chunk(6, dim=-1)
         z = self.norm1(h) * (1 + g1) + b1
+        # z, z, z: the queries, keys and values all come from z. [0] keeps the output.
         h = h + a1 * self.attn(z, z, z, need_weights=False)[0]
         z = self.norm2(h) * (1 + g2) + b2
         return h + a2 * self.mlp(z)
@@ -218,7 +221,7 @@ h = torch.randn(2, 1024, 384)                 # 2 examples, 1024 tokens each
 c = torch.randn(2, 384)                       # time (plus condition) embedding
 out = block(h, c)
 print(out.shape, "unchanged at the start:", torch.equal(out, h))
-print("parameters in the time layer:", sum(p.numel() for p in block.ada.parameters()))
+print("parameters in the time layer:", sum([p.numel() for p in block.ada.parameters()]))
 </code></pre>
 <pre class="out">torch.Size([2, 1024, 384]) unchanged at the start: True
 parameters in the time layer: 887040</pre>

@@ -134,16 +134,17 @@
     <p>In PyTorch, an MLP is a list of layers run in order:</p>
     <p class="code-cap">mlp_torch.py</p>
 <pre><code class="py">import torch
-from torch import nn
+from torch import nn   # so that nn.Linear means torch.nn.Linear
 
 mlp = nn.Sequential(
     nn.Linear(2, 4), nn.ReLU(),
     nn.Linear(4, 4), nn.ReLU(),
     nn.Linear(4, 1),
 )
-print(sum(p.numel() for p in mlp.parameters()))
+# p.numel() counts the numbers in p, so the sum is the number of parameters
+print(sum([p.numel() for p in mlp.parameters()]))
 
-points = torch.randn(5, 2)   # a batch of 5 inputs, 2 numbers each
+points = torch.randn(5, 2)   # a batch of 5 random inputs, 2 numbers each
 print(mlp(points).shape)
 </code></pre>
 <pre class="out"><code>37

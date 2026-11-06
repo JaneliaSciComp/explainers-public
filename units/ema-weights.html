@@ -124,22 +124,23 @@
 <pre><code class="py" data-hl="9,17,18,19">import copy
 import torch
 
-torch.manual_seed(0)
-x = torch.randn(1000, 1)
+torch.manual_seed(0)                          # set the seed of PyTorch's random numbers
+x = torch.randn(1000, 1)                      # 1,000 random inputs, one per row
 y = 3 * x + 0.5 * torch.randn(1000, 1)       # the best slope is close to 3
 
 model = torch.nn.Linear(1, 1)                 # one weight and one bias
 ema = copy.deepcopy(model)                    # the averaged copy; never trained
-opt = torch.optim.SGD(model.parameters(), lr=0.1)
+opt = torch.optim.SGD(model.parameters(), lr=0.1)  # gradient descent on the weights
 beta, raw, avg = 0.95, [], []
 
 for step in range(400):
     i = torch.randint(0, 1000, (4,))          # a minibatch of 4 examples
     loss = ((model(x[i]) - y[i]) ** 2).mean()
-    opt.zero_grad(); loss.backward(); opt.step()
+    opt.zero_grad(); loss.backward(); opt.step()  # zero the gradients, compute them, step
     with torch.no_grad():                     # the EMA update, for every weight
         for pe, p in zip(ema.parameters(), model.parameters()):
             pe.mul_(beta).add_(p, alpha=1 - beta)
+    # Add each copy's weight to the end of its list, as a plain number from .item().
     raw.append(model.weight.item()); avg.append(ema.weight.item())
 
 r, a = torch.tensor(raw[200:]), torch.tensor(avg[200:])   # after both settle
@@ -149,7 +150,10 @@ print(f"EMA weight: mean {a.mean():.3f}, spread {a.std():.3f}")
 <pre class="out"><code>raw weight: mean 3.005, spread 0.092
 EMA weight: mean 3.002, spread 0.037</code></pre>
     <p>Both copies center on the same value, but the averaged copy jitters less than half as much.
-    <code>pe.mul_(beta).add_(p, alpha=1 - beta)</code> is the update rule above, applied in place.</p>
+    <code>pe.mul_(beta).add_(p, alpha=1 - beta)</code> is the update rule above, applied in place.
+    Inside <code>torch.no_grad()</code>, PyTorch records no steps for
+    <a href="automatic-gradients.html#rules">automatic gradients</a>, which lets the code change the averaged
+    weights in place.</p>
 
     <div class="callout warn">
       <span class="callout-title">This is a simplification</span>

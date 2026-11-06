@@ -67,6 +67,7 @@ order = rng.permutation(n)         # shuffle first, so each part is a fair sampl
 train, val, test = order[:8000], order[8000:9000], order[9000:]
 
 print(len(train), len(val), len(test))
+# np.intersect1d(a, b) holds the numbers that are in both a and b
 print("shared examples:", len(np.intersect1d(train, val)), len(np.intersect1d(val, test)))
 print("first five validation examples:", val[:5])
 </code></pre>

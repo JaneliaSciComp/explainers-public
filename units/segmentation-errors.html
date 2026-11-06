@@ -144,7 +144,9 @@ pred = np.array([10, 20, 20, 20, 20, 20])  # object the segmentation gave each
 pairs = np.unique(np.stack([truth, pred], axis=1), axis=0)  # which (true, given) pairs occur
 print(pairs)
 
+# For each true object t: count the different labels in rows whose column 0 is t, minus 1.
 splits = sum([len(np.unique(pairs[pairs[:, 0] == t, 1])) - 1 for t in np.unique(truth)])
+# For each label p: count the different true objects in rows whose column 1 is p, minus 1.
 merges = sum([len(np.unique(pairs[pairs[:, 1] == p, 0])) - 1 for p in np.unique(pred)])
 print("split errors:", splits, " merge errors:", merges)
 </code></pre>

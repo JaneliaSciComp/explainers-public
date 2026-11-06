@@ -194,8 +194,9 @@ MAE 0.5</code></pre>
     <p class="code-cap">loss_torch.py</p>
 <pre><code class="py">import torch
 
-target = torch.tensor([3.0, 5.0, 7.0])
+target = torch.tensor([3.0, 5.0, 7.0])   # a tensor: PyTorch's kind of array
 pred   = torch.tensor([2.5, 5.0, 8.0])
+# MSELoss() makes the loss function; (pred, target) then calls it
 print(torch.nn.MSELoss()(pred, target))
 print(torch.nn.L1Loss()(pred, target))
 </code></pre>

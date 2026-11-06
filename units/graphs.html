@@ -100,9 +100,11 @@
 <pre><code class="py">edges = [("A", "B"), ("A", "C"), ("B", "C"), ("C", "D")]
 nodes = ["A", "B", "C", "D", "E"]
 
+# This builds a dictionary in one line, as a list comprehension builds a list.
+# Each node starts with an empty list.
 neighbors = {n: [] for n in nodes}
 for u, v in edges:
-    neighbors[u].append(v)
+    neighbors[u].append(v)   # append puts v at the end of u's list
     neighbors[v].append(u)
 
 print(neighbors)

@@ -167,7 +167,9 @@ gelu    tensor([-0.0455, -0.1543,  0.0000,  0.3457,  1.9545])</code></pre>
     <p class="code-cap">bend.py</p>
 <pre><code class="py">import numpy as np
 
-relu = lambda z: np.maximum(0.0, z)
+def relu(z):
+    return np.maximum(0.0, z)   # np.maximum keeps the larger of 0 and each number
+
 x = np.array([-1.0, 0.0, 0.5, 1.0, 2.0, 3.0])
 
 # Two linear steps with nothing between: still a straight line.

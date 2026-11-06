@@ -132,13 +132,14 @@ seg = np.array([          # one slice of a label array; 0 means "no object"
     [0, 3, 3, 3, 3, 0, 0, 2],
     [3, 3, 3, 3, 3, 3, 0, 0],
 ])
+# np.unique lists each label once, and counts the voxels that have it.
 labels, counts = np.unique(seg, return_counts=True)
 print(labels, counts)
 
 voxel_volume = 8 * 8 * 40                # nm^3 for an 8 x 8 x 40 nm voxel
-print(counts[labels == 1] * voxel_volume)
+print(counts[labels == 1] * voxel_volume)   # labels == 1 picks object 1's count
 
-rows, cols = np.nonzero(seg == 3)        # the voxels of object 3
+rows, cols = np.nonzero(seg == 3)        # the row and column of each voxel of object 3
 print(round(rows.mean(), 2), round(cols.mean(), 2))   # its center, in voxel units
 </code></pre>
 <pre class="out"><code>[0 1 2 3] [13  9 14 12]

@@ -155,7 +155,8 @@
     <p class="code-cap">point_clouds.py</p>
 <pre><code class="py">import numpy as np
 
-# The 8 corners of a cube with side 2, centered at the origin
+# The 8 corners of a cube with side 2, centered at the origin.
+# Each corner takes x, y and z from (-1, 1); dtype=float stores them as decimals.
 cloud = np.array([[x, y, z] for x in (-1, 1) for y in (-1, 1) for z in (-1, 1)], dtype=float)
 print(cloud.shape)
 
@@ -163,6 +164,7 @@ rng = np.random.default_rng(0)
 shuffled = cloud[rng.permutation(len(cloud))]   # the same points, rows in a new order
 print(cloud[0], shuffled[0])                     # the first rows differ
 print(cloud.mean(axis=0), shuffled.mean(axis=0)) # the center does not
+# np.array_equal: do the two sorted lists of rows match?
 print(np.array_equal(np.unique(cloud, axis=0), np.unique(shuffled, axis=0)))
 </code></pre>
 <pre class="out"><code>(8, 3)

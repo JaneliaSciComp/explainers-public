@@ -112,17 +112,19 @@
 rng = np.random.default_rng(2)
 
 # A full shape: 12 points along a quarter circle of radius 4.
+# np.linspace gives 12 evenly spaced angles from 0 to π/2 (np.pi is π).
 a = np.linspace(0, np.pi / 2, 12)
+# np.stack(..., axis=1) puts x and y side by side: one row per point.
 shape = np.stack([4 * np.cos(a), 4 * np.sin(a)], axis=1)
 
 def make_pair(shape):
     """Cut a full shape at a random x: the right part is known, the left part is missing."""
-    cut = rng.uniform(1.0, 3.0)
-    known = shape[shape[:, 0] > cut]
-    missing = shape[shape[:, 0] <= cut]
+    cut = rng.uniform(1.0, 3.0)             # a random number between 1 and 3
+    known = shape[shape[:, 0] > cut]        # the rows whose x is greater than cut
+    missing = shape[shape[:, 0] <= cut]     # the rows whose x is at most cut
     return cut, known, missing
 
-for _ in range(3):                    # one shape gives many training pairs
+for i in range(3):                    # one shape gives many training pairs
     cut, known, missing = make_pair(shape)
     print(f"cut at x = {cut:.2f}: {len(known)} known, {len(missing)} missing")
 </code></pre>

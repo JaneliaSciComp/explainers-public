@@ -114,12 +114,12 @@ def components(nodes, edges):
         neighbors[v].append(u)
     label = {}
     for start in nodes:
-        if start in label:
+        if start in label:             # already labeled: skip to the next node
             continue
         label[start] = start           # name the piece after its first node
         queue = deque([start])
-        while queue:
-            n = queue.popleft()
+        while queue:                   # repeat until the queue is empty
+            n = queue.popleft()        # take the node that arrived first
             for m in neighbors[n]:
                 if m not in label:
                     label[m] = start

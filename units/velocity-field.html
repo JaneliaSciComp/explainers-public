@@ -126,18 +126,19 @@
 <pre><code class="py">import numpy as np
 
 def swirl(p):
-    """Turn around the origin: the arrow at (x, y) is (-y, x)."""
+    # Turn around the origin: the arrow at (x, y) is (-y, x).
     x, y = p
     return np.array([-y, x]) + 0.0     # + 0.0 turns -0.0 into 0.0
 
 def sink(p, target=np.array([1.0, 1.0])):
-    """Head for a target: the arrow points from p to the target."""
+    # Head for a target: the arrow points from p to the target.
     return target - p
 
 for p in [(2.0, 0.0), (0.0, 1.0), (3.0, 4.0)]:
     v = swirl(np.array(p))
-    print("swirl at", p, "->", v, " speed", round(float(np.linalg.norm(v)), 2))
-print("sink at (4, 2) ->", sink(np.array([4.0, 2.0])))
+    speed = np.linalg.norm(v)   # np.linalg.norm gives the length of the arrow v
+    print("swirl at", p, "-&gt;", v, " speed", round(speed, 2))
+print("sink at (4, 2) -&gt;", sink(np.array([4.0, 2.0])))
 </code></pre>
 <pre class="out">swirl at (2.0, 0.0) -> [0. 2.]  speed 2.0
 swirl at (0.0, 1.0) -> [-1.  0.]  speed 1.0

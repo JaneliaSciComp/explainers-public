@@ -121,6 +121,7 @@ rng = np.random.default_rng(seed=0)
 scores = rng.normal(loc=70, scale=10, size=100_000)
 
 print(round(scores.mean(), 2), round(scores.std(), 2))
+# Each test is True (1) or False (0) per draw, so np.mean gives the share that pass
 print(np.mean(np.abs(scores - 70) &lt; 10))   # within 1 standard deviation
 print(np.mean(np.abs(scores - 70) &lt; 20))   # within 2 standard deviations
 print(np.mean(scores &gt; 90))                # above 90

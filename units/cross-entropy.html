@@ -144,6 +144,7 @@ right = np.array([1, 1, 0])            # the index of the right class
 # -log softmax, computed straight from the scores
 m = scores.max(axis=1, keepdims=True)
 log_p = scores - m - np.log(np.exp(scores - m).sum(axis=1, keepdims=True))
+# From each row i, take the entry in column right[i]; np.arange(len(right)) is [0 1 2]
 loss = -log_p[np.arange(len(right)), right]
 print(np.round(loss, 3))
 print(round(loss.mean(), 3))

@@ -139,7 +139,7 @@ w = np.array([1.0, 2.0, 3.0])                        # one weight per list posit
 
 print(P.sum(axis=0), Q.sum(axis=0))    # invariant
 print(P.max(axis=0), Q.max(axis=0))    # invariant
-print(w @ P, w @ Q)                    # not invariant
+print(w @ P, w @ Q)                    # rows weighted by w, then added: not invariant
 print(P.sum(axis=1), Q.sum(axis=1))    # x + y of each point: equivariant
 </code></pre>
 <pre class="out">[7. 5.] [7. 5.]

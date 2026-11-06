@@ -165,7 +165,9 @@ print(d)
     <p>When the shapes do not fit, NumPy says so:</p>
 <pre><code class="py">import numpy as np
 
-pts = np.zeros((4, 3))
+pts = np.zeros((4, 3))                     # a table of zeros, shape (4, 3)
+# try runs the indented line. If that line fails with a ValueError,
+# Python runs the lines under except instead, with the error in e.
 try:
     pts - np.array([1.0, 2.0, 3.0, 4.0])
 except ValueError as e:

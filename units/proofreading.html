@@ -166,7 +166,8 @@ score = np.array([0.97, 0.95, 0.93, 0.91, 0.84, 0.78,
 right = np.array([1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0], dtype=bool)
 
 for threshold in (0.9, 0.7):
-    auto = score >= threshold          # applied without a person
+    auto = score >= threshold          # True for each join applied without a person
+    # &amp; means "and", ~ means "not", and .sum() counts the True values
     good, bad = (auto & right).sum(), (auto & ~right).sum()
     print(threshold, "correct:", good, " wrong:", bad, " left for people:", (~auto).sum())
 </code></pre>

@@ -160,10 +160,12 @@ def velocity(x, t, classes):
     s2 = t**2 * SPREAD**2 + (1 - t)**2        # squared spread of x_t within a class
     k = (t * SPREAD**2 - (1 - t)) / s2
     vs = [CENTERS[c] + k * (x - t * CENTERS[c]) for c in classes]
+    # np.stack(..., 1) makes one column per class; .sum(1) adds across each row
     logw = np.stack([-((x - t * CENTERS[c])**2).sum(1) / (2 * s2) for c in classes], 1)
     w = np.exp(logw - logw.max(1, keepdims=True))
-    w /= w.sum(1, keepdims=True)              # how likely each class is, given x
-    return sum(w[:, [i]] * v for i, v in enumerate(vs))
+    w = w / w.sum(1, keepdims=True)           # how likely each class is, given x
+    # w[:, [i]] is column i of w, kept as a column so that it lines up with the rows of v
+    return sum([w[:, [i]] * v for i, v in enumerate(vs)])
 
 def generate(scale, n=4000, steps=100):
     x = rng.standard_normal((n, 2))           # noise at t = 0
@@ -176,7 +178,7 @@ def generate(scale, n=4000, steps=100):
 
 for scale in [0, 1, 3]:
     x = generate(scale)
-    print(f"scale {scale}: mean x {x[:, 0].mean():+.2f}, "
+    print(f"scale {scale}: mean x {x[:, 0].mean():.2f},",
           f"spread x {x[:, 0].std():.2f}, spread y {x[:, 1].std():.2f}")
 </code></pre>
 <pre class="out">scale 0: mean x -0.01, spread x 1.12, spread y 0.49

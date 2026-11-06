@@ -131,18 +131,19 @@
 <pre><code class="py">import copy
 import torch
 
-torch.manual_seed(0)
-model = torch.nn.Linear(4, 1)
+torch.manual_seed(0)                                  # same random draws on every run
+model = torch.nn.Linear(4, 1)                         # a small model: 4 inputs, 1 output
 x, y = torch.randn(256, 4), torch.randn(256, 1)       # one batch of 256 examples
 
 def grad(m, xb, yb):                                  # gradient of the mean loss
-    m.zero_grad()
+    m.zero_grad()                                     # clear the old gradient
     ((m(xb) - yb) ** 2).mean().backward()
-    return m.weight.grad.clone()
+    return m.weight.grad.clone()                      # a copy of the gradient
 
 whole = grad(model, x, y)                             # one GPU, the whole batch
 
 copies = [copy.deepcopy(model) for _ in range(4)]     # four "GPUs", one copy each
+# x.chunk(4) cuts x into 4 shares of 64 rows, one for each copy.
 shares = [grad(m, xs, ys) for m, xs, ys in zip(copies, x.chunk(4), y.chunk(4))]
 average = torch.stack(shares).mean(0)                 # the averaging step
 

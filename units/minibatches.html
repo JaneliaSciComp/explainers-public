@@ -90,8 +90,10 @@ full = np.mean(2 * (w - y))               # gradient over all examples
 print(f"full gradient: {full:.2f}")
 
 for B in [1, 10, 100, 1000]:
+    # y[...] takes the examples at B random positions: one random batch.
     est = [np.mean(2 * (w - y[rng.integers(0, len(y), B)]))
            for _ in range(2000)]          # 2000 random batches of size B
+    # {B:4d} pads the whole number B to 4 characters, so the columns line up.
     print(f"batch size {B:4d}: average {np.mean(est):6.2f}, spread {np.std(est):.2f}")
 </code></pre>
 <pre class="out"><code>full gradient: -10.00

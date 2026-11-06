@@ -200,8 +200,11 @@ def pointnet_pool(P):
 P = rng.normal(size=(500, 3))        # 500 points in 3D
 g = pointnet_pool(P)
 print(g.shape)
+# Shuffle the points: np.allclose says whether the summary stays the same, up to rounding.
 print(np.allclose(g, pointnet_pool(P[rng.permutation(500)])))
 print(pointnet_pool(P[:50]).shape)   # 50 points: same size
+# argmax(axis=0) finds, for each feature, the point that holds its maximum.
+# np.unique keeps each of those points once, and len counts them.
 print(len(np.unique(h(P).argmax(axis=0))))  # how many points set a maximum
 </code></pre>
 <pre class="out">(128,)

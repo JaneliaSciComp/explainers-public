@@ -153,13 +153,16 @@ learning rate 1.1
   step 3: w = 8.1840, loss = 26.8739
   step 4: w = -3.2208, loss = 38.6984</code></pre>
     <p>The same idea fits a line <var>y</var> = <var>a</var><var>x</var> + <var>c</var> to four points. PyTorch
-    computes the gradient of both weights; the loop takes the steps.</p>
+    computes the gradient of both weights; the loop takes the steps. <code>torch.tensor</code> makes a
+    <a href="tensors-on-gpu.html#tensor">tensor</a>, PyTorch's version of an array. The unit on
+    <a href="automatic-gradients.html">automatic gradients</a> explains <code>requires_grad</code>,
+    <code>.backward()</code>, <code>torch.no_grad()</code> and <code>.item()</code>.</p>
     <p class="code-cap">fit_line_torch.py</p>
 <pre><code class="py">import torch
 
 x = torch.tensor([0.0, 1.0, 2.0, 3.0])
 y = torch.tensor([1.0, 3.0, 5.0, 7.0])     # y = 2x + 1
-w = torch.zeros(2, requires_grad=True)     # slope, intercept
+w = torch.zeros(2, requires_grad=True)     # slope and intercept, both starting at 0
 
 lr = 0.05
 for step in range(500):
@@ -167,7 +170,8 @@ for step in range(500):
     loss.backward()                  # fills w.grad
     with torch.no_grad():
         w -= lr * w.grad             # one step downhill
-        w.grad.zero_()
+        w.grad.zero_()               # clear w.grad, because backward() adds to it
+# w.detach(): the numbers in w, without requires_grad=True
 print(w.detach(), f"loss {loss.item():.6f}")
 </code></pre>
 <pre class="out"><code>tensor([2.0000, 1.0000]) loss 0.000000</code></pre>

@@ -100,16 +100,19 @@
     steps and saves a checkpoint. Run C loads that checkpoint into new objects and takes the other 10 steps.
     Run D loads only the weights and starts a fresh optimizer.</p>
     <p class="code-cap">resume.py</p>
-<pre><code class="py" data-hl="20,21,24,25,26">import torch
+<pre><code class="py" data-hl="23,24,27,28,29">import torch
 
-def make():
+def make():  # a linear layer (3 inputs, 1 output), with AdamW for its weights
     model = torch.nn.Linear(3, 1)
     return model, torch.optim.AdamW(model.parameters(), lr=0.01)
 
 def train(model, opt, steps):
-    for _ in range(steps):
+    for _ in range(steps):                        # _ is a name the loop never uses
         x = torch.randn(8, 3)                     # a random minibatch
+        # The loss is the mean squared gap between the output and each row's sum.
+        # keepdim=True keeps the sums in a column, the shape of model(x).
         loss = (model(x) - x.sum(1, keepdim=True)).pow(2).mean()
+        # Clear the old gradients, compute new ones, and take one step.
         opt.zero_grad(); loss.backward(); opt.step()
 
 torch.manual_seed(0)                              # run A: 20 steps without stopping
@@ -133,6 +136,7 @@ d.load_state_dict(ck["model"])
 torch.set_rng_state(ck["rng"])
 train(d, opt_d, 20 - ck["step"])
 
+# torch.equal is True only when two tensors hold exactly the same numbers.
 print("full resume matches run A:   ", torch.equal(a.weight, c.weight))
 print("without optimizer state:     ", torch.equal(a.weight, d.weight))
 </code></pre>
@@ -140,7 +144,11 @@ print("without optimizer state:     ", torch.equal(a.weight, d.weight))
 without optimizer state:      False</code></pre>
     <p>With everything saved, the resumed run ends with exactly the same weights as the run that never
     stopped. Without the optimizer state, it ends somewhere else. A <code>state_dict()</code> is PyTorch's
-    name for all of an object's numbers, gathered into a dictionary that <code>torch.save</code> can write.</p>
+    name for all of an object's numbers, gathered into a dictionary that <code>torch.save</code> can write.
+    <code>torch.manual_seed(0)</code> starts PyTorch's random numbers from the seed 0, so runs A and B start
+    from the same weights and draw the same minibatches. <code>torch.get_rng_state()</code> reads where
+    PyTorch's generator is in its sequence, and <code>torch.set_rng_state</code> puts it back there (see
+    <a href="random-draws.html#seed">random draws</a>).</p>
   </section>
 
   <section id="how-often">

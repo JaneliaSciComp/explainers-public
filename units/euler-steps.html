@@ -98,16 +98,18 @@ def euler(v, x, t0, t1, n):
     """Follow the field v from time t0 to t1 in n equal steps."""
     h = (t1 - t0) / n
     t = t0
-    for _ in range(n):
+    for i in range(n):
         x = x + h * v(x, t)            # move along the arrow where you stand
         t = t + h
     return x
 
-decay = lambda x, t: -x                # the true path is x(t) = exp(-t)
+def decay(x, t):                       # the true path is x(t) = exp(-t)
+    return -x
+
 exact = np.exp(-1.0)
 for n in [2, 4, 10, 100]:
     x = euler(decay, 1.0, 0.0, 1.0, n)
-    print(f"n={n:3d}  h={1 / n:.2f}  x(1)={x:.4f}  error={abs(x - exact):.4f}")
+    print(f"n={n:3}  h={1 / n:.2f}  x(1)={x:.4f}  error={np.abs(x - exact):.4f}")
 </code></pre>
 <pre class="out">n=  2  h=0.50  x(1)=0.2500  error=0.1179
 n=  4  h=0.25  x(1)=0.3164  error=0.0515

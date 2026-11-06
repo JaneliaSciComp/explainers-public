@@ -125,10 +125,10 @@
 <pre><code class="py">import numpy as np
 
 degrees = np.array([0, 30, 90, 180, 270, 360])
-print(np.round(np.sin(np.radians(degrees)), 3))
+print(np.round(np.sin(np.radians(degrees)), 3))  # np.radians turns degrees into radians
 
 x = np.array([0, 1/12, 1/6, 1/4])
-print(np.round(np.sin(2 * np.pi * 3 * x), 3))   # 3 waves per unit of x
+print(np.round(np.sin(2 * np.pi * 3 * x), 3))   # sin(2πfx) with f = 3: 3 waves per unit of x (np.pi is π)
 </code></pre>
 <pre class="out">[ 0.   0.5  1.   0.  -1.  -0. ]
 [ 0.  1.  0. -1.]</pre>

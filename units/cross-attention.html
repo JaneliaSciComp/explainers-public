@@ -166,6 +166,7 @@ print(np.round(w, 3))
 print(np.round(out, 2))
 
 perm = [2, 0, 1]                                      # reorder set B
+# np.allclose is True when two arrays match, up to tiny rounding errors
 print(np.allclose(cross_attention(Qa, Kb[perm], Vb[perm])[0], out))
 </code></pre>
 <pre class="out">[[0.576 0.14  0.284]

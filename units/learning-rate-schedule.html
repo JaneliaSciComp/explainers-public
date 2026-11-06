@@ -151,13 +151,13 @@ def factor(step):                        # multiplies the peak rate
     return 0.5 * (1 + math.cos(math.pi * p))  # cosine fall to 0
 
 w = torch.zeros(1, requires_grad=True)
-opt = torch.optim.AdamW([w], lr=peak)
+opt = torch.optim.AdamW([w], lr=peak)    # the optimizer that updates w, with rate peak
 sched = torch.optim.lr_scheduler.LambdaLR(opt, factor)
 
 for step in range(total):
-    if step in (0, 500, 1000, 5500, 7750):
-        print(step, f"{opt.param_groups[0]['lr']:.6f}")
-    w.grad = torch.zeros(1)
+    if step in (0, 500, 1000, 5500, 7750):    # print only at these steps
+        print(step, f"{opt.param_groups[0]['lr']:.6f}")   # the optimizer's current rate
+    w.grad = torch.zeros(1)              # stands in for loss.backward()
     opt.step()
     sched.step()                         # after each optimizer step
 </code></pre>

@@ -116,6 +116,7 @@ rng = np.random.default_rng(seed=7)
 print(rng.integers(1, 7, size=10))   # new seed, new rolls
 
 rolls = np.random.default_rng(seed=0).integers(1, 7, size=6000)
+# np.bincount counts each value from 0 up; [1:] drops the count for 0
 print(np.bincount(rolls)[1:])        # how often each face came up
 </code></pre>
 <pre class="out">[1 5 4 3 3 6 1 5 2 1]

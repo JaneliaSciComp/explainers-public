@@ -105,18 +105,20 @@
 
     <p>This code computes the figure's fits for a few strengths. Setting every slope of the total to zero gives 12
     linear equations in the 12 weights, and <code>np.linalg.solve</code> solves them. So it finds the lowest total
-    directly, without gradient-descent steps.</p>
+    directly, without gradient-descent steps. In the code, <code>X_tr @ w</code> multiplies a matrix by a vector, as
+    in <a href="matrix-times-vector.html">Multiplying a matrix by a vector</a>. <code>X_tr.T</code> is
+    <code>X_tr</code> with its rows and columns swapped, and <code>@</code> also multiplies two matrices.</p>
     <p class="code-cap">ridge_fit.py</p>
 <pre><code class="py">import numpy as np
 rng = np.random.default_rng(4)
 x_tr = np.linspace(-1, 1, 12)                  # 12 training inputs, evenly spaced
 y_tr = np.sin(2.5 * x_tr) + 0.25 * rng.normal(size=12)
-x_va = rng.uniform(-1, 1, 40)                  # 40 validation inputs
+x_va = rng.uniform(-1, 1, 40)                  # 40 random validation inputs from -1 to 1
 y_va = np.sin(2.5 * x_va) + 0.25 * rng.normal(size=40)
 
 X_tr = np.vander(x_tr, 12, increasing=True)    # row i holds 1, x, x**2, ..., x**11
 X_va = np.vander(x_va, 12, increasing=True)
-P = np.eye(12)
+P = np.eye(12)                                 # 12 × 12: 1 on the diagonal, 0 elsewhere
 P[0, 0] = 0                                    # the penalty leaves out w0
 
 print("lambda    train    valid  sum of squares")
@@ -125,6 +127,8 @@ for lam in [0, 1e-6, 1e-4, 1e-3, 1e-2, 1e-1, 1, 10]:
     w = np.linalg.solve(X_tr.T @ X_tr + 6 * lam * P, X_tr.T @ y_tr)
     train = np.mean((X_tr @ w - y_tr) ** 2)
     valid = np.mean((X_va @ w - y_va) ** 2)
+    # The g in :6g and :14.4g picks plain or e notation by the value's size.
+    # .4g rounds to 4 significant digits.
     print(f"{lam:6g}  {train:7.4f}  {valid:7.4f}  {np.sum(w[1:] ** 2):14.4g}")
 </code></pre>
 <pre class="out"><code>lambda    train    valid  sum of squares

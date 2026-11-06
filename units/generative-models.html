@@ -156,16 +156,18 @@ z = rng.standard_normal(3)                 # three noise draws
 print("new heights", np.round(mu + sigma * z, 1))
 
 # Ring-shaped data in 2D: one bell curve puts samples in the empty middle.
-angle = rng.uniform(0, 2 * np.pi, 1000)
-ring = np.stack([np.cos(angle), np.sin(angle)], axis=1)
+angle = rng.uniform(0, 2 * np.pi, 1000)    # 1000 random angles from 0 to 2π
+ring = np.stack([np.cos(angle), np.sin(angle)], axis=1)   # one row (cos, sin) per angle
+# Fit one 2D bell curve to the ring, then draw 1000 points from it.
 fake = rng.multivariate_normal(ring.mean(axis=0), np.cov(ring.T), 1000)
-print("bell curve, share within 0.5 of center:", np.mean(np.linalg.norm(fake, axis=1) < 0.5))
+# np.linalg.norm(..., axis=1) gives each point's distance from the center.
+print("bell curve, share within 0.5 of center:", np.mean(np.linalg.norm(fake, axis=1) &lt; 0.5))
 
 # A bent bell curve: a fixed function turns each 2D noise draw into a ring point.
 z2 = rng.standard_normal((1000, 2))
-r = np.linalg.norm(z2, axis=1, keepdims=True)
-bent = z2 / r * (1 + 0.15 * (r - 1.25))
-print("bent noise, share within 0.5 of center:", np.mean(np.linalg.norm(bent, axis=1) < 0.5))
+r = np.linalg.norm(z2, axis=1, keepdims=True)    # each draw's distance, as a column
+bent = z2 / r * (1 + 0.15 * (r - 1.25))          # same direction, distance near 1
+print("bent noise, share within 0.5 of center:", np.mean(np.linalg.norm(bent, axis=1) &lt; 0.5))
 </code></pre>
 <pre class="out">mean 170.0 spread 7.07
 new heights [170.9 169.1 174.5]

@@ -162,7 +162,7 @@ svg a text.loop-title { fill: var(--accent); font-weight: 600; }
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 
-torch.manual_seed(0)
+torch.manual_seed(0)                                    # same random numbers on every run
 x = torch.randn(1200, 8); y = x.sum(1, keepdim=True) + 0.1 * torch.randn(1200, 1)
 train_dl = DataLoader(TensorDataset(x[:1000], y[:1000]), batch_size=50, shuffle=True)
 val_x, val_y = x[1000:], y[1000:]                       # held out: never trained on
@@ -195,6 +195,11 @@ for epoch in range(10):                                 # 20 batches per epoch
 step 100: train loss 0.027, validation loss 0.048
 step 150: train loss 0.027, validation loss 0.030
 step 200: train loss 0.019, validation loss 0.026</code></pre>
+    <p><code>TensorDataset</code> pairs each row of <code>x</code> with the same row of <code>y</code>.
+    <code>CosineAnnealingLR</code> lowers the learning rate by <a href="learning-rate-schedule.html#formula">cosine
+    decay</a>, to 0 at step <code>T_max</code> = 200. A semicolon separates two statements on one line. The
+    <code>%</code> sign gives the remainder of a division, so <code>step % 50 == 0</code> is true at every 50th
+    step.</p>
     <p>The validation loss uses the averaged copy, because that is the model the run keeps. At step 50 it is
     still high, because the copy averages over about the last 20 steps and lags behind the fast early
     progress. (The trained weights alone score about 0.056 there.) By step 150 the copy has caught up.

@@ -201,16 +201,20 @@
 <pre><code class="py">import torch
 
 torch.manual_seed(0)
+# The block from the worked example: d = 256, 8 heads, an MLP of width 1,024.
+# dropout=0.0 switches off dropout, which zeroes values at random in training.
+# batch_first=True makes the first number in x's shape count the examples.
 block = torch.nn.TransformerEncoderLayer(
     d_model=256, nhead=8, dim_feedforward=1024,
     dropout=0.0, batch_first=True, norm_first=True)   # norm_first: pre-norm
-print(sum(p.numel() for p in block.parameters()))
+print(sum([p.numel() for p in block.parameters()]))
 
 x = torch.randn(1, 1000, 256)        # 1 example: 1000 tokens of 256 numbers
 y = block(x)
 print(y.shape)
 
 perm = torch.randperm(1000)          # shuffle the tokens
+# torch.allclose is True when the two agree in every entry, to within about 0.00001.
 print(torch.allclose(block(x[:, perm]), y[:, perm], atol=1e-5))
 </code></pre>
 <pre class="out">789760

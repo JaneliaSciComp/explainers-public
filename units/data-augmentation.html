@@ -149,6 +149,7 @@ R = np.array([[c, -s, 0],
               [s,  c, 0],
               [0,  0, 1]])
 rotated = cloud @ R.T                      # each row is a point, so multiply by R transposed
+# np.clip keeps each jitter value between -0.05 and 0.05.
 jitter = np.clip(rng.normal(0, 0.01, cloud.shape), -0.05, 0.05)
 augmented = rotated + jitter
 
@@ -156,7 +157,7 @@ def pairwise(p):                           # every distance between two points o
     return np.linalg.norm(p[:, None] - p[None, :], axis=-1)
 
 print(round(np.degrees(theta), 1))
-print(np.allclose(pairwise(cloud), pairwise(rotated)))
+print(np.allclose(pairwise(cloud), pairwise(rotated)))   # all equal, up to rounding?
 print(np.abs(pairwise(augmented) - pairwise(cloud)).max().round(3))
 </code></pre>
 <pre class="out"><code>225.0

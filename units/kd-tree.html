@@ -131,27 +131,31 @@
 def build(pts, depth=0):
     if len(pts) == 0:
         return None
+    # a % b is the remainder of a divided by b.
     axis = depth % pts.shape[1]             # 0 splits on x, 1 on y, then x again in 2D
-    pts = pts[np.argsort(pts[:, axis])]
-    m = len(pts) // 2                       # the median point
+    pts = pts[np.argsort(pts[:, axis])]     # sort the points by that coordinate
+    m = len(pts) // 2                       # the median point's index (// rounds down)
     return {"point": pts[m], "axis": axis,
             "low": build(pts[:m], depth + 1),
             "high": build(pts[m + 1:], depth + 1)}
 
 def nearest(node, q, best=None):
-    if node is None:
+    if node is None:                        # an empty branch
         return best
     p, axis = node["point"], node["axis"]
     d2 = ((p - q) ** 2).sum()
-    if best is None or d2 &lt; best[0]:
+    if best is None or d2 &lt; best[0]:        # no best point yet, or a closer one
         best = (d2, p)
     gap = q[axis] - p[axis]                 # signed distance to the split line
+    # X if test else Y gives X when the test is true, and Y otherwise.
+    # So near is the branch on q's side of the split line.
     near, far = (node["low"], node["high"]) if gap &lt; 0 else (node["high"], node["low"])
     best = nearest(near, q, best)
     if gap ** 2 &lt; best[0]:                  # could the far side hold a closer point?
         best = nearest(far, q, best)
     return best
 
+# dtype=float stores the coordinates as decimal numbers.
 pts = np.array([[1, 2], [3, 7], [4, 4], [6, 1], [7, 6], [8, 3], [9, 8]], dtype=float)
 tree = build(pts)
 print(tree["point"], tree["low"]["point"], tree["high"]["point"])
@@ -161,7 +165,8 @@ print(d2, p)
 <pre class="out"><code>[6. 1.] [4. 4.] [7. 6.]
 1.0 [8. 3.]</code></pre>
     <p>A function that calls itself, as <code>build</code> and <code>nearest</code> do, is <dfn>recursive</dfn>: each call
-    handles one node and hands its branches to new calls. In practice you would use a library such as SciPy's
+    handles one node and hands its branches to new calls. <a href="recursion.html">Recursion</a> explains how such
+    calls run and why they stop. In practice you would use a library such as SciPy's
     <code>scipy.spatial.KDTree</code>, which is written in fast compiled code.</p>
   </section>
 

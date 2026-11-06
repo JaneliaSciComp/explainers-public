@@ -118,9 +118,10 @@
     <p class="code-cap">adam_by_hand.py</p>
 <pre><code class="py">import numpy as np
 
+# eps is the ε above. 1e-8 means 0.00000001.
 def adam_steps(grads, lr=0.001, b1=0.9, b2=0.999, eps=1e-8):
-    m = v = 0.0
-    for t, g in enumerate(grads, start=1):
+    m = v = 0.0                            # both averages start at 0
+    for t, g in enumerate(grads, start=1):  # t counts the steps from 1
         m = b1 * m + (1 - b1) * g          # average gradient
         v = b2 * v + (1 - b2) * g * g      # average squared gradient
         m_hat = m / (1 - b1 ** t)          # correct the start-at-zero bias
@@ -147,13 +148,17 @@ g =  -5.00   step = -0.000053</code></pre>
 
 # Two weights whose gradients differ in size by a factor of 10,000.
 w = torch.tensor([1.0, 1.0], requires_grad=True)
-opt = torch.optim.Adam([w], lr=0.001)
+opt = torch.optim.Adam([w], lr=0.001)   # an Adam optimizer that updates w
 
-w.grad = torch.tensor([100.0, 0.01])
-opt.step()
+w.grad = torch.tensor([100.0, 0.01])    # set the gradients by hand
+opt.step()                              # take one Adam step
 print(1.0 - w.detach())   # how far each weight moved
 </code></pre>
 <pre class="out"><code>tensor([0.0010, 0.0010])</code></pre>
+    <p><code>torch.tensor</code> makes a PyTorch array, called a <a href="tensors-on-gpu.html#tensor">tensor</a>.
+    With <code>requires_grad=True</code>, the tensor keeps a gradient in <code>.grad</code>, as
+    <a href="automatic-gradients.html">Automatic gradients in PyTorch</a> explains. <code>w.detach()</code> gives the
+    same values without gradient tracking, so the output holds only the values.</p>
   </section>
 
   <section id="weight-decay">
@@ -225,7 +230,8 @@ opt.step()
 print(w.item())           # 2 * (1 - 0.01 * 0.1) = 1.998
 </code></pre>
 <pre class="out"><code>1.9980000257492065</code></pre>
-    <p>The printed value is 1.998 up to the rounding of 32-bit numbers. PyTorch's AdamW defaults are
+    <p><code>.item()</code> turns the one-number tensor into a plain Python number. The printed value is 1.998 up to
+    the rounding of 32-bit numbers. PyTorch's AdamW defaults are
     <code>lr=0.001</code>, <code>betas=(0.9, 0.999)</code>, <code>eps=1e-08</code> and
     <code>weight_decay=0.01</code>.</p>
 

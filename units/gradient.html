@@ -130,8 +130,8 @@ def f(p):
     x, y = p
     return x ** 2 + 3 * y ** 2
 
-def numerical_gradient(f, p, h=1e-6):
-    g = np.zeros(len(p))
+def numerical_gradient(f, p, h=1e-6):   # 1e-6 means 0.000001
+    g = np.zeros(len(p))               # an array of zeros, one per input
     for i in range(len(p)):
         step = np.zeros(len(p))
         step[i] = h

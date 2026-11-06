@@ -149,7 +149,7 @@
     <p>The code below checks all six pairings of the example. For real work, use a library function such as SciPy's
     <code>scipy.optimize.linear_sum_assignment</code>, which takes the cost matrix and returns the best pairing.</p>
     <p class="code-cap">assign.py</p>
-<pre><code class="py">from itertools import permutations
+<pre><code class="py">import itertools
 import numpy as np
 
 cost = np.array([[4.1, 2.8, 6.7],      # row i: red point i
@@ -157,16 +157,16 @@ cost = np.array([[4.1, 2.8, 6.7],      # row i: red point i
                  [3.6, 2.0, 2.2]])
 n = len(cost)
 best_total, best_pairs = None, None
-for pairs in permutations(range(n)):   # every way to pair them up
+for pairs in itertools.permutations(range(n)):   # every way to pair them up
     total = 0.0
     for i in range(n):
         total += cost[i, pairs[i]]     # red i goes to blue pairs[i]
-    if best_total is None or total &lt; best_total:
+    if best_total is None or total &lt; best_total:   # the first pairing, or a lower total
         best_total, best_pairs = total, pairs
 print(best_pairs, round(best_total, 1))
 </code></pre>
 <pre class="out"><code>(1, 0, 2) 6.0</code></pre>
-    <p><code>permutations(range(3))</code> lists every ordering of 0, 1 and 2, six in all. The answer
+    <p><code>itertools.permutations(range(3))</code> lists every ordering of 0, 1 and 2, six in all. The answer
     <code>(1, 0, 2)</code> means red 0 goes to blue 1, red 1 to blue 0, and red 2 to blue 2: R1–B2, R2–B1, R3–B3.</p>
     <p>The two sets need not be the same size. With more blue points than red, each red point still gets one partner and
     some blue points get none. Library functions accept such rectangular tables.</p>

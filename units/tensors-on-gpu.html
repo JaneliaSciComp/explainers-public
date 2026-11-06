@@ -62,6 +62,7 @@ y = torch.tensor([[1.0, 2.0, 3.0]])     # from a Python list
 print(x.dtype, y.dtype)
 print(x.shape, x.device)
 
+# Pick "cuda" when PyTorch finds a GPU, and "cpu" otherwise.
 device = "cuda" if torch.cuda.is_available() else "cpu"
 x = x.float().to(device)                # a float32 copy on the GPU, if there is one
 z = x * 10                              # runs where x lives
@@ -142,10 +143,10 @@ cpu
     <p class="code-cap">size.py</p>
 <pre><code class="py">import torch
 
-clouds = torch.zeros(8, 2048, 3)        # 8 point clouds, 2048 points each
+clouds = torch.zeros(8, 2048, 3)        # all zeros: 8 point clouds, 2048 points each
 print(clouds.shape, clouds.dtype)
 print(clouds.nelement(), "numbers of", clouds.element_size(), "bytes each")
-print(clouds.nelement() * clouds.element_size() / 1e6, "MB")
+print(clouds.nelement() * clouds.element_size() / 1_000_000, "MB")
 </code></pre>
 <pre class="out"><code>torch.Size([8, 2048, 3]) torch.float32
 49152 numbers of 4 bytes each

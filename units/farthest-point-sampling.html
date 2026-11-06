@@ -115,6 +115,8 @@ def farthest_point_sampling(pts, k, start=0):
     chosen = [start]
     gap = np.sqrt(((pts - pts[start]) ** 2).sum(axis=1))   # distance to the chosen set
     for _ in range(k - 1):
+        # argmax() finds the index of the largest gap, and int() makes it a plain
+        # Python number. append adds that index to the end of the list chosen.
         i = int(gap.argmax())                               # the worst-covered point
         chosen.append(i)
         d = np.sqrt(((pts - pts[i]) ** 2).sum(axis=1))

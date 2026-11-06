@@ -158,7 +158,7 @@ a = alpha_bar[499]                       # step 500
 
 rng = np.random.default_rng(0)
 x = np.full(100_000, 0.8)                # 100,000 copies of x0
-for t in range(1, 501):
+for t in range(1, 501):                  # t = 1, 2, ..., 500
     x = np.sqrt(1 - beta[t - 1]) * x + np.sqrt(beta[t - 1]) * rng.standard_normal(100_000)
 jump = np.sqrt(a) * 0.8 + np.sqrt(1 - a) * rng.standard_normal(100_000)
 

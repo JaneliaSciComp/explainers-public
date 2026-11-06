@@ -333,39 +333,42 @@ follow it in small steps.
 <pre><code class="py">import torch
 import torch.nn as nn
 
-torch.manual_seed(0)
+torch.manual_seed(0)                       # the same random draws on every run
 
 def data(n):
-    """Training examples: points on a ring of radius 2."""
-    a = 2 * torch.pi * torch.rand(n)
+    # Training examples: points on a ring of radius 2.
+    a = 2 * torch.pi * torch.rand(n)       # n random angles from 0 to 2π
     return 2 * torch.stack([a.cos(), a.sin()], dim=1)
 
 # The network reads (x, y, t) and returns a velocity (vx, vy).
 net = nn.Sequential(nn.Linear(3, 128), nn.SiLU(), nn.Linear(128, 128), nn.SiLU(), nn.Linear(128, 2))
-opt = torch.optim.Adam(net.parameters(), lr=1e-3)
+opt = torch.optim.Adam(net.parameters(), lr=0.001)   # Adam, an improved gradient descent
 
 for step in range(3000):
     x1 = data(256)                         # data examples
     x0 = torch.randn_like(x1)              # noise, one draw per example
     t = torch.rand(256, 1)                 # a random time per example
     xt = (1 - t) * x0 + t * x1             # the point on each straight path
+    # torch.cat puts t beside xt, so each row reads (x, y, t).
     v = net(torch.cat([xt, t], dim=1))     # the predicted velocity
     loss = ((v - (x1 - x0)) ** 2).mean()   # squared error to the target x1 - x0
-    opt.zero_grad()
+    opt.zero_grad()                        # clear the old gradients
     loss.backward()
-    opt.step()
+    opt.step()                             # one step of Adam
 print(f"final loss {loss.item():.2f}")
 
+# @torch.no_grad() works like "with torch.no_grad():" around the whole function.
 @torch.no_grad()
 def generate(n, steps):
     x = torch.randn(n, 2)                  # fresh noise at t = 0
     for k in range(steps):
-        t = torch.full((n, 1), k / steps)
+        t = torch.full((n, 1), k / steps)  # the time k / steps, once per point
         x = x + (1 / steps) * net(torch.cat([x, t], dim=1))   # one Euler step
     return x
 
 for steps in [1, 4, 40]:
-    r = generate(2000, steps).norm(dim=1)
+    r = generate(2000, steps).norm(dim=1)  # each point's distance from the center
+    # {steps:2d} pads the step count to 2 characters, so the columns line up.
     print(f"{steps:2d} steps: distance from center {r.mean():.2f} on average, spread {r.std():.2f}")
 </code></pre>
 <pre class="out">final loss 2.03

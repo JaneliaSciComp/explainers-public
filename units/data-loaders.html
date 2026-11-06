@@ -56,11 +56,13 @@
     </ul>
     <p>The snippet below builds all three in PyTorch. The dataset's two methods are the whole contract:
     <code>__len__</code> says how many examples there are, and <code>__getitem__</code> prepares one. The
-    loader calls them for you. (<a href="python-basics.html">Reading Python</a> covers the
-    <code>class</code> syntax.)</p>
+    loader calls them for you. (<a href="python-basics.html">Reading Python</a> skips classes. The
+    Python Tutorial explains the <code>class</code> syntax in
+    <a href="https://docs.python.org/3/tutorial/classes.html#a-first-look-at-classes">A First Look at Classes</a>.)</p>
 
     <p class="code-cap">loader.py</p>
 <pre><code class="py">import torch
+# Load two names from torch.utils.data, so the code can write them without that prefix.
 from torch.utils.data import Dataset, DataLoader
 
 class Squares(Dataset):
@@ -68,6 +70,7 @@ class Squares(Dataset):
     def __len__(self):
         return 10
     def __getitem__(self, i):              # prepare one example
+        # A tensor, PyTorch's array, that holds i and i * i as 32-bit decimal numbers.
         return torch.tensor([i, i * i], dtype=torch.float32)
 
 if __name__ == "__main__":
@@ -75,6 +78,8 @@ if __name__ == "__main__":
     loader = DataLoader(Squares(), batch_size=4, shuffle=True, num_workers=2)
     for epoch in range(2):
         for batch in loader:
+            # Print the batch's shape, then the i of each example in it as a list
+            # of whole numbers.
             print(epoch, tuple(batch.shape), batch[:, 0].int().tolist())
 </code></pre>
 <pre class="out"><code>0 (4, 2) [6, 7, 1, 4]

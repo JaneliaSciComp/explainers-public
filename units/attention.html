@@ -178,6 +178,8 @@
 
 def softmax(s):
     # Subtracting the max first avoids overflow in exp.
+    # axis=-1 works along each row. keepdims=True keeps the results in a column,
+    # so that each row uses its own max and its own sum.
     e = np.exp(s - s.max(axis=-1, keepdims=True))
     return e / e.sum(axis=-1, keepdims=True)
 
@@ -196,11 +198,12 @@ print(np.round(w, 3), np.round(out, 2))
 # Self-attention: 5 tokens with 4 numbers each, as the rows of X.
 rng = np.random.default_rng(0)
 X = rng.normal(size=(5, 4))
-Wq, Wk, Wv = rng.normal(size=(3, 4, 4))
+Wq, Wk, Wv = rng.normal(size=(3, 4, 4))         # three random 4 x 4 matrices
 def self_attention(X):
-    return attention(X @ Wq, X @ Wk, X @ Wv)[0]
+    return attention(X @ Wq, X @ Wk, X @ Wv)[0]  # [0]: the output, not the weights
 
 perm = [3, 0, 4, 1, 2]                          # a new order for the tokens
+# [perm] reorders the rows. np.allclose is True if two arrays match up to rounding.
 print(np.allclose(self_attention(X)[perm], self_attention(X[perm])))
 </code></pre>
 <pre class="out">[[0.14  0.284 0.576]] [[4.28 5.72]]
