@@ -563,7 +563,9 @@ for steps in [1, 4, 40]:
     traj.push(path);
   }
 
-  let mode = 'pairs', playing = false, last = 0;
+  // The time is kept in tNow, not read back from the slider. The slider rounds to its step of 0.01, so it would
+  // swallow the step of about 0.004 that each animation frame adds.
+  let mode = 'pairs', playing = false, last = 0, tNow = Number(tIn.value);
   const posAt = (i, t) => {
     if (mode === 'pairs') {
       const p = pairs[i];
@@ -576,7 +578,7 @@ for steps in [1, 4, 40]:
   function draw() {
     const { ctx, w, h } = fit(cv);
     const S = Math.min(w, h) / (2 * R), X = x => w / 2 + x * S, Y = y => h / 2 - y * S;
-    const t = Number(tIn.value);
+    const t = tNow;
     tOut.textContent = t.toFixed(2);
     ctx.lineCap = 'round';
     // the target shape, faint
@@ -621,20 +623,20 @@ for steps in [1, 4, 40]:
   };
   bPairs.addEventListener('click', () => setMode('pairs'));
   bGen.addEventListener('click', () => setMode('gen'));
-  tIn.addEventListener('input', draw);
+  tIn.addEventListener('input', () => { tNow = Number(tIn.value); draw(); });
   const tick = now => {
     if (!playing) return;
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
-    const t = Math.min(1, Number(tIn.value) + dt / 4);
-    tIn.value = String(t); draw();
-    if (t >= 1) { playing = false; bPlay.textContent = 'Play'; return; }
+    tNow = Math.min(1, tNow + dt / 4);
+    tIn.value = String(tNow); draw();
+    if (tNow >= 1) { playing = false; bPlay.textContent = 'Play'; return; }
     requestAnimationFrame(tick);
   };
   bPlay.addEventListener('click', () => {
     playing = !playing;
     bPlay.textContent = playing ? 'Pause' : 'Play';
     if (playing) {
-      if (Number(tIn.value) >= 1) tIn.value = '0';
+      if (tNow >= 1) { tNow = 0; tIn.value = '0'; }
       last = performance.now(); requestAnimationFrame(tick);
     }
   });

@@ -51,6 +51,9 @@ that takes one more step. Guided discovery teaches, and a bare sandbox does not,
   of operations. The fix puts each negative number in brackets before it is squared.
 - Move every control to its extremes. Dragging one arrow far enough pushed the handle of another off the drawing,
   where nobody could grab it.
+- Press every button, and check that something moves. A Play button added about 0.004 per frame to a slider with
+  `step="0.01"`. A range input rounds each value it is given to its step, so the time never moved. Keep an animated
+  value in a variable, and only show it on the slider.
 - When the picture cannot show a difference that the question needs, give the numbers in the caption. One line was
   ahead of another by 121 to 120 at step 2, a gap too small to see.
 - Test the widget's arithmetic outside the page, for example by running its functions in Node, or drive the page in
