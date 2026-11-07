@@ -32,6 +32,7 @@ and deletes the line of any check that was not run.
   the match between pages and manifest, internal links, the prerequisite graph and the forbidden strings.
 - `render_check_units.mjs` reports `<result>` on `<N>` pages: no console errors, no sideways scrolling at 390 px, and
   all media load.
+- `check_buttons.mjs` pressed `<N>` buttons on `<N>` pages: `<N>` reported, and no press raised an error.
 - All `<N>` external links load with HTTP 2xx, and all `<N>` `#anchor`s exist in the fetched pages. The results are in
   `<scratch dir>/links.tsv`. `<Name any link that carries no anchor, or that a script builds, and why.>`
 - All `<N>` Python snippets that show an output were run with NumPy `<version>` and PyTorch `<version>` (CPU), and

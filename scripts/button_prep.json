@@ -1,0 +1,10 @@
+{
+  "attention": {
+    "why": "\"Put the query back\" acts only after the query has moved, so the script moves the query first.",
+    "script": "const h = document.getElementById(\"att-handle\"); for (let i = 0; i < 3; i++) h.dispatchEvent(new KeyboardEvent(\"keydown\", { key: \"ArrowRight\", bubbles: true }))"
+  },
+  "diffusion-noising": {
+    "why": "\"Linear\" and \"Cosine\" agree at step 0, so the script moves the step slider to 500 first.",
+    "script": "const s = document.getElementById(\"dn-t\"); s.value = \"500\"; s.dispatchEvent(new Event(\"input\", { bubbles: true }))"
+  }
+}

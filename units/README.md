@@ -216,6 +216,9 @@ python3 -I -B scripts/build_units.py --check
 node scripts/render_check_units.mjs tmp/units-shots --port 9334
 node scripts/render_check_units.mjs tmp/units-shots --port 9335 --only vectors,distance
 
+# Press every button, and report any button after which nothing changes:
+node scripts/check_buttons.mjs tmp/units-buttons --port 9338 --only attention
+
 # Check the local links and #anchors of any pages, here or elsewhere; writes nothing:
 python3 -I -B scripts/build_units.py --check-links units/*.html
 

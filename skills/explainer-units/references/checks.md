@@ -13,12 +13,13 @@ scripts settle the mechanical questions, so that your reading time goes to meani
 | 1. Build (writer only) | `python3 -I -B scripts/build_units.py` | fills the generated blocks and writes `units/index.html`, then runs every check of step 2 |
 | 2. Strict check | `python3 -I -B scripts/build_units.py --check --require-all` | the manifest, the page parts, the links inside the repo, the forbidden list; writes nothing |
 | 3. Render | `node scripts/render_check_units.mjs tmp/units-shots --port 9334 --only <id>` | script errors, sideways scrolling, media that fail to load |
-| 4. Snippets | `python3 -I scripts/run_snippets.py <python> tmp/units-snippets units/<id>.html` | a snippet that fails, or whose output differs from its output block |
-| 5. External links | `python3 -I scripts/check_links.py tmp/units-links.tsv units/<id>.html` | a link that does not load, or an `#anchor` that does not exist |
-| 6. Figures | `node scripts/figshots.mjs tmp/units-figs --port 9336 --only <id>` | nothing by itself: it saves each figure, light and dark, for you to look at |
-| 7. Quoted code (explanations only) | `python3 -I -B scripts/check_code_blocks.py --repos <clones dir> <page>` | a code block that differs from the commit it cites |
-| 8. Meaning | read the page once per pattern in [error-patterns.md](error-patterns.md), then once by [plain-english.md](plain-english.md) | what no script can see |
-| 9. Leak scan | the pre-push hook, or `python3 -I -B scripts/scan_public.py --all` after you commit | a forbidden string, a session URL or a home folder in anything pushed |
+| 4. Buttons | `node scripts/check_buttons.mjs tmp/units-buttons --port 9338 --only <id>` | a button after which nothing on the page changes, and a press that raises an error |
+| 5. Snippets | `python3 -I scripts/run_snippets.py <python> tmp/units-snippets units/<id>.html` | a snippet that fails, or whose output differs from its output block |
+| 6. External links | `python3 -I scripts/check_links.py tmp/units-links.tsv units/<id>.html` | a link that does not load, or an `#anchor` that does not exist |
+| 7. Figures | `node scripts/figshots.mjs tmp/units-figs --port 9336 --only <id>` | nothing by itself: it saves each figure, light and dark, for you to look at |
+| 8. Quoted code (explanations only) | `python3 -I -B scripts/check_code_blocks.py --repos <clones dir> <page>` | a code block that differs from the commit it cites |
+| 9. Meaning | read the page once per pattern in [error-patterns.md](error-patterns.md), then once by [plain-english.md](plain-english.md) | what no script can see |
+| 10. Leak scan | the pre-push hook, or `python3 -I -B scripts/scan_public.py --all` after you commit | a forbidden string, a session URL or a home folder in anything pushed |
 
 `<id>` is the unit's id, and `--only` takes several, separated by commas. `<python>` is an interpreter that has NumPy
 and PyTorch. `tmp/` is ignored by git, so the outputs stay out of commits.
@@ -54,7 +55,15 @@ exceptions, sideways scrolling at 1280 px and 390 px, and images, videos or capt
 exits with status 1 on any problem. It saves three screenshots of each page: light at 1280 px with the answers open,
 dark at 1280 px, and light at 390 px. It needs Node.js and Google Chrome. Give runs at the same time different ports.
 
-**The snippet check** (step 4) runs each `<pre><code class="py">` block alone, in an empty folder, and compares what
+**The button check** (step 4) presses each button on a page in headless Chrome: each `<button>`,
+`<input type=button>` and `<input type=submit>`, and each element with `role="button"`. It loads the page fresh
+for each button, and compares the page before the press with the page 0.3 s and 1.5 s after it. A button after
+which nothing changed gets a second try, after the page's other buttons have been pressed. The check reports a
+button that changes nothing both times, and any error that a press raises. It exits with status 1 if it reports
+one. Some buttons act only after another control has moved. For such a page, `scripts/button_prep.json` holds a
+script that moves the control first, and says why. The check needs Node.js and Google Chrome.
+
+**The snippet check** (step 5) runs each `<pre><code class="py">` block alone, in an empty folder, and compares what
 it prints with the next `<pre class="out">` block. It prints a count of each state and lists every snippet that did
 not match:
 
@@ -69,7 +78,7 @@ not match:
 
 It always exits with status 0, so read its summary line. It does not read comments or the prose about the output.
 
-**The link check** (step 5) fetches every external link once and writes a table. Its columns are the HTTP status, the
+**The link check** (step 6) fetches every external link once and writes a table. Its columns are the HTTP status, the
 state of the `#anchor` (`found`, `MISSING`, `no-body`, `not-an-id` or `-`), the URL, any redirect, and the pages that
 use it. It prints how many links "need a look". A page that builds itself with a script may add its anchors only when
 the script runs. So open a `MISSING` anchor on such a page in a browser before you change the link. It also exits with
@@ -78,13 +87,13 @@ status 0. It cannot tell whether your description of the page is true.
 **Local links on other pages.** The build check covers the unit pages. For any other page, such as an explanation,
 run `python3 -I -B scripts/build_units.py --check-links <page>...`. It writes nothing.
 
-**The figure screenshots** (step 6) save `<id>-fig<N>-light.png` and `-dark.png` for each `<figure>`. Open each one.
+**The figure screenshots** (step 7) save `<id>-fig<N>-light.png` and `-dark.png` for each `<figure>`. Open each one.
 Look for text or lines that vanish in dark mode, scales that differ between axes, and marks hidden under others.
 
-**The code-block check** (step 7) is for pages that quote code; units do not. It needs each block's `data-src`, and
+**The code-block check** (step 8) is for pages that quote code; units do not. It needs each block's `data-src`, and
 exits with status 1 when a block differs from its source. See [code-explanations.md](code-explanations.md).
 
-**The leak scan** (step 9) checks every file, path and commit message that a push sends. The pre-push hook runs it;
+**The leak scan** (step 10) checks every file, path and commit message that a push sends. The pre-push hook runs it;
 install the hook once per clone with `sh scripts/install-hooks.sh`. It needs the private forbidden list, which is
 not in this repo; the repo's `README.md` says where it looks. Without the list, the build check skips the
 forbidden-string check and says so.
@@ -93,5 +102,5 @@ forbidden-string check and says so.
 
 The scripts cannot tell whether a claim is true, whether the reader can follow it, or whether a picture shows what
 its caption says. The three most common substantive errors are of that kind: a concept used without a prerequisite,
-a claim that drops a condition, and a fact stated from memory. Step 8 is where they are caught, before a reviewer
+a claim that drops a condition, and a fact stated from memory. Step 9 is where they are caught, before a reviewer
 has to. [error-patterns.md](error-patterns.md) gives the check for each pattern.

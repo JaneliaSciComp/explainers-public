@@ -56,6 +56,8 @@ record each copy that you do not own under `cross_owner`. One such claim once sp
 - `python3 -I -B scripts/build_units.py --check` is read-only. Expect failures only from your pending manifest
   changes.
 - `node scripts/render_check_units.mjs <scratch dir>/render --port <your port> --only <your unit ids, comma-separated>`
+- If you changed a widget,
+  `node scripts/check_buttons.mjs <scratch dir>/buttons --port <your port> --only <your unit ids>`.
 - Rerun every snippet you changed with `<python> -I`, and make its output block match the real output exactly.
   `python3 -I scripts/run_snippets.py <python> <scratch dir>/snippets units/<id>.html` does this for a whole page.
 - Screenshot each figure you changed:

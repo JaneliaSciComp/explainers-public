@@ -86,13 +86,15 @@ memory. No script catches these. The steps below prevent them, and each step say
    you own the pages.
 2. `node scripts/render_check_units.mjs tmp/units-shots --port <port> --only <id>`, for script errors, sideways
    scrolling at 390 px, and media that fail to load.
-3. `python3 -I scripts/run_snippets.py <python> tmp/units-snippets units/<id>.html`, with an interpreter that has
+3. `node scripts/check_buttons.mjs tmp/units-buttons --port <port> --only <id>`, on a page with buttons, for a
+   button that changes nothing and a press that raises an error.
+4. `python3 -I scripts/run_snippets.py <python> tmp/units-snippets units/<id>.html`, with an interpreter that has
    NumPy and PyTorch. It always exits 0, so read its summary.
-4. `python3 -I scripts/check_links.py tmp/units-links.tsv units/<id>.html`, for external links and their anchors.
-5. `node scripts/figshots.mjs tmp/units-figs --port <port> --only <id>`, then open each screenshot, light and dark.
-6. For a page that quotes code, `python3 -I -B scripts/check_code_blocks.py --repos <clones dir> <page>`.
-7. The reads for meaning, in step 12 above.
-8. Before a push, the leak scan in the pre-push hook. Install it once with `sh scripts/install-hooks.sh`.
+5. `python3 -I scripts/check_links.py tmp/units-links.tsv units/<id>.html`, for external links and their anchors.
+6. `node scripts/figshots.mjs tmp/units-figs --port <port> --only <id>`, then open each screenshot, light and dark.
+7. For a page that quotes code, `python3 -I -B scripts/check_code_blocks.py --repos <clones dir> <page>`.
+8. The reads for meaning, in step 12 above.
+9. Before a push, the leak scan in the pre-push hook. Install it once with `sh scripts/install-hooks.sh`.
 
 The cheap structural checks come first, so that reading time goes to what no script can see. Give each headless
 Chrome run its own port when several run at once.

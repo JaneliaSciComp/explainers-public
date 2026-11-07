@@ -14,7 +14,7 @@ https://janeliascicomp.github.io/explainers-public/units/vectors.html.
 |---|---|
 | `units/` | the unit pages, the manifest `units.json`, `unit.css`, `unit.js`, `_template.html`, the generated `index.html`, `about.html` (the page that explains the site to readers: units, levels, prerequisites and code), and a `README.md` on the mechanics of a unit page |
 | `units/media/` | the flow-matching video and its captions, narration script and poster; `src/` holds the Manim scene that renders them |
-| `scripts/` | the build and checks: `build_units.py`, `render_check_units.mjs`, `check_links.py`, `run_snippets.py`, `figshots.mjs`, `check_code_blocks.py`, `scan_public.py`, `install-hooks.sh` |
+| `scripts/` | the build and checks: `build_units.py`, `render_check_units.mjs`, `check_buttons.mjs`, `check_links.py`, `run_snippets.py`, `figshots.mjs`, `check_code_blocks.py`, `scan_public.py`, `install-hooks.sh` |
 | `docs/` | `guide.md`, the guide for people: what makes a good unit, the workflow, the common errors, and how to use the skill |
 | `skills/` | `explainer-units/`, the agent skill for writing, checking, reviewing and fixing units: `SKILL.md`, its `references/` and its test cases in `evals/` |
 | `.github/workflows/` | `check.yml` runs the checks on every push and pull request; `pages.yml` publishes the site |
