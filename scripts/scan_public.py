@@ -28,8 +28,9 @@ lines that start with # are skipped. scripts/build_units.py loads it with the sa
 new commits' trees, and the ref names. A new branch or tag, or a remote commit missing here, gets a full scan of
 what it points to. With --all --rev, an annotated tag stays the tip, so its tag object is scanned too.
 --worktree scans what --all scans from HEAD, plus two commits that no ref points to: the staged files, which the
-next commit would hold, and every file that `git add -A` would stage, which is every file on disk that .gitignore
-does not ignore. It writes objects inside .git, and changes no ref, no index and no file outside .git.
+next commit would hold, and every file that `git add -A` would stage. It writes objects inside .git, and changes no
+ref, no index and no file outside .git. It cannot see the next commit's message or author, or the commits that a
+merge in progress would add; the pre-push hook scans those when they are pushed.
 Exit status: 0 no hits, 1 at least one hit, 2 the list is missing or the scan cannot run.
 """
 from __future__ import annotations
@@ -217,9 +218,11 @@ def worktree_commit() -> str:
     they are."""
     index = Path(git("rev-parse", "--git-path", "index").decode().strip())
     index = index if index.is_absolute() else REPO / index
+    git_dir = Path(git("rev-parse", "--git-dir").decode().strip())
+    git_dir = git_dir if git_dir.is_absolute() else REPO / git_dir
     who = {"GIT_AUTHOR_NAME": "scan_public", "GIT_AUTHOR_EMAIL": "scan@example.invalid",
            "GIT_COMMITTER_NAME": "scan_public", "GIT_COMMITTER_EMAIL": "scan@example.invalid"}
-    with tempfile.TemporaryDirectory() as d:
+    with tempfile.TemporaryDirectory(dir=git_dir) as d:  # inside .git, so that no list of paths lands in /tmp
         env = {**os.environ, **who, "GIT_INDEX_FILE": str(Path(d) / "index")}
 
         def run(*args: str) -> str:
@@ -227,7 +230,9 @@ def worktree_commit() -> str:
                                   check=True).stdout.decode().strip()
 
         if index.is_file():
-            shutil.copyfile(index, env["GIT_INDEX_FILE"])
+            # copy2 keeps the index's mtime. Git compares it with each entry's mtime to find a file that changed in
+            # the instant it was staged, and a newer copy would hide such a change.
+            shutil.copy2(index, env["GIT_INDEX_FILE"])
         else:
             run("read-tree", "HEAD")
         staged = run("commit-tree", run("write-tree"), "-p", "HEAD", "-m", "scan_public --worktree: the staged files")

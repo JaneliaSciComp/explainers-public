@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 # Test the leak scan, the pre-push hook and the build check's handling of the forbidden list.
 #
-# Usage, from anywhere in the repo:  bash scripts/test_leak_scan.sh
+# Usage, from the repo root:  bash scripts/test_leak_scan.sh
 #
 # Each run deletes and rebuilds tmp/leak-scan-test/ in this repo, which git ignores. There it makes a bare repo as
 # the origin, and a work repo that holds a copy of this clone's files: every file that git tracks or would add, as it
 # is on disk. So the test also covers changes to the scripts that are not committed yet. The forbidden list is made
 # up: one word, new on each run, passed through $EXPLAINERS_FORBIDDEN_LIST. No real list entry is used, and the word
-# appears in no file of the repo. Commits use a throwaway identity, given with -c; git config is never changed.
+# appears in no file of the repo. Commits use a throwaway identity, given with -c. Your git config and this clone's
+# are never changed, and the cases read neither your git config nor the system's, so that settings such as commit
+# signing or a shared hooks folder cannot change a result.
 #
 # It needs Git LFS, rsync and Python 3, and the video's LFS object in this clone, which a clone made with Git LFS
 # installed has. It prints PASS or FAIL for each case, and writes the details to tmp/leak-scan-test/log.txt. Exit
@@ -33,13 +35,18 @@ result() {  # result NAME STATUS: PASS when STATUS is 0
 }
 G() { git -c user.name=test -c user.email=test@example.invalid "$@"; }
 scan() { python3 -I -B scripts/scan_public.py "$@"; }
-exits() {  # exits WANT CMD...: run CMD, log its output, and succeed when its exit status is WANT
-  local want=$1; shift
+exits() {  # exits WANT CMD...: run CMD, log its output, and succeed when its exit status is WANT. A scan that
+  # should exit 1 must also print a HIT line, and no command may print a Python traceback, so a crash is no hit.
+  local want=$1 out got; shift
   echo "\$ $* (want exit $want)" >> "$LOG"
-  "$@" >> "$LOG" 2>&1
-  local got=$?
+  out=$("$@" 2>&1); got=$?
+  printf '%s\n' "$out" >> "$LOG"
   echo "exit $got" >> "$LOG"
-  [ "$got" = "$want" ]
+  [ "$got" = "$want" ] || return 1
+  case $out in *Traceback*) echo "a traceback" >> "$LOG"; return 1 ;; esac
+  if [ "$want" = 1 ]; then
+    case $1 in scan|prepush) printf '%s\n' "$out" | grep -q '^HIT ' || { echo "no HIT line" >> "$LOG"; return 1; } ;; esac
+  fi
 }
 remote_refs() { git -C "$T/origin.git" for-each-ref --format='%(refname) %(objectname)'; }
 refused() {  # refused PUSH-ARGS...: the push fails and the bare repo's refs do not change
@@ -60,12 +67,14 @@ reset_work() {
 }
 
 # ----------------------------------------------------------------------------------------------- set up
+# The list of files comes from this clone with your git config, so that it holds what you would commit.
+git -C "$SRC" ls-files -z --cached --others --exclude-standard > "$T/files.z"
+export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
 git init -q --bare "$T/origin.git"
 git init -q -b main "$T/work"
 cd "$T/work"
 git lfs install --local > /dev/null
-git -C "$SRC" ls-files -z --cached --others --exclude-standard |
-  rsync -a --from0 --files-from=- "$SRC/" ./ >> "$LOG" 2>&1
+rsync -a --from0 --files-from="$T/files.z" "$SRC/" ./ >> "$LOG" 2>&1
 git remote add origin "file://$T/origin.git"
 
 # ----------------------------------------------------------------------------------------------- the installer
@@ -202,9 +211,10 @@ reset_work
 # Each case starts from a clean work repo. --worktree must find the word wherever the next commit, or `git add -A`,
 # would hold it, and must change nothing: HEAD, the refs, the status and the index are the same after the scan.
 state() {
+  git symbolic-ref -q HEAD
   git rev-parse HEAD
   git for-each-ref
-  git --no-optional-locks status --porcelain --untracked-files=all
+  git --no-optional-locks status --porcelain --untracked-files=all --ignored
   cksum < "$(git rev-parse --git-path index)"
 }
 wt() {  # wt WANT NAME: scan --worktree exits WANT and changes nothing in the work repo
@@ -234,6 +244,12 @@ wt 1 "the word in an ignored file staged with git add -f"
 
 mkdir -p tmp && echo "$WORD" > tmp/notes.txt
 wt 0 "the word in an ignored file that is not staged"
+
+printf '%s\n' "$WORD" | sed 's/./a/g' > units/same-size.txt
+G add units/same-size.txt
+printf '%s\n' "$WORD" > units/same-size.txt
+sleep 1
+wt 1 "the word in an edit of the same size, made right after git add"
 
 echo hi > "units/$WORD-page.html"
 wt 1 "the word in the name of an untracked file"

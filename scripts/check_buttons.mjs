@@ -17,9 +17,10 @@
 // change. An element with role="button" is part of a drawing, so it stays. Web fonts are blocked, so that every
 // canvas draws with the same font each time.
 //
-// A button after which nothing changed gets a second try: on a fresh load, the check first presses every other
-// button on the page once, in page order, then presses this one. A Reset button, or a mode button that is on when
-// the page loads, then shows that it works. A button with no change in both tries is reported.
+// On a page with more than one button, a button after which nothing changed gets a second try: on a fresh load,
+// the check first presses every other button on the page once, in page order, then presses this one. A Reset
+// button, or a mode button that is on when the page loads, then shows that it works. A button with no change in
+// both tries is reported.
 //
 // Some buttons act only after another control has moved. button_prep.json, next to this script, maps a page's id
 // to a script that runs on each fresh load of that page before the trial, and to the reason the page needs it.
@@ -44,7 +45,11 @@ try { prep = JSON.parse(readFileSync(join(here, 'button_prep.json'), 'utf8')); }
   console.error('check_buttons: cannot read button_prep.json: ' + e.message);
   process.exit(2);
 }
-let pages = readdirSync(dir).filter(f => f.endsWith('.html') && f !== '_template.html').sort();
+let pages;
+try { pages = readdirSync(dir).filter(f => f.endsWith('.html') && f !== '_template.html').sort(); } catch (e) {
+  console.error('check_buttons: cannot read ' + dir + ': ' + e.message);
+  process.exit(2);
+}
 if (only) { const want = new Set(only.split(',').map(s => s.trim() + '.html')); pages = pages.filter(f => want.has(f)); }
 if (!pages.length) { console.error('no pages to check in ' + dir); process.exit(2); }
 mkdirSync(outDir, { recursive: true });
@@ -54,6 +59,12 @@ const chrome = spawn('google-chrome', ['--headless=new', `--remote-debugging-por
   '--no-first-run', '--no-default-browser-check', '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const quit = code => { try { chrome.kill(); } catch (e) { /* gone */ } try { rmSync(profile, { recursive: true, force: true }); } catch (e) { /* keep */ } process.exit(code); };
+// A failure after Chrome has started, such as a prep script whose element a page no longer has: name the page,
+// stop Chrome, and exit with status 2.
+let current = null;
+const fail = e => { console.error(`check_buttons: cannot check ${current ?? 'the pages'}: ${e?.message ?? e}`); quit(2); };
+process.on('uncaughtException', fail);
+process.on('unhandledRejection', fail);
 let targets = null;
 for (let i = 0; i < 75 && !targets; i++) { await sleep(200); try { targets = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json(); } catch (e) { /* not up */ } }
 if (!targets) { console.error(`Chrome did not start on port ${port}`); quit(2); }
@@ -165,6 +176,7 @@ async function runPrep(file) {
 const results = [];
 let fps = null;
 for (const file of pages) {
+  current = file;
   await load(file);
   if (fps === null) fps = await evalJS(`new Promise(res => { let n = 0; const t0 = performance.now();
     const f = now => { n++; if (now - t0 < 1000) requestAnimationFrame(f); else res(n); }; requestAnimationFrame(f); })`);

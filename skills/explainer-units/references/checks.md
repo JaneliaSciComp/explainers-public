@@ -58,8 +58,9 @@ dark at 1280 px, and light at 390 px. It needs Node.js and Google Chrome. Give r
 
 **The button check** (step 4) presses each button on a page in headless Chrome: each `<button>`,
 `<input type=button>` and `<input type=submit>`, and each element with `role="button"`. It loads the page fresh
-for each button, and compares the page before the press with the page 0.3 s and 1.5 s after it. A button after
-which nothing changed gets a second try, after the page's other buttons have been pressed. The check reports a
+for each button, and compares the page before the press with the page 0.3 s and 1.5 s after it. On a page with
+more than one button, a button after which nothing changed gets a second try, after the page's other buttons
+have been pressed. The check reports a
 button that changes nothing both times, and any error that a press raises. It exits with status 1 if it reports
 one. Some buttons act only after another control has moved. For such a page, `scripts/button_prep.json` holds a
 script that moves the control first, and says why. The check needs Node.js and Google Chrome.
