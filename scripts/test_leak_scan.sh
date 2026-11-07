@@ -198,6 +198,57 @@ refused origin main || s=1
 result "the word in an LFS object's content only: scan exits 1, hook refuses the push, nothing uploaded" $s
 reset_work
 
+# ----------------------------------------------------------------------------------------------- --worktree
+# Each case starts from a clean work repo. --worktree must find the word wherever the next commit, or `git add -A`,
+# would hold it, and must change nothing: HEAD, the refs, the status and the index are the same after the scan.
+state() {
+  git rev-parse HEAD
+  git for-each-ref
+  git --no-optional-locks status --porcelain --untracked-files=all
+  cksum < "$(git rev-parse --git-path index)"
+}
+wt() {  # wt WANT NAME: scan --worktree exits WANT and changes nothing in the work repo
+  local before s=0; before=$(state)
+  exits "$1" scan --worktree || s=1
+  [ "$(state)" = "$before" ] || { echo "the scan changed the work repo" >> "$LOG"; s=1; }
+  result "--worktree, $2: exits $1 and changes nothing" $s
+  reset_work
+  rm -rf tmp
+}
+wt 0 "a clean tree"
+
+printf '<p>%s</p>\n' "$WORD" > units/new-page.html
+wt 1 "the word in an untracked file"
+
+echo "<!-- $WORD -->" >> units/vectors.html
+wt 1 "the word in a changed file that is not staged"
+
+echo "<!-- $WORD -->" >> units/vectors.html
+G add units/vectors.html
+git show HEAD:units/vectors.html > units/vectors.html
+wt 1 "the word staged, then removed from the file on disk"
+
+mkdir -p tmp && echo "$WORD" > tmp/notes.txt
+G add -f tmp/notes.txt
+wt 1 "the word in an ignored file staged with git add -f"
+
+mkdir -p tmp && echo "$WORD" > tmp/notes.txt
+wt 0 "the word in an ignored file that is not staged"
+
+echo hi > "units/$WORD-page.html"
+wt 1 "the word in the name of an untracked file"
+
+python3 -I -B - units/media/wt-clip.mp4 "$WORD" <<'EOF'
+import sys
+path, word = sys.argv[1], sys.argv[2]
+open(path, 'wb').write(b'\x00\x00\x00\x18ftypisom\x00\x00\x02\x00' + b'title ' + word.encode() + b'\x00' * 64)
+EOF
+wt 1 "the word in a new LFS file that is not committed"
+
+echo "<!-- harmless -->" >> units/vectors.html
+G commit -q -am "Test: a commit about $WORD that is not pushed"
+wt 1 "the word in a commit that is not pushed"
+
 # ----------------------------------------------------------------------------------------------- other rules
 lfs=$(git rev-parse --git-path lfs/objects)/${oid:0:2}/${oid:2:2}/$oid
 mv "$lfs" "$T/video.aside"

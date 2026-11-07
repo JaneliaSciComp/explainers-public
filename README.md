@@ -65,6 +65,7 @@ absolute home folder. Then the hook runs `git lfs pre-push`, which uploads the v
 The forbidden list is not in this repo. The scan looks for it at `../explainers-private/forbidden-strings.txt`
 beside this clone, or at the path in `$EXPLAINERS_FORBIDDEN_LIST`. Without the list, the hook refuses the push.
 To scan the whole history by hand, run `python3 -I -B scripts/scan_public.py --all`.
+To scan your changes before you commit them, run `python3 -I -B scripts/scan_public.py --worktree`.
 To test the scan and the hook, run `bash scripts/test_leak_scan.sh`.
 
 CI has no list. It runs the build check, which then skips the private-name check, and the scan with

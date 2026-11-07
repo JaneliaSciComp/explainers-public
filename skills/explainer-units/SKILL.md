@@ -94,7 +94,8 @@ memory. No script catches these. The steps below prevent them, and each step say
 6. `node scripts/figshots.mjs tmp/units-figs --port <port> --only <id>`, then open each screenshot, light and dark.
 7. For a page that quotes code, `python3 -I -B scripts/check_code_blocks.py --repos <clones dir> <page>`.
 8. The reads for meaning, in step 12 above.
-9. Before a push, the leak scan in the pre-push hook. Install it once with `sh scripts/install-hooks.sh`.
+9. Before a commit, `python3 -I -B scripts/scan_public.py --worktree`. Before a push, the leak scan in the pre-push
+   hook. Install the hook once with `sh scripts/install-hooks.sh`.
 
 The cheap structural checks come first, so that reading time goes to what no script can see. Give each headless
 Chrome run its own port when several run at once.

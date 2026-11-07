@@ -19,7 +19,7 @@ scripts settle the mechanical questions, so that your reading time goes to meani
 | 7. Figures | `node scripts/figshots.mjs tmp/units-figs --port 9336 --only <id>` | nothing by itself: it saves each figure, light and dark, for you to look at |
 | 8. Quoted code (explanations only) | `python3 -I -B scripts/check_code_blocks.py --repos <clones dir> <page>` | a code block that differs from the commit it cites |
 | 9. Meaning | read the page once per pattern in [error-patterns.md](error-patterns.md), then once by [plain-english.md](plain-english.md) | what no script can see |
-| 10. Leak scan | the pre-push hook, or `python3 -I -B scripts/scan_public.py --all` after you commit | a forbidden string, a session URL or a home folder in anything pushed |
+| 10. Leak scan | `python3 -I -B scripts/scan_public.py --worktree` before you commit, and the pre-push hook before you push | a forbidden string, a session URL or a home folder in anything pushed |
 
 `<id>` is the unit's id, and `--only` takes several, separated by commas. `<python>` is an interpreter that has NumPy
 and PyTorch. `tmp/` is ignored by git, so the outputs stay out of commits.
@@ -31,7 +31,8 @@ The order has reasons:
 - The render comes before the figure screenshots, because a script error leaves figures blank or half drawn.
 - The snippets and links come next. They need NumPy and PyTorch, or the network, and they take longer.
 - Reading comes last, once the scripts have passed, so that no reading time goes to what a script would have caught.
-- The leak scan reads commits, not the working tree. So it runs after you commit and before you push.
+- The leak scan's `--worktree` also reads what you have not committed, so run it before each commit. The
+  pre-push hook scans what a push sends.
 
 Only the writer runs step 1. A reviewer or a fixer runs `--check` only, because the build rewrites every unit page,
 and other agents may be editing pages at the same time.
@@ -94,7 +95,9 @@ Look for text or lines that vanish in dark mode, scales that differ between axes
 exits with status 1 when a block differs from its source. See [code-explanations.md](code-explanations.md).
 
 **The leak scan** (step 10) checks every file, path and commit message that a push sends. The pre-push hook runs it;
-install the hook once per clone with `sh scripts/install-hooks.sh`. It needs the private forbidden list, which is
+install the hook once per clone with `sh scripts/install-hooks.sh`. With `--worktree`, it also scans every
+staged file and every file that `git add -A` would stage. It changes no branch, no staging area and no file
+outside `.git`. It needs the private forbidden list, which is
 not in this repo; the repo's `README.md` says where it looks. Without the list, the build check skips the
 forbidden-string check and says so.
 

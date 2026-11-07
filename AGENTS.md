@@ -19,6 +19,7 @@ that hold the rules. `units/README.md` gives the mechanics: the manifest, the pa
 python3 -I -B scripts/build_units.py
 python3 -I -B scripts/build_units.py --check --require-all
 node scripts/render_check_units.mjs tmp/units-shots --only <changed unit ids>
+python3 -I -B scripts/scan_public.py --worktree
 ```
 
 Fix every error. The build writes the generated blocks and `units/index.html`; do not edit those by hand.

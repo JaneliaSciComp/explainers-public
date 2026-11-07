@@ -4,6 +4,7 @@
 Usage, from anywhere inside the repo:
     python3 -I -B scripts/scan_public.py --all [--rev REV]   # everything reachable from REV (default HEAD)
     python3 -I -B scripts/scan_public.py --pre-push          # what a push sends; reads git's pre-push lines on stdin
+    python3 -I -B scripts/scan_public.py --worktree          # what --all scans, plus the files not yet committed
     python3 -I -B scripts/scan_public.py --all --builtin-only   # the built-in patterns only, with no list (for CI)
 
 It matches every string in the forbidden list, ignoring case and inside words, plus two built-in patterns (a
@@ -26,6 +27,9 @@ lines that start with # are skipped. scripts/build_units.py loads it with the sa
 --pre-push scans only what the remote lacks: the new commits and tags, the objects they add, every path in the
 new commits' trees, and the ref names. A new branch or tag, or a remote commit missing here, gets a full scan of
 what it points to. With --all --rev, an annotated tag stays the tip, so its tag object is scanned too.
+--worktree scans what --all scans from HEAD, plus two commits that no ref points to: the staged files, which the
+next commit would hold, and every file that `git add -A` would stage, which is every file on disk that .gitignore
+does not ignore. It writes objects inside .git, and changes no ref, no index and no file outside .git.
 Exit status: 0 no hits, 1 at least one hit, 2 the list is missing or the scan cannot run.
 """
 from __future__ import annotations
@@ -33,8 +37,10 @@ from __future__ import annotations
 import argparse
 import os
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
@@ -205,6 +211,30 @@ def pre_push_ranges(lines: list[str]) -> tuple[list[tuple[list[str], list[str]]]
     return out, refs
 
 
+def worktree_commit() -> str:
+    """Two commits that no ref points to, on top of HEAD: the staged files, then every file that `git add -A` would
+    stage. Returns the second. It works on a copy of the index, so the real index, the refs and the files stay as
+    they are."""
+    index = Path(git("rev-parse", "--git-path", "index").decode().strip())
+    index = index if index.is_absolute() else REPO / index
+    who = {"GIT_AUTHOR_NAME": "scan_public", "GIT_AUTHOR_EMAIL": "scan@example.invalid",
+           "GIT_COMMITTER_NAME": "scan_public", "GIT_COMMITTER_EMAIL": "scan@example.invalid"}
+    with tempfile.TemporaryDirectory() as d:
+        env = {**os.environ, **who, "GIT_INDEX_FILE": str(Path(d) / "index")}
+
+        def run(*args: str) -> str:
+            return subprocess.run(["git", "-C", str(REPO), *args], env=env, capture_output=True,
+                                  check=True).stdout.decode().strip()
+
+        if index.is_file():
+            shutil.copyfile(index, env["GIT_INDEX_FILE"])
+        else:
+            run("read-tree", "HEAD")
+        staged = run("commit-tree", run("write-tree"), "-p", "HEAD", "-m", "scan_public --worktree: the staged files")
+        run("add", "-A")
+        return run("commit-tree", run("write-tree"), "-p", staged, "-m", "scan_public --worktree: the files on disk")
+
+
 # ---------------------------------------------------------------------------------------------- main
 
 def main() -> int:
@@ -212,6 +242,8 @@ def main() -> int:
     mode = ap.add_mutually_exclusive_group(required=True)
     mode.add_argument("--all", action="store_true", help="scan everything reachable from --rev")
     mode.add_argument("--pre-push", action="store_true", help="scan what a push sends (git's pre-push lines on stdin)")
+    mode.add_argument("--worktree", action="store_true",
+                      help="scan what --all scans from HEAD, plus the staged files and the files on disk")
     ap.add_argument("--rev", default="HEAD", help="with --all, the revision to scan from (default HEAD)")
     ap.add_argument("--builtin-only", action="store_true", help="use only the built-in patterns; no list needed")
     ap.add_argument("--forbidden", metavar="PATH", help="the forbidden list (else $%s, else the sibling repo)" % LIST_ENV)
@@ -235,12 +267,21 @@ def main() -> int:
     sc = Scanner(entries)
 
     refs: list[str] = []
-    if args.all:
+    if args.all or args.worktree:
+        rev = args.rev
+        if args.worktree:
+            try:
+                rev = worktree_commit()
+            except subprocess.CalledProcessError as e:
+                print("scan_public: cannot make the commits of the working tree: "
+                      + sc.mask(e.stderr.decode("utf-8", "replace").strip()))
+                return 2
+            print("scan_public: scanning the staged files and the files on disk as commits that no ref points to")
         try:  # keep an annotated tag as the tip, so that its tag object is scanned
-            git("rev-parse", "--verify", f"{args.rev}^{{commit}}")
-            tip = git("rev-parse", "--verify", args.rev).decode().strip()
+            git("rev-parse", "--verify", f"{rev}^{{commit}}")
+            tip = git("rev-parse", "--verify", rev).decode().strip()
         except subprocess.CalledProcessError:
-            print(f"scan_public: no commit at {sc.mask(args.rev)!r}")
+            print(f"scan_public: no commit at {sc.mask(rev)!r}")
             return 2
         ranges = [([tip], [])]
     else:
