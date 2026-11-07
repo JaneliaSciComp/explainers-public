@@ -208,7 +208,7 @@ step 200: train loss 0.019, validation loss 0.026</code></pre>
 
     <div class="callout warn">
       <span class="callout-title">This is a simplification</span>
-      <p>A real loop also logs its numbers and sets random seeds. Its checkpoints also save the state of the
+      <p>A real loop also logs its numbers. Its checkpoints also save the state of the
       random-number generators (see <a href="checkpoints.html">checkpoints</a>). It switches the model between
       training and evaluation modes (<code>model.train()</code> and <code>model.eval()</code>), which matters for layers
       that behave differently in each. On several GPUs it starts one process per GPU before the loop begins.
