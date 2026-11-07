@@ -14,7 +14,7 @@ https://janeliascicomp.github.io/explainers-public/units/vectors.html.
 |---|---|
 | `units/` | the unit pages, the manifest `units.json`, `unit.css`, `unit.js`, `_template.html`, the generated `index.html`, `about.html` (the page that explains the site to readers: units, levels, prerequisites and code), and a `README.md` on the mechanics of a unit page |
 | `units/media/` | the flow-matching video and its captions, narration script and poster; `src/` holds the Manim scene that renders them |
-| `scripts/` | the build and checks: `build_units.py`, `render_check_units.mjs`, `check_buttons.mjs`, `check_links.py`, `run_snippets.py`, `figshots.mjs`, `check_code_blocks.py`, `scan_public.py`, `install-hooks.sh` |
+| `scripts/` | the build and checks: `build_units.py`, `render_check_units.mjs`, `check_buttons.mjs`, `check_links.py`, `run_snippets.py`, `figshots.mjs`, `check_code_blocks.py`, `scan_public.py`, `install-hooks.sh`, `test_leak_scan.sh` |
 | `docs/` | `guide.md`, the guide for people: what makes a good unit, the workflow, the common errors, and how to use the skill |
 | `skills/` | `explainer-units/`, the agent skill for writing, checking, reviewing and fixing units: `SKILL.md`, its `references/` and its test cases in `evals/` |
 | `.github/workflows/` | `check.yml` runs the checks on every push and pull request; `pages.yml` publishes the site |
@@ -65,6 +65,7 @@ absolute home folder. Then the hook runs `git lfs pre-push`, which uploads the v
 The forbidden list is not in this repo. The scan looks for it at `../explainers-private/forbidden-strings.txt`
 beside this clone, or at the path in `$EXPLAINERS_FORBIDDEN_LIST`. Without the list, the hook refuses the push.
 To scan the whole history by hand, run `python3 -I -B scripts/scan_public.py --all`.
+To test the scan and the hook, run `bash scripts/test_leak_scan.sh`.
 
 CI has no list. It runs the build check, which then skips the private-name check, and the scan with
 `--builtin-only`.
