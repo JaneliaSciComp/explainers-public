@@ -207,6 +207,23 @@ refused origin main || s=1
 result "the word in an LFS object's content only: scan exits 1, hook refuses the push, nothing uploaded" $s
 reset_work
 
+# A linked worktree shares the LFS objects of the main one, so the scan must read them there.
+git worktree add -q --detach "$T/wt" HEAD
+cd "$T/wt"
+python3 -I -B - units/media/wt-clip.mp4 "$WORD" <<'EOF'
+import sys
+path, word = sys.argv[1], sys.argv[2]
+open(path, 'wb').write(b'\x00\x00\x00\x18ftypisom\x00\x00\x02\x00' + b'title ' + word.encode() + b'\x00' * 64)
+EOF
+G add units/media/wt-clip.mp4
+G commit -q -m "Test: a new video in a linked worktree"
+s=0
+exits 1 prepush refs/heads/main "$(git rev-parse HEAD)" refs/heads/main "$BASE" || s=1
+result "the word in an LFS object's content, pushed from a linked worktree: scan exits 1" $s
+cd "$T/work"
+git worktree remove --force "$T/wt"
+reset_work
+
 # ----------------------------------------------------------------------------------------------- --worktree
 # Each case starts from a clean work repo. --worktree must find the word wherever the next commit, or `git add -A`,
 # would hold it, and must change nothing: HEAD, the refs, the status and the index are the same after the scan.
@@ -279,6 +296,14 @@ result "scan_public.py with no list exits 2" $s
 out=$(scan --all --rev "$WORD" 2>&1); st=$?; echo "$out" >> "$LOG"
 s=1; [ "$st" = 2 ] && ! printf '%s' "$out" | grep -qi "$WORD" && s=0
 result "scan_public.py --rev <no such revision> exits 2 and masks the revision" $s
+
+TAIL=$(od -An -N4 -tx1 /dev/urandom | tr -d ' \n')
+printf '%s\n%s%s\n' "$WORD" "$WORD" "$TAIL" > "$T/two.txt"
+: > "units/$WORD$TAIL-notes.html"
+out=$(EXPLAINERS_FORBIDDEN_LIST=$T/two.txt python3 -I -B scripts/scan_public.py --worktree 2>&1); st=$?; echo "$out" >> "$LOG"
+s=1; [ "$st" = 1 ] && ! printf '%s' "$out" | grep -qi -e "$WORD" -e "$TAIL" && s=0
+result "a list entry inside a longer one: the scan exits 1 and prints no part of either" $s
+reset_work
 
 s=0
 for list in empty.txt comment-only.txt; do

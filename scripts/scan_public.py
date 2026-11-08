@@ -13,7 +13,8 @@ session URL and an absolute home folder), against everything in its range:
   - every path in the commits' trees, and, with --pre-push, the local and remote ref names the push sends;
   - every text blob, line by line;
   - every binary blob (a NUL byte in its first 8000 bytes), through its printable ASCII runs of 4 or more bytes,
-    which is what `strings` prints. Image metadata, such as a PNG text chunk, is caught this way;
+    which is what `strings` prints. Image metadata stored as plain text, such as a PNG tEXt chunk, is caught this
+    way, but compressed text, such as a zTXt chunk, is not;
   - for a Git LFS pointer, the pointer as text and the object it names from .git/lfs/objects, through its
     printable runs. An object not present here is counted in the summary and not scanned. A push still scans
     each new object, because git-lfs uploads only objects present locally.
@@ -81,6 +82,9 @@ def load_list(path: Path) -> list[str]:
 class Scanner:
     def __init__(self, entries: list[str]) -> None:
         self.entries = [e.lower() for e in entries]
+        # One pattern, longest entry first, so that an entry inside a longer one cannot leave part of it shown.
+        longest = sorted(self.entries, key=len, reverse=True)
+        self.any_entry = re.compile("|".join(map(re.escape, longest)), re.I) if longest else None
         self.hits = 0
 
     def find(self, text: str) -> list[tuple[str, int]]:
@@ -95,8 +99,8 @@ class Scanner:
 
     def mask(self, text: str) -> str:
         """The text with every match replaced by ***, so a path that holds a match can be printed."""
-        for e in self.entries:
-            text = re.sub(re.escape(e), "***", text, flags=re.I)
+        if self.any_entry:
+            text = self.any_entry.sub("***", text)
         for _, rx in BUILTIN:
             text = rx.sub("***", text)
         return text
@@ -137,7 +141,8 @@ def exists(sha: str) -> bool:
 
 
 def lfs_dir() -> Path:
-    d = Path(git("rev-parse", "--git-path", "lfs/objects").decode().strip())
+    """Git LFS keeps its objects in the common git folder, which a linked worktree shares with the main one."""
+    d = Path(git("rev-parse", "--git-common-dir").decode().strip()) / "lfs" / "objects"
     return d if d.is_absolute() else REPO / d
 
 
