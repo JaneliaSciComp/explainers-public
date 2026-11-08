@@ -18,7 +18,7 @@ Contents: one concept; levels; prerequisites; conditions and warning boxes; fact
   briefly, the unit holds more than one concept: split it.
 - Link a prerequisite rather than teach it again. A one-sentence reminder with a link is fine.
 - Explain only the concept. For anything about the site, such as what the levels mean or how the lists of units to
-  read first work, link a section of `units/about.html`, for example `about.html#levels`. A copy on the page goes
+  read first work, link a section of the front page, for example `../index.html#levels`. A copy on the page goes
   out of date when the site changes.
 - For basic Python, link `python-basics` or a good outside tutorial or notebook. Write a unit on coding only for an
   important coding style or case that outside links don't handle well.
@@ -29,8 +29,8 @@ Contents: one concept; levels; prerequisites; conditions and warning boxes; fact
 
 ## Set the level by what the page needs
 
-`units/about.html#levels` defines the three levels, `basic`, `intermediate` and `advanced`. A level describes the
-background that a unit assumes in its own field. To choose one:
+`index.html#levels` on the front page defines the three levels, `basic`, `intermediate` and `advanced`. A level
+describes the background that a unit assumes in its own field. To choose one:
 
 - Set the level by what the page assumes, not by how advanced the topic sounds. Review moved one unit from
   `advanced` to `intermediate`, because its content and its only prerequisite were `intermediate`.

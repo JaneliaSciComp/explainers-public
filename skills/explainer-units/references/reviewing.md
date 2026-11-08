@@ -15,9 +15,9 @@ All paths are relative to the root of the repo clone, `<repo root>`.
 
 - **The pages:** `<the unit ids, or the pages, to review>`, in `<the folder of pages, usually units/>`.
 - **Concept units:** each unit teaches one general concept at one of three levels, `basic`, `intermediate` or
-  `advanced`, which `units/about.html#levels` defines. Read `units/README.md` in full: it states the mechanics. The
-  manifest `units/units.json` gives each unit's id, title, level, kind (`concept` or `hub`), prerequisites
-  (`prereqs`), summary and owner. A hub ties focused units together and needs no figure.
+  `advanced`, which `index.html#levels` on the front page defines. Read `units/README.md` in full: it states the
+  mechanics. The manifest `units/units.json` gives each unit's id, title, level, kind (`concept` or `hub`),
+  prerequisites (`prereqs`), summary and owner. A hub ties focused units together and needs no figure.
 - **The practices:** `skills/explainer-units/references/writing.md` and `figures-and-code.md` say what a good unit
   does. `skills/explainer-units/references/error-patterns.md` lists the errors that past reviews found most often.
 - **The plain-English rules:** `skills/explainer-units/references/plain-english.md`.
@@ -56,10 +56,10 @@ says? Can the stated reader follow it?
    `<figure shots dir>/<id>-fig<N>-light.png` and `-dark.png` (Claude Code's Read tool shows images). In dark mode,
    look for text or lines that vanish or lose contrast. Full-page screenshots are in `<render dir>/<id>-1280.png`,
    `-1280-dark.png` and `-390.png`. They are tall, so open them only when you need the page layout.
-4. **Level and prerequisites.** Check the unit's level against the table in `units/about.html#levels`, by what the
-   page assumes in the unit's own field. If the page uses a concept that it neither explains nor reaches through its
-   chain of prerequisites, that is a finding: name the unit that should be a prerequisite. An unneeded prerequisite is
-   a minor finding.
+4. **Level and prerequisites.** Check the unit's level against the table in `index.html#levels` on the front page, by
+   what the page assumes in the unit's own field. If the page uses a concept that it neither explains nor reaches
+   through its chain of prerequisites, that is a finding: name the unit that should be a prerequisite. An unneeded
+   prerequisite is a minor finding.
 
    Code needs a prerequisite only when the lesson depends on it: in a unit about coding, or where the code carries
    part of the idea. There, a missing `python-basics` or `numpy-arrays` is a finding. Elsewhere, "the code uses
@@ -68,7 +68,7 @@ says? Can the stated reader follow it?
 5. **Scope.** A concept unit teaches one concept, and the concept sets the page's length. It links a prerequisite
    rather than teaching it again at length. A second concept is a finding, and so is a part that does not help the
    reader understand this one. A passage that explains the site itself, such as what the levels mean, instead of
-   linking a section of `units/about.html`, is a finding too. A page's length alone is not.
+   linking a section of the front page, `index.html`, is a finding too. A page's length alone is not.
 6. **Consistency.** Each page uses one term for one thing, and so do your pages and the units they link: notation,
    symbols, and conventions such as whether a vector in a product is a row or a column. Put a conflict with a unit
    outside your scope under `noticed`.

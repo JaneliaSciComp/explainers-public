@@ -20,9 +20,9 @@ concept sets the page's length: the unit explains it as simply as it can be expl
 condition and warning box a reader needs, and then stops. A reader should never have to work through a large
 curriculum to understand one idea.
 
-A unit explains only its own concept. [`about.html`](about.html) explains the site to readers: what a unit is,
-what the levels mean, how the lists of units to read first work, and what the code is for. A page links a section of
-it, such as `about.html#levels`, instead of explaining these things itself.
+A unit explains only its own concept. The front page, [`../index.html`](../index.html), explains the site to readers:
+what a unit is, what the levels mean, how the lists of units to read first work, and what the code is for. A page links
+a section of it, such as `../index.html#levels`, instead of explaining these things itself.
 
 A unit is not about one project. It never names a project that is not public, and never quotes or describes one
 project's code, data, people or results, even without naming them. That material stays in the explanation, which links
@@ -45,8 +45,8 @@ warning as a prompt to split the unit or to make it a hub.
 ## The three levels
 
 The manifest's `levels` map gives the three level ids and their names, in order: `basic` (Basic),
-`intermediate` (Intermediate) and `advanced` (Advanced). [`about.html#levels`](about.html#levels) defines them, and
-each unit's header badge links there.
+`intermediate` (Intermediate) and `advanced` (Advanced). [`../index.html#levels`](../index.html#levels) defines them,
+and each unit's header badge links there.
 
 Every chain of prerequisites ends at `basic` units. So an `intermediate` or `advanced` unit lists at least one
 prerequisite, and only `basic` units may list none. A prerequisite is never at a higher level than the unit that
@@ -75,7 +75,7 @@ Start from `_template.html`. The checker looks for each part by its marker.
 
 | Part | Marker | Who writes it |
 |---|---|---|
-| Header: title and level badge | `<header class="unit-head" data-part="header">` with one `<h1>`; the badge goes between `<!-- unit-meta:start -->` and `<!-- unit-meta:end -->` | you write the `<h1>`; the build fills the badge, which links to `about.html#levels` |
+| Header: title and level badge | `<header class="unit-head" data-part="header">` with one `<h1>`; the badge goes between `<!-- unit-meta:start -->` and `<!-- unit-meta:end -->` | you write the `<h1>`; the build fills the badge, which links to `../index.html#levels` |
 | Prerequisites | `<!-- prereqs:start -->` … `<!-- prereqs:end -->` | the build |
 | The idea in one paragraph | `<section id="idea" class="idea" data-part="idea">` with `<h2>The idea in one paragraph</h2>` | you |
 | Body | `<div class="unit-body" data-part="body">`, holding at least one worked example (`class="example"`) and one `<figure>` with an `<svg>`, `<canvas>`, `<img>` or `<video>` and a `<figcaption>` (a hub needs neither) | you |
@@ -188,8 +188,8 @@ This repo is public, and a push is public at once. A list of forbidden strings, 
 code bases that are not public, lives outside this repo, in the private `explainers-private` repo, so the list
 itself stays private. Two scripts read it:
 
-- `build_units.py` fails any unit page, `index.html`, `about.html`, `_template.html` or `units.json` that contains a
-  listed string, ignoring case and inside words. It checks whole pages, generated blocks included.
+- `build_units.py` fails any unit page, `index.html`, `_template.html`, `units.json` or the front page, `../index.html`,
+  that contains a listed string, ignoring case and inside words. It checks whole pages, generated blocks included.
 - `scripts/scan_public.py` checks every file, every path and every commit message that a push sends. The
   pre-push hook runs it (see the repo's README). It also fails a session URL or an absolute home folder.
 

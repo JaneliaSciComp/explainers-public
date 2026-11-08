@@ -9,12 +9,12 @@ Usage, from anywhere:
     python3 -I -B scripts/build_units.py --check-private DIR     # check DIR/explanations.json and its pages
 
 The units are in units/ beside this script's folder, and units/units.json is the manifest.
-The check fails a unit page, index.html, about.html, _template.html or units.json that contains a string from the
-forbidden list. The list is found as scripts/scan_public.py finds it: --forbidden PATH, then
+The check fails a unit page, index.html, _template.html, units.json or the front page, ../index.html, that contains a
+string from the forbidden list. The list is found as scripts/scan_public.py finds it: --forbidden PATH, then
 $EXPLAINERS_FORBIDDEN_LIST, then ../explainers-private/forbidden-strings.txt beside this repo. With none of them,
 the build prints a notice and skips that check. A local href or src in a public page must stay inside this repo.
 The build fills three generated blocks in every existing unit page, between these markers:
-    <!-- unit-meta:start --> ... <!-- unit-meta:end -->   the level badge, a link to about.html#levels, in the header
+    <!-- unit-meta:start --> ... <!-- unit-meta:end -->   the level badge, a link to ../index.html#levels, in the header
     <!-- prereqs:start -->   ... <!-- prereqs:end -->     links to the units to read first
     <!-- used-by:start -->   ... <!-- used-by:end -->     units and explanation sections that build on this one
 and writes index.html. It writes a file only when its content changes, so running it twice changes nothing.
@@ -41,8 +41,8 @@ ROOT = REPO / "units"
 MANIFEST = ROOT / "units.json"
 INDEX = ROOT / "index.html"
 TEMPLATE = ROOT / "_template.html"
-ABOUT = ROOT / "about.html"         # the page about the site: what a unit is, the levels, prerequisites and code
-LEVELS_HREF = "about.html#levels"   # each unit's header badge links here
+FRONT = REPO / "index.html"         # the front page, whose sections explain the site: units, levels, prerequisites, code
+LEVELS_HREF = "../index.html#levels"  # each unit's header badge links here
 GENERATED = ("unit-meta", "prereqs", "used-by")
 DEFAULT_STATUSES = ["planned", "draft", "reviewed"]
 ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -529,8 +529,9 @@ def gen_index(m: dict) -> str:
          '<link rel="stylesheet" href="unit.css">', '<script src="unit.js" defer></script>', '</head>', '<body>',
          '<main class="unit-index">', '<header class="unit-head">', '  <p class="eyebrow">Concept units</p>',
          '  <h1>Concept units</h1>',
-         '  <p class="idea-lede">Each unit is a concise page that teaches one idea. <a href="about.html">How these pages '
-         'work</a> explains the levels, the units to read first, and the code.</p>',
+         '  <p class="idea-lede">Each unit is a concise page that teaches one idea. '
+         '<a href="../index.html#units">The front page</a> explains the levels, the units to read first, '
+         'and the code.</p>',
          f'  <p class="small">{written} of {len(m["units"])} units are written.{rest}</p>',
          '  <p class="unit-meta">' + " ".join(badge(m, lv) for lv in m["levels"]) + '</p>',
          '</header>', '',
@@ -739,7 +740,7 @@ def check_all(m: dict, rep: Report, require_all: bool) -> None:
         for s in e["sections"]:
             if s["anchor"] not in ids:
                 rep.error(w, f'no element with id "{s["anchor"]}" in {e["page"]} (rebuild that page if you just added it)')
-    known = {f'{u["id"]}.html' for u in m["units"]} | {INDEX.name, TEMPLATE.name, ABOUT.name}
+    known = {f'{u["id"]}.html' for u in m["units"]} | {INDEX.name, TEMPLATE.name}
     for f in sorted(ROOT.glob("*.html")):
         if f.name not in known:
             rep.error(rel(f), "an HTML page with no unit in units.json; add the unit or remove the page")
@@ -769,12 +770,12 @@ def check_all(m: dict, rep: Report, require_all: bool) -> None:
         check_forbidden(m, INDEX, cur, rep)
     else:
         rep.warn(rel(INDEX), "missing; run build_units.py without --check")
-    if ABOUT.exists():
-        about = ABOUT.read_text(encoding="utf-8")
-        check_refs(ABOUT, parse(about), rep)
-        check_forbidden(m, ABOUT, about, rep)
+    if FRONT.exists():
+        front = FRONT.read_text(encoding="utf-8")
+        check_refs(FRONT, parse(front), rep)
+        check_forbidden(m, FRONT, front, rep)
     else:
-        rep.error(rel(ABOUT), "the page about the site is missing; every unit's level badge links to it")
+        rep.error(rel(FRONT), "the front page is missing; every unit's level badge links to it")
     check_forbidden(m, MANIFEST, MANIFEST.read_text(encoding="utf-8"), rep)
 
 

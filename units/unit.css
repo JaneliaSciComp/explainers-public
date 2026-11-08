@@ -82,7 +82,7 @@ header.unit-head { padding-top: 2.6rem; display: grid; gap: 0.7rem; }
 .level-basic { color: var(--lv-basic); }
 .level-intermediate { color: var(--lv-intermediate); }
 .level-advanced { color: var(--lv-advanced); }
-/* The badge in a unit's header links to about.html#levels; it keeps its colour, and underlines on hover. */
+/* The badge in a unit's header links to ../index.html#levels; it keeps its colour, and underlines on hover. */
 a.level-badge { text-decoration: none; }
 a.level-badge:hover { text-decoration: underline; }
 .tag { display: inline-block; font-family: var(--font-mono); font-size: 0.72rem; padding: 0.05rem 0.45rem; border-radius: 99px; border: 1px dashed var(--ink-3); color: var(--ink-3); white-space: nowrap; }

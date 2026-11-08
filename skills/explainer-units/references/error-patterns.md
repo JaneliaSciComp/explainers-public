@@ -169,7 +169,7 @@ transcript was rebuilt from the same cues.
 average and one formula read in words, and its only prerequisite was an `intermediate` unit. The fix set the unit to
 `intermediate` in the manifest and on the page.
 
-**Check.** Compare what the page assumes with the level table in `units/about.html#levels`, and with
+**Check.** Compare what the page assumes with the level table in `index.html#levels` on the front page, and with
 [writing.md](writing.md#set-the-level-by-what-the-page-needs). Set the level by what the page needs, not by how
 advanced the topic sounds.
 

@@ -37,9 +37,9 @@ memory. No script catches these. The steps below prevent them, and each step say
 ## Write a unit
 
 1. **Scope one concept.** Choose the id (lowercase words joined by hyphens), the level and the kind (`concept` or
-   `hub`). `units/about.html#levels` defines the levels. Write "The idea in one paragraph" first, in at most six short
-   sentences. If the idea does not fit, the unit holds two concepts: split it. A reader comes to look up one idea, and
-   a unit that holds several makes them read a course.
+   `hub`). `index.html#levels` on the front page defines the levels. Write "The idea in one paragraph" first, in at most
+   six short sentences. If the idea does not fit, the unit holds two concepts: split it. A reader comes to look up one
+   idea, and a unit that holds several makes them read a course.
 2. **List what the page will use, and set the prerequisites.** Write down every concept, symbol, formula and fact the
    page will need. Include the captions, widget readouts and answers, not only the prose. Include the code when the
    lesson depends on it: in a unit about coding, or where the code carries part of the idea. Other code needs no
